@@ -752,7 +752,7 @@ xi-api-key: ●●●
     <div class="plan">
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D1</span><span class="day-when">segunda</span></div>
+        <div class="day-rail"><span class="day-num">D1</span><span class="day-when">quinta · 27/08</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who pedro">Pedro</span>
@@ -768,11 +768,18 @@ xi-api-key: ●●●
               <div class="task-d">Adicionar <span class="mono">validado_por_ia</span>, <span class="mono">validado_em</span> e <span class="mono">conversation_id</span> em <span class="mono">np_lead_telefones</span>.</div>
             </div>
           </div>
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Abrir validação jurídica (Anatel + LGPD)</div>
+              <div class="task-d">Encaminhar pro jurídico: (1) se a chamada de verificação (sem oferta de produto/serviço) se enquadra nas vedações do Não Me Perturbe/Anatel; (2) exigência de consentimento/aviso de gravação sob a LGPD, já que o ElevenLabs grava e transcreve a ligação nativamente. Achado do research do spec-kit (<span class="mono">.specify/assessments/ldr-automatico/research.md</span>) — não estava no escopo original. <b>Bloqueia o piloto do D5</b> se não estiver resolvido.</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D2</span><span class="day-when">terça</span></div>
+        <div class="day-rail"><span class="day-num">D2</span><span class="day-when">sexta · 28/08</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who pedro">Pedro</span>
@@ -792,7 +799,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D3</span><span class="day-when">quarta</span></div>
+        <div class="day-rail"><span class="day-num">D3</span><span class="day-when">segunda · 31/08</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -812,7 +819,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D4</span><span class="day-when">quinta</span></div>
+        <div class="day-rail"><span class="day-num">D4</span><span class="day-when">terça · 01/09</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who pedro">Pedro</span>
@@ -832,7 +839,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D5</span><span class="day-when">sexta</span></div>
+        <div class="day-rail"><span class="day-num">D5</span><span class="day-when">quarta · 02/09</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who ambos">Igor + Pedro</span>
@@ -845,7 +852,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D6</span><span class="day-when">seg · sem. 2</span></div>
+        <div class="day-rail"><span class="day-num">D6</span><span class="day-when">quinta · 03/09</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who ambos">Igor + Pedro</span>
@@ -858,7 +865,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D7</span><span class="day-when">ter · sem. 2</span></div>
+        <div class="day-rail"><span class="day-num">D7</span><span class="day-when">sexta · 04/09</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -882,7 +889,7 @@ xi-api-key: ●●●
       <span class="gate__icon">🚦</span>
       <div>
         <h4>Critério de go/no-go no dia 7</h4>
-        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão.</p>
+        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisito adicional (D1):</b> o piloto do D5 só roda com validação jurídica (Anatel + LGPD) encerrada — ver task de D1.</p>
       </div>
     </div>
   </section>
