@@ -1,0 +1,992 @@
+<title>LDR Automático</title>
+<style>
+  :root {
+    --bg: #101117;
+    --bg-hero: #0c0d12;
+    --surface-1: #1a1c24;
+    --surface-2: #21232d;
+    --surface-3: #292b37;
+    --border: rgba(255,255,255,.09);
+    --border-strong: rgba(255,255,255,.16);
+    --text: #eceef3;
+    --text-dim: #a7abb8;
+    --text-faint: #74788a;
+
+    --igor: #4f8ff0;
+    --igor-soft: rgba(79,143,240,.13);
+    --igor-border: rgba(79,143,240,.35);
+
+    --ok: #0ec090;
+    --ok-soft: rgba(14,192,144,.13);
+    --ok-border: rgba(14,192,144,.35);
+
+    --pedro: #b78af0;
+    --pedro-soft: rgba(183,138,240,.13);
+    --pedro-border: rgba(183,138,240,.35);
+
+    --ia: #22d3ee;
+    --ia-soft: rgba(34,211,238,.13);
+    --ia-border: rgba(34,211,238,.35);
+
+    --danger: #ef5b62;
+    --danger-soft: rgba(239,91,98,.13);
+    --danger-border: rgba(239,91,98,.35);
+
+    --warn: #e8ac4d;
+    --warn-soft: rgba(232,172,77,.13);
+    --warn-border: rgba(232,172,77,.35);
+
+    --font-display: -apple-system, "Segoe UI Semibold", "Segoe UI", ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+    --font-body: -apple-system, "Segoe UI", ui-sans-serif, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+  ::selection { background: rgba(34,211,238,.28); }
+  :focus-visible { outline: 2px solid var(--ia); outline-offset: 3px; border-radius: 4px; }
+
+  h1, h2, h3, h4 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+  p { margin: 0; }
+  .mono { font-family: var(--font-mono); }
+  a { color: inherit; }
+  b { font-weight: 650; }
+
+  .shell { max-width: 980px; margin: 0 auto; padding: 0 28px 120px; }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    background:
+      radial-gradient(720px 420px at 14% -10%, rgba(34,211,238,.15), transparent 60%),
+      radial-gradient(760px 460px at 96% 6%, rgba(14,192,144,.10), transparent 60%),
+      var(--bg-hero);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 28px 0;
+  }
+  .hero__inner { max-width: 980px; margin: 0 auto; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 100px;
+  }
+  .eyebrow__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ia); box-shadow: 0 0 8px var(--ia); }
+  .hero h1 {
+    font-size: clamp(32px, 4.6vw, 46px); font-weight: 700; letter-spacing: -.015em;
+    margin-top: 18px; max-width: 17ch;
+  }
+  .hero__sub { margin-top: 16px; font-size: 17px; color: var(--text-dim); max-width: 64ch; line-height: 1.6; }
+  .hero__sub b { color: var(--text); }
+
+  /* ficha — responde direto às três lacunas apontadas na revisão */
+  .ficha {
+    margin-top: 36px; margin-bottom: -30px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--border); border: 1px solid var(--border-strong); border-radius: 14px; overflow: hidden;
+  }
+  @media (max-width: 620px) { .ficha { grid-template-columns: 1fr; } }
+  .ficha__cell { background: var(--surface-1); padding: 18px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .ficha__k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-faint); }
+  .ficha__v { font-size: 19px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .ficha__sub { font-size: 11.5px; color: var(--text-faint); }
+
+  /* ---------- SECTION SCAFFOLDING ---------- */
+  section { padding-top: 76px; }
+  .sec-head { margin-bottom: 28px; max-width: 64ch; }
+  .sec-num {
+    font-family: var(--font-mono); font-size: 12px; color: var(--text-faint);
+    letter-spacing: .08em; margin-bottom: 10px; display: block;
+  }
+  .sec-head h2 { font-size: clamp(23px, 3vw, 29px); font-weight: 700; letter-spacing: -.01em; }
+  .sec-head .lede { margin-top: 10px; font-size: 15.5px; color: var(--text-dim); }
+
+  figure { margin: 0; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { margin-top: 14px; font-size: 13px; color: var(--text-faint); max-width: 64ch; }
+  .scroll-x { overflow-x: auto; }
+
+  /* ---------- BEFORE / AFTER ---------- */
+  .ba-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .ba-grid { grid-template-columns: 1fr; } }
+  .ba-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; }
+  .ba-card.human { border-color: var(--igor-border); background: linear-gradient(180deg, var(--igor-soft), var(--surface-1) 60%); }
+  .ba-card.ia { border-color: var(--ia-border); background: linear-gradient(180deg, var(--ia-soft), var(--surface-1) 60%); }
+  .ba-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+  .ba-card.human .ba-label { color: #9cbef7; }
+  .ba-card.ia .ba-label { color: #7fe8f7; }
+  .ba-card h3 { font-size: 17px; margin-top: 8px; font-weight: 650; }
+  .ba-card ul { margin: 14px 0 0; padding-left: 18px; color: var(--text-dim); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .ba-card li::marker { color: var(--text-faint); }
+  .ba-card li b { color: var(--text); }
+
+  /* ---------- TABELA ---------- */
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; min-width: 560px; }
+  thead th {
+    text-align: left; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text-faint); font-weight: 500; padding: 0 14px 10px; border-bottom: 1px solid var(--border-strong);
+  }
+  tbody td { padding: 14px; border-bottom: 1px solid var(--border); color: var(--text-dim); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody th {
+    text-align: left; padding: 14px; border-bottom: 1px solid var(--border);
+    font-weight: 650; font-size: 13.5px; color: var(--text); font-family: var(--font-body); vertical-align: top;
+  }
+  tbody tr:last-child th { border-bottom: none; }
+  tr.chosen th, tr.chosen td { background: var(--ok-soft); }
+  tr.chosen th { color: #7cead0; }
+  .num-cell { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .verdict { font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
+  .verdict.no { color: #ff9a9e; }
+  .verdict.maybe { color: #f0c581; }
+  .verdict.yes { color: #5fe0b6; }
+
+  /* ---------- NUMBERED FLOW ---------- */
+  .flow { display: flex; flex-direction: column; }
+  .flow-step { display: grid; grid-template-columns: 44px 1fr; gap: 20px; position: relative; padding-bottom: 30px; }
+  .flow-step:last-child { padding-bottom: 0; }
+  .flow-rail { position: relative; display: flex; justify-content: center; }
+  .flow-rail::before { content: ""; position: absolute; top: 40px; bottom: -30px; width: 1px; background: var(--border-strong); }
+  .flow-step:last-child .flow-rail::before { display: none; }
+  .flow-badge {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--ia-border);
+    color: var(--ia); display: grid; place-items: center; font-family: var(--font-mono); font-weight: 700; font-size: 14px;
+    flex: none; z-index: 1;
+  }
+  .flow-body { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .flow-body h4 { font-size: 15.5px; font-weight: 650; }
+  .flow-body p { margin-top: 8px; font-size: 14px; color: var(--text-dim); }
+  .flow-body p b { color: var(--text); }
+  .flow-body .tags { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag {
+    font-family: var(--font-mono); font-size: 11.5px; padding: 4px 9px; border-radius: 6px;
+    background: var(--surface-3); color: var(--text-dim); border: 1px solid var(--border);
+  }
+
+  /* ---------- CÓDIGO ---------- */
+  pre {
+    margin: 16px 0 0; background: #0c0d12; border: 1px solid var(--border-strong); border-radius: 11px;
+    padding: 16px 18px; overflow-x: auto; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65;
+    color: var(--text-dim);
+  }
+  pre .k { color: #7fe8f7; }
+  pre .s { color: #9ee0c0; }
+  pre .c { color: var(--text-faint); }
+
+  /* ---------- VOICE SCRIPT ---------- */
+  .voice-card {
+    display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start;
+    background: var(--surface-1); border: 1px solid var(--ia-border); border-radius: 14px; padding: 20px 22px;
+  }
+  @media (max-width: 520px) { .voice-card { grid-template-columns: 1fr; } }
+  .voice-wave { display: flex; align-items: flex-end; gap: 3px; height: 34px; padding-top: 4px; flex: none; }
+  .voice-wave i { display: block; width: 4px; border-radius: 2px; background: var(--ia); opacity: .85; }
+  .voice-script { font-size: 15px; color: var(--text); font-style: italic; line-height: 1.6; }
+  .voice-script b { font-style: normal; color: #7fe8f7; }
+  .voice-note { margin-top: 12px; font-size: 12.5px; color: var(--text-faint); }
+
+  /* ---------- OUTCOME CARDS ---------- */
+  .outcomes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .outcomes { grid-template-columns: 1fr; } }
+  .outcome { border-radius: 12px; padding: 20px; border: 1px solid var(--border); background: var(--surface-1); }
+  .outcome.sim { border-color: var(--ok-border); }
+  .outcome.nao { border-color: var(--danger-border); }
+  .outcome.semresp { border-color: var(--warn-border); }
+  .outcome__icon { font-size: 20px; }
+  .outcome h4 { margin-top: 10px; font-size: 15px; font-weight: 650; }
+  .outcome p { margin-top: 8px; font-size: 13.5px; color: var(--text-dim); }
+  .outcome .result-tag { display: block; margin-top: 12px; font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
+
+  /* ---------- SCREENS ---------- */
+  .screens-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: start; }
+  @media (max-width: 860px) { .screens-grid { grid-template-columns: 1fr; } }
+  .screen-block { display: flex; flex-direction: column; gap: 12px; }
+  .screen-label { display: flex; align-items: center; gap: 9px; }
+  .screen-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .screen-label h4 { font-size: 14.5px; font-weight: 650; }
+  .screen-label span { font-size: 12.5px; color: var(--text-faint); font-family: var(--font-mono); }
+  .frame {
+    border-radius: 13px; border: 1px solid var(--border-strong); background: #15161d; overflow: hidden;
+    box-shadow: 0 20px 50px -20px rgba(0,0,0,.6); height: 100%;
+  }
+  .frame__bar { display: flex; align-items: center; gap: 7px; padding: 10px 12px; background: #191a22; border-bottom: 1px solid var(--border); }
+  .frame__bar i { width: 8px; height: 8px; border-radius: 50%; background: #3a3c48; display: block; }
+  .frame__url {
+    margin-left: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint);
+    background: #101117; border: 1px solid var(--border); border-radius: 5px; padding: 3px 9px; flex: 1;
+  }
+  .frame__body { padding: 16px; display: flex; flex-direction: column; gap: 9px; font-size: 12.5px; }
+  .mock-phone-row {
+    display: flex; align-items: center; gap: 8px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-family: var(--font-mono); font-size: 11px;
+  }
+  .mock-phone-row.off { opacity: .4; }
+  .mock-phone-row .n { flex: 1; color: var(--text-dim); }
+  .mock-phone-row .badge { font-size: 9.5px; padding: 2px 6px; border-radius: 5px; border: 1px solid; }
+  .badge.nao { color: #ff9a9e; border-color: var(--danger-border); background: var(--danger-soft); text-decoration: line-through; }
+  .badge.pend { color: var(--text-faint); border-color: var(--border); background: var(--surface-3); }
+  .mock-lead-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 11px 12px; }
+  .mock-lead-name { font-weight: 600; font-size: 12.5px; }
+  .mock-lead-sub { font-size: 10.5px; color: var(--text-faint); margin-top: 2px; }
+  .mock-single-phone {
+    text-align: center; padding: 12px 8px; background: var(--surface-2); border: 1px solid var(--ok-border); border-radius: 9px;
+  }
+  .mock-single-phone .num { font-family: var(--font-mono); font-size: 17px; font-weight: 700; color: #cdddfb; }
+  .mock-single-phone .tg { font-size: 9.5px; color: #5fe0b6; text-transform: uppercase; letter-spacing: .05em; margin-top: 4px; }
+
+  /* ---------- PLANO 5 DIAS ---------- */
+  .plan { display: flex; flex-direction: column; }
+  .day { display: grid; grid-template-columns: 78px 1fr; gap: 18px; padding-bottom: 14px; position: relative; }
+  @media (max-width: 620px) { .day { grid-template-columns: 1fr; gap: 8px; } }
+  .day-rail { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding-top: 15px; }
+  @media (max-width: 620px) { .day-rail { flex-direction: row; align-items: baseline; gap: 8px; padding-top: 0; } }
+  .day-num { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--ia); letter-spacing: -.01em; }
+  .day-when { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-faint); }
+  .day-tasks { display: flex; flex-direction: column; gap: 8px; }
+  .task {
+    display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 11px; padding: 13px 15px;
+  }
+  .who {
+    font-family: var(--font-mono); font-size: 10.5px; padding: 3px 9px; border-radius: 100px;
+    white-space: nowrap; border: 1px solid; margin-top: 1px;
+  }
+  .who.igor { color: #9cbef7; border-color: var(--igor-border); background: var(--igor-soft); }
+  .who.pedro { color: #cdb2f7; border-color: var(--pedro-border); background: var(--pedro-soft); }
+  .who.ambos { color: #7fe8f7; border-color: var(--ia-border); background: var(--ia-soft); }
+  .task-t { font-size: 14px; font-weight: 600; }
+  .task-d { margin-top: 4px; font-size: 12.5px; color: var(--text-dim); }
+  .gate {
+    margin-top: 18px; background: var(--ok-soft); border: 1px solid var(--ok-border); border-radius: 12px;
+    padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start;
+  }
+  .gate__icon { font-size: 17px; line-height: 1.3; }
+  .gate h4 { font-size: 14.5px; font-weight: 650; color: #7cead0; }
+  .gate p { margin-top: 5px; font-size: 13px; color: var(--text-dim); }
+
+  /* ---------- CUSTO ---------- */
+  .cost-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  @media (max-width: 760px) { .cost-grid { grid-template-columns: 1fr; } }
+  .cost-card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .cost-card .num {
+    font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--ia);
+    letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  }
+  .cost-card .lbl { margin-top: 6px; font-size: 13px; color: var(--text-dim); }
+  .cost-card .sub { margin-top: 4px; font-size: 11.5px; color: var(--text-faint); }
+  .table-wrap { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 18px 8px 8px; }
+
+  /* ---------- RISCOS ---------- */
+  .risk-list { display: flex; flex-direction: column; gap: 10px; }
+  .risk {
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 16px 18px;
+    border-left: 2px solid var(--warn);
+  }
+  .risk.high { border-left-color: var(--danger); }
+  .risk-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .risk-h h4 { font-size: 14.5px; font-weight: 650; }
+  .risk-sev {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 5px; border: 1px solid var(--warn-border); background: var(--warn-soft); color: #f0c581;
+  }
+  .risk.high .risk-sev { border-color: var(--danger-border); background: var(--danger-soft); color: #ff9a9e; }
+  .risk p { margin-top: 7px; font-size: 13.5px; color: var(--text-dim); }
+  .risk .mit { margin-top: 8px; font-size: 12.5px; color: var(--text-faint); }
+  .risk .mit b { color: var(--text-dim); }
+
+  footer {
+    margin-top: 90px; padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--text-faint);
+  }
+</style>
+
+<div class="hero">
+  <div class="hero__inner">
+    <span class="eyebrow"><span class="eyebrow__dot"></span>Nexi Lead 360 · revisão 2 · escopo fechado</span>
+    <h1>LDR Automático</h1>
+    <p class="hero__sub">
+      A mesma etapa proposta na <a href="https://claude.ai/code/artifact/b637b00c-55e0-470b-9aac-e58a84ff6451" target="_blank" rel="noopener">Sala do LDR</a> —
+      confirmar o telefone antes do SDR ligar — só que quem liga é um agente de voz do ElevenLabs, que testa
+      <b>todos</b> os números do lead, não só até achar um que funcione.
+    </p>
+    <div class="ficha">
+      <div class="ficha__cell">
+        <span class="ficha__k">Prazo</span>
+        <span class="ficha__v">7 dias úteis</span>
+        <span class="ficha__sub">até o go/no-go</span>
+      </div>
+      <div class="ficha__cell">
+        <span class="ficha__k">Custo inicial</span>
+        <span class="ficha__v">US$ 22</span>
+        <span class="ficha__sub">ElevenLabs Creator, mês 1</span>
+      </div>
+      <div class="ficha__cell">
+        <span class="ficha__k">Responsáveis</span>
+        <span class="ficha__v">Igor e Pedro</span>
+        <span class="ficha__sub">back-end e telefonia</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ============ 01 O QUE MUDA ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01 — O que muda em relação ao LDR humano</span>
+      <h2>Mesmo objetivo, mecânica diferente</h2>
+      <p class="lede">A Sala do LDR resolvia o problema com uma pessoa ligando. Aqui é a mesma dor — SDR perdendo tempo com telefone que nem existe — resolvida por um robô que audita a lista inteira, não só a primeira que funciona.</p>
+    </div>
+    <div class="ba-grid">
+      <div class="ba-card human">
+        <span class="ba-label">Sala do LDR (humano)</span>
+        <h3>Para no primeiro que confirma</h3>
+        <ul>
+          <li>Disca um número por vez; <b>assim que um confirma</b>, os restantes nem são testados</li>
+          <li>Script tenta descobrir o decisor e o e-mail (bônus)</li>
+          <li>SDR recebe o lead com selo "validado", mas a lista de telefones continua inteira</li>
+          <li>Piloto restrito a 3 times — depende de contratar e escalar pessoas</li>
+        </ul>
+      </div>
+      <div class="ba-card ia">
+        <span class="ba-label">LDR Automático (ElevenLabs Agents)</span>
+        <h3>Testa a lista inteira, sempre</h3>
+        <ul>
+          <li>Liga para <b>todos</b> os números do lead — cada um recebe seu próprio veredito</li>
+          <li>Pergunta fechada, sim ou não: só confirma se é a empresa certa</li>
+          <li>SDR recebe o lead <b>só com os números que responderam sim</b> — o resto some da tela dele</li>
+          <li>Escala com chamadas simultâneas e orçamento, não com contratação</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 POR QUE O 3CX SAI ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02 — Por que o 3CX sai do caminho</span>
+      <h2>O robô não precisa do 3CX para ligar</h2>
+      <p class="lede">Não existe integração programática com o 3CX no projeto, e ela não precisa passar a existir. Foi o maior item de trabalho que saiu do escopo.</p>
+    </div>
+    <div class="scroll-x">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Caminho avaliado</th>
+            <th scope="col">Como funcionaria</th>
+            <th scope="col">Avaliação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Call Control API do 3CX</th>
+            <td>O orquestrador manda o 3CX discar e injeta o áudio do agente na chamada.</td>
+            <td><span class="verdict no">✕ inviável</span><br>A API do 3CX não dá acesso ao áudio da chamada. A própria 3CX orienta usar um cliente SIP no lugar.</td>
+          </tr>
+          <tr>
+            <th scope="row">3CX como tronco do ElevenLabs</th>
+            <td>O ElevenLabs origina a chamada e o 3CX a repassa para a rede telefônica.</td>
+            <td><span class="verdict maybe">△ frágil</span><br>Funciona bem no sentido de entrada. Na saída esbarra em autenticação incompatível e roteamento de tronco para tronco — relatos exigem um proxy SIP no meio.</td>
+          </tr>
+          <tr class="chosen">
+            <th scope="row">Tronco SIP próprio do robô</th>
+            <td>O ElevenLabs disca direto por um tronco contratado só para isso. O 3CX fica só com o SDR.</td>
+            <td><span class="verdict yes">✓ escolhido</span><br>Único caminho em que a chamada ativa é caso de uso documentado, e não contorno.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:20px; max-width:64ch;">O 3CX não agregava nada nesse trecho da esteira: o robô não usa ramal, não entra em fila e não transfere ligação. Ele disca, faz uma pergunta e desliga.</p>
+  </section>
+
+  <!-- ============ 03 ESTEIRA ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03 — Onde o robô entra na esteira</span>
+      <h2>O mesmo encaixe, só que automatizado</h2>
+      <p class="lede">O pool sem dono e o destino (SDR → Agente/Coordenador) não mudam — só quem faz a validação no meio.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 1000 300" role="img" aria-label="Fluxo: o pool sem dono alimenta o robô LDR, que disca por tronco SIP próprio e libera o lead para o SDR já com os números validados; o SDR segue usando o 3CX e o restante da esteira não muda.">
+        <defs>
+          <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+          </marker>
+        </defs>
+
+        <g transform="translate(0,110)">
+          <rect x="0" y="0" width="120" height="70" rx="10" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="4 4"/>
+          <text x="60" y="30" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".65">Pool sem</text>
+          <text x="60" y="44" text-anchor="middle" font-size="11.5" fill="currentColor" opacity=".65">dono</text>
+          <text x="60" y="60" text-anchor="middle" font-size="10" fill="currentColor" opacity=".45" font-family="ui-monospace,monospace">NexLead</text>
+        </g>
+        <line x1="120" y1="145" x2="192" y2="145" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a1)" />
+
+        <g transform="translate(198,60)">
+          <rect x="0" y="0" width="230" height="170" rx="14" fill="#22d3ee1f" stroke="#22d3ee" stroke-width="1.4"/>
+          <text x="20" y="32" font-size="13" font-weight="700" fill="#7fe8f7">Robô LDR</text>
+          <text x="20" y="52" font-size="11" fill="currentColor" opacity=".75">ElevenLabs Agents</text>
+          <text x="20" y="68" font-size="11" fill="currentColor" opacity=".75">+ tronco SIP próprio</text>
+          <line x1="20" y1="82" x2="210" y2="82" stroke="currentColor" stroke-opacity=".15"/>
+          <text x="20" y="100" font-size="10" fill="currentColor" opacity=".55">liga para todos os números</text>
+          <text x="20" y="116" font-size="10" fill="currentColor" opacity=".55">pergunta fechada, sim ou não</text>
+          <text x="20" y="132" font-size="10" fill="currentColor" opacity=".55">grava resultado por número</text>
+          <text x="20" y="148" font-size="10" fill="currentColor" opacity=".55">sem decisor, sem e-mail</text>
+        </g>
+        <line x1="428" y1="145" x2="500" y2="145" stroke="#22d3ee" marker-end="url(#a1)" />
+        <text x="464" y="132" text-anchor="middle" font-size="9.5" font-family="ui-monospace,monospace" fill="#7fe8f7">só nº validados</text>
+
+        <g transform="translate(506,70)">
+          <rect x="0" y="0" width="230" height="150" rx="14" fill="#0ec0901f" stroke="#0ec090" stroke-width="1.4"/>
+          <text x="20" y="34" font-size="13" font-weight="700" fill="#5fe0b6">SDR</text>
+          <text x="20" y="54" font-size="11" fill="currentColor" opacity=".75">Primeiro contato</text>
+          <text x="20" y="70" font-size="11" fill="currentColor" opacity=".75">de verdade — pelo 3CX</text>
+          <line x1="20" y1="84" x2="210" y2="84" stroke="currentColor" stroke-opacity=".15"/>
+          <text x="20" y="102" font-size="10" fill="currentColor" opacity=".55">não muda nada aqui</text>
+          <text x="20" y="118" font-size="10" fill="currentColor" opacity=".55">mesma discagem manual de hoje</text>
+          <text x="20" y="134" font-size="10" fill="currentColor" opacity=".55">agenda reunião / pega fatura</text>
+        </g>
+        <line x1="736" y1="145" x2="808" y2="145" stroke="#0ec090" marker-end="url(#a1)" />
+
+        <g transform="translate(814,70)">
+          <rect x="0" y="0" width="186" height="150" rx="14" fill="#b78af01f" stroke="#b78af0" stroke-width="1.4"/>
+          <text x="18" y="34" font-size="13" font-weight="700" fill="#cdb2f7">Agente /</text>
+          <text x="18" y="50" font-size="13" font-weight="700" fill="#cdb2f7">Coordenador</text>
+          <line x1="18" y1="70" x2="168" y2="70" stroke="currentColor" stroke-opacity=".15"/>
+          <text x="18" y="90" font-size="10" fill="currentColor" opacity=".55">segue o fluxo</text>
+          <text x="18" y="106" font-size="10" fill="currentColor" opacity=".55">comercial normal</text>
+          <text x="18" y="122" font-size="10" fill="currentColor" opacity=".55">(fora deste doc)</text>
+        </g>
+
+        <text x="313" y="255" text-anchor="middle" font-size="10.5" font-family="ui-monospace,monospace" fill="currentColor" opacity=".5">novo: única peça a construir</text>
+        <text x="621" y="255" text-anchor="middle" font-size="10.5" font-family="ui-monospace,monospace" fill="currentColor" opacity=".5">3CX continua aqui, intocado</text>
+        <text x="907" y="255" text-anchor="middle" font-size="10.5" font-family="ui-monospace,monospace" fill="currentColor" opacity=".5">fora do escopo desta ferramenta</text>
+      </svg>
+      <figcaption>Uma única caixa nova na esteira. Tudo à direita dela — SDR no 3CX, Agente, Coordenador — continua exatamente como já foi desenhado na Sala do LDR.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 04 PASSO A PASSO ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04 — Passo a passo do robô</span>
+      <h2>O que acontece entre pegar o lead e liberar para o SDR</h2>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">1</div></div>
+        <div class="flow-body">
+          <h4>Pega um lead do pool</h4>
+          <p>Mesmo critério de hoje: sem dono, já enriquecido, com a lista de telefones levantada pela geração automática — nenhum confirmado por voz ainda.</p>
+          <div class="tags"><span class="tag">agente_id = null</span><span class="tag">já enriquecido</span></div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">2</div></div>
+        <div class="flow-body">
+          <h4>Abre uma chamada por número da lista</h4>
+          <p>Uma requisição para o ElevenLabs por telefone, levando o nome da empresa junto. Diferente do LDR humano, o robô <b>não para</b> no primeiro número que atende — ele testa a lista inteira, mesmo que o segundo já tenha confirmado.</p>
+          <div class="tags"><span class="tag">POST /v1/convai/sip-trunk/outbound-call</span></div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">3</div></div>
+        <div class="flow-body">
+          <h4>Atendeu — o agente faz a pergunta</h4>
+          <p>Fala programada, não conversa livre: pergunta direto se aquele é o telefone da empresa que está sendo verificada <b>naquela chamada</b>. O nome do lead entra na frase de abertura a cada ligação.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">4</div></div>
+        <div class="flow-body">
+          <h4>Ouve a resposta e encerra</h4>
+          <p>O próprio agente interpreta o sim ou não e desliga. Não precisa achar decisor nem e-mail — a chamada dura poucos segundos.</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">5</div></div>
+        <div class="flow-body">
+          <h4>O resultado daquele número chega e é gravado</h4>
+          <p>Ao fim da chamada, o ElevenLabs envia a transcrição e os campos extraídos para o nosso endereço. Cada telefone recebe seu próprio veredito — um "sim" num número não dispensa testar os outros.</p>
+          <div class="tags"><span class="tag">webhook de pós-chamada</span><span class="tag">np_lead_telefones</span></div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-badge">6</div></div>
+        <div class="flow-body">
+          <h4>Esgotou a lista — libera o lead</h4>
+          <p>Só depois de testar todo mundo. Se pelo menos um número respondeu sim, o lead sai da fila do robô e entra na do SDR — levando só os números validados.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 NÃO PARA NO PRIMEIRO ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05 — A diferença que mais importa</span>
+      <h2>Liga para todos — não para no primeiro que der certo</h2>
+      <p class="lede">É o oposto da cascata da Sala do LDR original. Lá, achar um número bom encerrava a busca. Aqui, cada número é auditado por conta própria.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 1000 210" role="img" aria-label="Comparação: no LDR humano, achar o telefone 2 encerra a busca e os telefones 3 e 4 nunca são testados; no robô, todos os quatro são testados, cada um com seu próprio resultado.">
+        <g font-family="ui-monospace,monospace" font-size="10.5">
+          <text x="0" y="16" fill="currentColor" opacity=".55">Sala do LDR (humano) — para no 2º</text>
+          <rect x="0" y="26" width="90" height="34" rx="7" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".25"/>
+          <text x="45" y="47" text-anchor="middle" fill="currentColor" opacity=".7">tel 1 — não</text>
+          <rect x="106" y="26" width="90" height="34" rx="7" fill="#0ec0901f" stroke="#0ec090" stroke-opacity=".6"/>
+          <text x="151" y="47" text-anchor="middle" fill="#5fe0b6">tel 2 — sim</text>
+          <text x="220" y="47" fill="currentColor" opacity=".8">→ para aqui.</text>
+          <rect x="332" y="26" width="150" height="34" rx="7" fill="currentColor" fill-opacity=".03" stroke="currentColor" stroke-opacity=".15" stroke-dasharray="3 3"/>
+          <text x="407" y="47" text-anchor="middle" fill="currentColor" opacity=".4">tel 3 e tel 4 — nunca testados</text>
+        </g>
+        <g font-family="ui-monospace,monospace" font-size="10.5">
+          <text x="0" y="106" fill="currentColor" opacity=".55">LDR Automático — testa os quatro</text>
+          <rect x="0" y="116" width="90" height="34" rx="7" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".25"/>
+          <text x="45" y="137" text-anchor="middle" fill="currentColor" opacity=".7">tel 1 — não</text>
+          <rect x="106" y="116" width="90" height="34" rx="7" fill="#0ec0901f" stroke="#0ec090" stroke-opacity=".6"/>
+          <text x="151" y="137" text-anchor="middle" fill="#5fe0b6">tel 2 — sim</text>
+          <rect x="212" y="116" width="90" height="34" rx="7" fill="#ef5b621f" stroke="#ef5b62" stroke-opacity=".5"/>
+          <text x="257" y="137" text-anchor="middle" fill="#ff9a9e">tel 3 — não</text>
+          <rect x="318" y="116" width="110" height="34" rx="7" fill="#e8ac4d1f" stroke="#e8ac4d" stroke-opacity=".5"/>
+          <text x="373" y="137" text-anchor="middle" fill="#f0c581">tel 4 — s/ resp.</text>
+          <text x="452" y="137" fill="currentColor" opacity=".8">→ libera com tel 2.</text>
+        </g>
+        <line x1="0" y1="80" x2="1000" y2="80" stroke="currentColor" stroke-opacity=".08"/>
+      </svg>
+      <figcaption>Mesmo cenário nos dois exemplos: o tel 2 confirma a empresa. No LDR humano isso já basta e o restante nunca é testado. No robô, tel 3 e tel 4 são testados de qualquer forma — o lead sai para o SDR levando só o tel 2, mas o sistema sabe, com certeza, o estado dos quatro. É também o que multiplica o custo: veja a seção 11.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 06 A FALA ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06 — A fala do robô</span>
+      <h2>Roteiro fixo, não conversa livre</h2>
+      <p class="lede">A pergunta é sempre a mesma estrutura, com o nome da empresa do lead entrando no lugar certo a cada ligação.</p>
+    </div>
+    <div class="voice-card">
+      <div class="voice-wave">
+        <i style="height:10px"></i><i style="height:22px"></i><i style="height:14px"></i><i style="height:30px"></i>
+        <i style="height:18px"></i><i style="height:26px"></i><i style="height:12px"></i><i style="height:20px"></i>
+      </div>
+      <div>
+        <p class="voice-script">"Olá, aqui é da <b>Tendência Energia</b>. Este é o telefone da empresa <b>{{nome_lead}}</b>?"</p>
+        <p class="voice-note">Sem pedir decisor, sem pedir e-mail — a resposta sim ou não já encerra o que o robô precisa saber daquela chamada. O <span class="mono">{{nome_lead}}</span> é uma variável preenchida por chamada, a partir do cadastro do lead que está sendo verificado naquele momento.</p>
+      </div>
+    </div>
+    <pre><span class="c"># uma chamada, um número</span>
+POST https://api.elevenlabs.io<span class="k">/v1/convai/sip-trunk/outbound-call</span>
+xi-api-key: ●●●
+
+{
+  <span class="k">"agent_id"</span>: <span class="s">"…"</span>,
+  <span class="k">"agent_phone_number_id"</span>: <span class="s">"…"</span>,
+  <span class="k">"to_number"</span>: <span class="s">"+5585998124410"</span>,
+  <span class="k">"dynamic_variables"</span>: {
+    <span class="k">"nome_lead"</span>: <span class="s">"Metalúrgica Bom Jardim"</span>,
+    <span class="k">"telefone_id"</span>: <span class="s">"…"</span>
+  }
+}</pre>
+  </section>
+
+  <!-- ============ 07 DESFECHOS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">07 — Os três desfechos possíveis, por número</span>
+      <h2>Cada telefone tem seu próprio resultado</h2>
+      <p class="lede">Diferente da Sala do LDR, onde havia um desfecho por lead, aqui o desfecho é por telefone — um lead com 4 números termina com até 4 vereditos independentes.</p>
+    </div>
+    <div class="outcomes">
+      <div class="outcome sim">
+        <div class="outcome__icon">✅</div>
+        <h4>Sim — é a empresa</h4>
+        <p>Esse número entra na lista que o SDR recebe. Não interrompe o teste dos outros números do mesmo lead.</p>
+        <span class="result-tag">e_a_empresa = true</span>
+      </div>
+      <div class="outcome nao">
+        <div class="outcome__icon">❌</div>
+        <h4>Não — empresa errada</h4>
+        <p>O número existe e atende, mas não é a empresa certa. Descartado.</p>
+        <span class="result-tag">e_a_empresa = false</span>
+      </div>
+      <div class="outcome semresp">
+        <div class="outcome__icon">🟡</div>
+        <h4>Sem resposta</h4>
+        <p>Não atendeu, caiu ou não completou. Não é descarte definitivo — volta para a fila em outro horário, como já acontece na Sala do Agente.</p>
+        <span class="result-tag">chamada não conectou → repescagem</span>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:20px; max-width:64ch;">Os dois primeiros vêm do campo <span class="mono">e_a_empresa</span>, que o ElevenLabs extrai da transcrição ao fim da chamada e entrega no webhook. O terceiro vem da própria chamada não ter conectado.</p>
+  </section>
+
+  <!-- ============ 08 O QUE O SDR VÊ ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">08 — O que o SDR passa a ver</span>
+      <h2>Chega com 1 ou 2 números, não com 8</h2>
+      <p class="lede">Hoje o SDR vê a lista bruta inteira e descarta na mão. Com o robô no meio, ele só vê o que já passou.</p>
+    </div>
+    <div class="screens-grid">
+      <div class="screen-block">
+        <div class="screen-label">
+          <span class="screen-dot" style="background:var(--text-faint)"></span>
+          <h4>Hoje</h4>
+          <span>lead cru, todos os números</span>
+        </div>
+        <div class="frame">
+          <div class="frame__bar"><i></i><i></i><i></i><span class="frame__url">sala-agente — lead cru</span></div>
+          <div class="frame__body">
+            <div class="mock-lead-card">
+              <div class="mock-lead-name">Metalúrgica Bom Jardim</div>
+              <div class="mock-lead-sub">Fortaleza / CE · 6 números na lista</div>
+            </div>
+            <div class="mock-phone-row"><span class="n">(85) 3221-9987</span><span class="badge pend">não testado</span></div>
+            <div class="mock-phone-row"><span class="n">(85) 99812-4410</span><span class="badge pend">não testado</span></div>
+            <div class="mock-phone-row"><span class="n">(85) 3244-1200</span><span class="badge pend">não testado</span></div>
+            <div class="mock-phone-row"><span class="n">(85) 98877-0021</span><span class="badge pend">não testado</span></div>
+            <div class="mock-phone-row off"><span class="n">+ 2 outros</span><span class="badge pend">não testado</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-block">
+        <div class="screen-label">
+          <span class="screen-dot" style="background:var(--ia)"></span>
+          <h4>Com o LDR Automático</h4>
+          <span>lead já auditado pelo robô</span>
+        </div>
+        <div class="frame">
+          <div class="frame__bar"><i></i><i></i><i></i><span class="frame__url">sala-agente — validado</span></div>
+          <div class="frame__body">
+            <div class="mock-lead-card">
+              <div class="mock-lead-name">Metalúrgica Bom Jardim</div>
+              <div class="mock-lead-sub">6 números testados · 1 confirmado</div>
+            </div>
+            <div class="mock-single-phone">
+              <div class="num">(85) 99812-4410</div>
+              <div class="tg">confirmado — ligue aqui</div>
+            </div>
+            <div class="mock-phone-row off"><span class="n">outros 5 números</span><span class="badge nao">descartados — já testados</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 ARQUITETURA ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">09 — Como as peças se conectam</span>
+      <h2>Arquitetura técnica, em alto nível</h2>
+      <p class="lede">Todas as peças são produtos existentes ou código nosso — nada aqui depende de uma escolha ainda não feita.</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Arquitetura: a fila no Supabase alimenta o orquestrador, que chama a API do ElevenLabs Agents; o agente disca pelo tronco SIP até o telefone do lead e, ao fim da chamada, envia o resultado por webhook, que grava o veredito na tabela de telefones e libera o lead para o SDR.">
+        <defs>
+          <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+          </marker>
+        </defs>
+        <g font-family="ui-monospace,monospace" font-size="10.5">
+
+          <rect x="0" y="40" width="132" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
+          <text x="66" y="64" text-anchor="middle" fill="currentColor">fila de leads</text>
+          <text x="66" y="80" text-anchor="middle" fill="currentColor" opacity=".5">Supabase</text>
+          <line x1="132" y1="69" x2="186" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
+
+          <rect x="192" y="34" width="150" height="70" rx="9" fill="#4f8ff01f" stroke="#4f8ff0" stroke-opacity=".7"/>
+          <text x="267" y="58" text-anchor="middle" fill="#9cbef7">orquestrador</text>
+          <text x="267" y="74" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">1 chamada por número</text>
+          <text x="267" y="90" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">código nosso</text>
+          <line x1="342" y1="69" x2="396" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
+
+          <rect x="402" y="26" width="180" height="86" rx="10" fill="#22d3ee1f" stroke="#22d3ee" stroke-opacity=".8"/>
+          <text x="492" y="52" text-anchor="middle" fill="#7fe8f7">ElevenLabs Agents</text>
+          <text x="492" y="70" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">escuta · entende · fala</text>
+          <text x="492" y="86" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">extrai e_a_empresa</text>
+          <text x="492" y="102" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">da transcrição</text>
+          <line x1="582" y1="69" x2="636" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
+
+          <rect x="642" y="40" width="132" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
+          <text x="708" y="64" text-anchor="middle" fill="currentColor">tronco SIP</text>
+          <text x="708" y="80" text-anchor="middle" fill="currentColor" opacity=".5">a contratar — dia 1</text>
+          <line x1="774" y1="69" x2="828" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
+
+          <rect x="834" y="40" width="166" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
+          <text x="917" y="64" text-anchor="middle" fill="currentColor">telefone do lead</text>
+          <text x="917" y="80" text-anchor="middle" fill="currentColor" opacity=".5">rede telefônica</text>
+
+          <path d="M492 112 L492 160" stroke="#22d3ee" stroke-opacity=".55" fill="none" marker-end="url(#a2)"/>
+          <text x="504" y="140" fill="#7fe8f7" opacity=".85" font-size="9.5">fim da chamada</text>
+
+          <rect x="330" y="166" width="200" height="58" rx="9" fill="#4f8ff01f" stroke="#4f8ff0" stroke-opacity=".7"/>
+          <text x="430" y="190" text-anchor="middle" fill="#9cbef7">webhook de pós-chamada</text>
+          <text x="430" y="206" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">transcrição + campos extraídos</text>
+          <line x1="530" y1="195" x2="590" y2="195" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
+
+          <rect x="596" y="166" width="200" height="58" rx="9" fill="#0ec0901f" stroke="#0ec090" stroke-opacity=".7"/>
+          <text x="696" y="190" text-anchor="middle" fill="#5fe0b6">np_lead_telefones</text>
+          <text x="696" y="206" text-anchor="middle" fill="currentColor" opacity=".55" font-size="9.5">veredito por número → SDR</text>
+
+        </g>
+      </svg>
+      <figcaption>O orquestrador e o webhook são o código a escrever — ambos dentro do projeto que já existe. O tronco SIP é a única contratação nova além do plano do ElevenLabs.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 10 PLANO ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">10 — Plano de execução</span>
+      <h2>Sete dias úteis, com dono em cada tarefa</h2>
+      <p class="lede">Igor toca back-end, banco e webhook, dentro do projeto que já mantém. Pedro toca a conta do ElevenLabs, o roteiro do agente e a telefonia. Os dois trabalham em paralelo até o piloto, que é conjunto.</p>
+    </div>
+    <div class="plan">
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D1</span><span class="day-when">segunda</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Abrir a conta e a linha</div>
+              <div class="task-d">Plano Creator do ElevenLabs, contratar o tronco SIP e importar o número no painel. Sem isso, ninguém testa nada.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Migração no banco</div>
+              <div class="task-d">Adicionar <span class="mono">validado_por_ia</span>, <span class="mono">validado_em</span> e <span class="mono">conversation_id</span> em <span class="mono">np_lead_telefones</span>.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D2</span><span class="day-when">terça</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Montar o agente</div>
+              <div class="task-d">Roteiro, voz em português, frase de abertura com <span class="mono">{{nome_lead}}</span>, encerramento automático e o campo <span class="mono">e_a_empresa</span> na extração de dados.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Endpoint do webhook</div>
+              <div class="task-d">Receber o resultado da chamada, validar a assinatura e gravar o veredito no telefone certo.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D3</span><span class="day-when">quarta</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Orquestrador</div>
+              <div class="task-d">Puxar o lead da fila, disparar uma chamada por número, controlar simultaneidade e marcar o lead como liberado quando a lista esgotar.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Teste de voz em números internos</div>
+              <div class="task-d">Ajustar velocidade, sotaque e tempo de espera da resposta ligando para celulares do time antes de tocar em lead real.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D4</span><span class="day-when">quinta</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Afinar o roteiro com o que os testes mostraram</div>
+              <div class="task-d">Corrigir o que travou nas ligações internas: frase longa demais, tempo de espera curto, resposta ambígua sendo lida como sim.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Repescagem dos sem resposta</div>
+              <div class="task-d">Quem não atendeu volta para a fila em outro horário, com limite de tentativas — senão o mesmo número é discado para sempre.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D5</span><span class="day-when">sexta</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who ambos">Igor + Pedro</span>
+            <div>
+              <div class="task-t">Piloto real: 4 leads, cerca de 20 números</div>
+              <div class="task-d">Primeira rodada ponta a ponta em leads de verdade, acompanhada ao vivo, com liberdade para abortar no meio se a fala não estiver funcionando.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D6</span><span class="day-when">seg · sem. 2</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who ambos">Igor + Pedro</span>
+            <div>
+              <div class="task-t">Conferir os 20 números no áudio</div>
+              <div class="task-d">Ouvir cada chamada pelo <span class="mono">conversation_id</span> e comparar com o veredito gravado. É aqui que sai a taxa de acerto que decide o projeto.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">D7</span><span class="day-when">ter · sem. 2</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who igor">Igor</span>
+            <div>
+              <div class="task-t">Tela do SDR</div>
+              <div class="task-d">Esconder os números descartados na Sala do Agente e destacar o confirmado, como na seção 08.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who ambos">Igor + Pedro</span>
+            <div>
+              <div class="task-t">Fechar o custo e decidir</div>
+              <div class="task-d">Custo real por número testado, medido no consumo da semana, contra a projeção da seção 11.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="gate">
+      <span class="gate__icon">🚦</span>
+      <div>
+        <h4>Critério de go/no-go no dia 7</h4>
+        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 11 CUSTO ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">11 — Custo</span>
+      <h2>US$ 22 no mês 1 — e o que acontece depois dele</h2>
+      <p class="lede">O plano contratado cobre o piloto e boa parte da produção com folga. A tabela abaixo já usa a média real de telefones por lead, medida direto no banco (<span class="mono">np_lead_telefones</span>) — não é mais estimativa.</p>
+    </div>
+    <div class="cost-grid">
+      <div class="cost-card">
+        <div class="num">US$ 22</div>
+        <div class="lbl">ElevenLabs Creator, por mês</div>
+        <div class="sub">Único desembolso fixo aprovado</div>
+      </div>
+      <div class="cost-card">
+        <div class="num">275 min</div>
+        <div class="lbl">Inclusos no plano</div>
+        <div class="sub">Depois disso, US$ 0,08 por minuto</div>
+      </div>
+      <div class="cost-card">
+        <div class="num">~229</div>
+        <div class="lbl">Leads testáveis no mês 1</div>
+        <div class="sub">≈412 números, a 40s/chamada, sem custo extra</div>
+      </div>
+    </div>
+    <div class="table-wrap scroll-x">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Cenário</th>
+            <th scope="col">Volume</th>
+            <th scope="col">Minutos</th>
+            <th scope="col">Custo mensal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Piloto dos 7 dias</th>
+            <td class="num-cell">4 leads · ~20 números</td>
+            <td class="num-cell">~13 min</td>
+            <td class="num-cell">incluso</td>
+          </tr>
+          <tr class="chosen">
+            <th scope="row">Mês 1 dentro do plano</th>
+            <td class="num-cell">~229 leads · ~412 números</td>
+            <td class="num-cell">275 min</td>
+            <td class="num-cell">US$ 22</td>
+          </tr>
+          <tr>
+            <th scope="row">Produção, 500 leads/mês</th>
+            <td class="num-cell">500 leads · 900 números</td>
+            <td class="num-cell">~600 min</td>
+            <td class="num-cell">~US$ 48</td>
+          </tr>
+          <tr>
+            <th scope="row">Produção, 1.000 leads/mês</th>
+            <td class="num-cell">1.000 leads · 1.800 números</td>
+            <td class="num-cell">~1.200 min</td>
+            <td class="num-cell">~US$ 96</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:18px; max-width:64ch;">
+      Contas feitas com <b>1,8 números por lead</b> — média real dos últimos 30 dias entre os leads efetivamente
+      distribuídos pros agentes (mediana 1), medida em <span class="mono">np_reposicao_execucoes</span> ×
+      <span class="mono">np_lead_telefones</span>, no lugar da estimativa inicial de 6 — e 40 segundos de
+      conversa por chamada, essa ainda a confirmar no piloto de quinta. Com a premissa de telefone corrigida,
+      o custo em produção cai a menos de um terço do que a primeira versão deste plano projetava.
+      <b>O tronco SIP é cobrado à parte</b>, por minuto, pelo provedor: é o único item de custo ainda não fechado,
+      e sai da cotação do dia 1.
+    </p>
+  </section>
+
+  <!-- ============ 12 RISCOS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">12 — Riscos</span>
+      <h2>O que pode derrubar o projeto</h2>
+    </div>
+    <div class="risk-list">
+      <div class="risk high">
+        <div class="risk-h"><h4>Regras de chamada automatizada</h4><span class="risk-sev">alto</span></div>
+        <p>Discagem automatizada em massa esbarra na Lei do Não Me Perturbe e nas regras da Anatel sobre chamadas automáticas. Isso pode mudar horário permitido, cadência e tratamento de números bloqueados.</p>
+        <p class="mit"><b>Mitigação:</b> validar com quem responde por jurídico antes do dia 5, e não expandir para além dos 20 números do piloto sem esse retorno.</p>
+      </div>
+      <div class="risk">
+        <div class="risk-h"><h4>Recepcionista desliga antes de responder</h4><span class="risk-sev">médio</span></div>
+        <p>Uma voz sintética fazendo uma pergunta fechada pode ser desligada na primeira frase, o que vira "sem resposta" e polui o resultado.</p>
+        <p class="mit"><b>Mitigação:</b> é exatamente o que o teste de voz do dia 3 e a conferência de áudio do dia 6 existem para medir.</p>
+      </div>
+      <div class="risk">
+        <div class="risk-h"><h4>Reputação do número que disca</h4><span class="risk-sev">médio</span></div>
+        <p>Volume alto saindo de um número novo tende a ser marcado como spam pelas operadoras, derrubando a taxa de atendimento com o tempo.</p>
+        <p class="mit"><b>Mitigação:</b> subir volume aos poucos e acompanhar a taxa de atendimento por semana desde o piloto.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>LDR Automático — proposta interna · Nexi Lead 360</span>
+    <span>Revisão 2 · escopo, prazo, custo e responsáveis fechados</span>
+  </footer>
+</div>
