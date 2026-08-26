@@ -746,21 +746,14 @@ xi-api-key: ●●●
   <section>
     <div class="sec-head">
       <span class="sec-num">10 — Plano de execução</span>
-      <h2>Sete dias úteis, com dono em cada tarefa</h2>
-      <p class="lede">Igor toca back-end, banco e webhook, dentro do projeto que já mantém. Pedro toca a conta do ElevenLabs, o roteiro do agente e a telefonia. Os dois trabalham em paralelo até o piloto, que é conjunto.</p>
+      <h2>Sete dias úteis — lado do Igor</h2>
+      <p class="lede">Este cronograma cobre só as tarefas do Igor (back-end, banco, webhook, orquestrador, validação jurídica). O Pedro cuida separadamente da conta ElevenLabs, do roteiro do agente e do tronco SIP — sem essas peças prontas do lado dele, o piloto do D5 não roda.</p>
     </div>
     <div class="plan">
 
       <div class="day">
         <div class="day-rail"><span class="day-num">D1</span><span class="day-when">quinta · 27/08</span></div>
         <div class="day-tasks">
-          <div class="task">
-            <span class="who pedro">Pedro</span>
-            <div>
-              <div class="task-t">Abrir a conta e a linha</div>
-              <div class="task-d">Plano Creator do ElevenLabs, contratar o tronco SIP e importar o número no painel. Sem isso, ninguém testa nada.</div>
-            </div>
-          </div>
           <div class="task">
             <span class="who igor">Igor</span>
             <div>
@@ -782,13 +775,6 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D2</span><span class="day-when">sexta · 28/08</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who pedro">Pedro</span>
-            <div>
-              <div class="task-t">Montar o agente</div>
-              <div class="task-d">Roteiro, voz em português, frase de abertura com <span class="mono">{{nome_lead}}</span>, encerramento automático e o campo <span class="mono">e_a_empresa</span> na extração de dados.</div>
-            </div>
-          </div>
-          <div class="task">
             <span class="who igor">Igor</span>
             <div>
               <div class="task-t">Endpoint do webhook</div>
@@ -808,13 +794,6 @@ xi-api-key: ●●●
               <div class="task-d">Puxar o lead da fila, disparar uma chamada por número, controlar simultaneidade e marcar o lead como liberado quando a lista esgotar.</div>
             </div>
           </div>
-          <div class="task">
-            <span class="who pedro">Pedro</span>
-            <div>
-              <div class="task-t">Teste de voz em números internos</div>
-              <div class="task-d">Ajustar velocidade, sotaque e tempo de espera da resposta ligando para celulares do time antes de tocar em lead real.</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -822,17 +801,17 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D4</span><span class="day-when">terça · 01/09</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who pedro">Pedro</span>
+            <span class="who igor">Igor</span>
             <div>
-              <div class="task-t">Afinar o roteiro com o que os testes mostraram</div>
-              <div class="task-d">Corrigir o que travou nas ligações internas: frase longa demais, tempo de espera curto, resposta ambígua sendo lida como sim.</div>
+              <div class="task-t">Repescagem dos sem resposta</div>
+              <div class="task-d">Quem não atendeu volta para a fila em outro horário, com limite de tentativas — senão o mesmo número é discado para sempre.</div>
             </div>
           </div>
           <div class="task">
             <span class="who igor">Igor</span>
             <div>
-              <div class="task-t">Repescagem dos sem resposta</div>
-              <div class="task-d">Quem não atendeu volta para a fila em outro horário, com limite de tentativas — senão o mesmo número é discado para sempre.</div>
+              <div class="task-t">Checar validação jurídica</div>
+              <div class="task-d">Confirmar se a validação jurídica aberta no D1 foi concluída — é pré-requisito para o piloto de amanhã.</div>
             </div>
           </div>
         </div>
@@ -842,9 +821,9 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D5</span><span class="day-when">quarta · 02/09</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who ambos">Igor + Pedro</span>
+            <span class="who igor">Igor</span>
             <div>
-              <div class="task-t">Piloto real: 4 leads, cerca de 20 números</div>
+              <div class="task-t">Piloto real (com o Pedro): 4 leads, cerca de 20 números</div>
               <div class="task-d">Primeira rodada ponta a ponta em leads de verdade, acompanhada ao vivo, com liberdade para abortar no meio se a fala não estiver funcionando.</div>
             </div>
           </div>
@@ -855,7 +834,7 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D6</span><span class="day-when">quinta · 03/09</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who ambos">Igor + Pedro</span>
+            <span class="who igor">Igor</span>
             <div>
               <div class="task-t">Conferir os 20 números no áudio</div>
               <div class="task-d">Ouvir cada chamada pelo <span class="mono">conversation_id</span> e comparar com o veredito gravado. É aqui que sai a taxa de acerto que decide o projeto.</div>
@@ -875,7 +854,7 @@ xi-api-key: ●●●
             </div>
           </div>
           <div class="task">
-            <span class="who ambos">Igor + Pedro</span>
+            <span class="who igor">Igor</span>
             <div>
               <div class="task-t">Fechar o custo e decidir</div>
               <div class="task-d">Custo real por número testado, medido no consumo da semana, contra a projeção da seção 11.</div>
