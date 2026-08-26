@@ -50,3 +50,11 @@ agente, tronco SIP) separadamente. Detalhe técnico completo de cada item está 
 - [ ] Tela do SDR: esconder números descartados, destacar o confirmado
 - [ ] Fechar custo real vs. projeção da seção 11
 - [ ] Gate de go/no-go: ≥9/10 de acerto no veredito + custo dentro da projeção
+
+## Backlog — depois do go/no-go (sem dia fixo ainda)
+
+- [ ] **Dashboard comparativo LDR Automático vs. LDR manual (humano)**: métricas lado a lado dos dois
+  fluxos de validação de telefone — ex. taxa de acerto do veredito, custo por lead/número testado,
+  tempo até liberar pro SDR, volume processado. Depende de dados reais dos dois lados: o piloto do
+  LDR Automático (D5-D6) e a implementação da "Sala do LDR" (LDR humano, projeto do outro dev, ainda
+  não implementado). Escopo (quais métricas exatas, onde vive o dashboard) ainda por definir.
