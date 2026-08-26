@@ -1,0 +1,54 @@
+# Idea Intake: LDR Automático — validação de telefone de leads por IA de voz
+
+- **Slug**: ldr-automatico
+- **Created**: 2026-08-26
+- **Source**: repo path — `02 - LDR Automatico (IA + 3CX).html` e `03 - Resumo e decisoes.md` (material de planejamento já existente neste repositório, revisão 2, 18-19/08/2026)
+- **Type**: new-capability
+
+## Idea (as captured)
+
+> LDR Automático: um robô de voz (ElevenLabs Agents) liga para todos os telefones de cada lead do
+> Nexi Lead 360, faz uma pergunta fechada sim/não para confirmar se é o telefone da empresa certa, e
+> só libera para o SDR os números confirmados. Diferente da proposta irmã "Sala do LDR" (validador
+> humano, que parava no primeiro número confirmado), o robô testa a lista inteira sempre, e cada
+> telefone recebe seu próprio veredito.
+>
+> Decisão técnica já fechada: o robô disca por um tronco SIP próprio contratado só para isso — não
+> pelo 3CX existente (Call Control API do 3CX não dá acesso a áudio; usar o 3CX como tronco do agente
+> de voz é frágil). O 3CX continua existindo só para o SDR discar manualmente, como hoje.
+>
+> Resultado de cada chamada (`e_a_empresa=true/false`, ou sem resposta) é gravado por telefone em
+> `np_lead_telefones` (colunas novas: `validado_por_ia`, `validado_em`, `conversation_id`) via webhook
+> de pós-chamada do ElevenLabs.
+>
+> Plano de execução já desenhado: 7 dias úteis (Igor cuida de banco/webhook/orquestrador; Pedro cuida
+> da conta ElevenLabs/roteiro do agente/tronco SIP), piloto real no dia 5 (4 leads, ~20 números),
+> conferência de áudio no dia 6, gate de go/no-go no dia 7 exigindo acerto em pelo menos 9 de cada 10
+> vereditos conferidos.
+>
+> Custo projetado: US$22/mês (plano ElevenLabs Creator, 275 min inclusos) cobre o piloto e ~229
+> leads/mês; em produção (500-1.000 leads/mês) sobe para ~US$48-96/mês, usando a média real medida de
+> 1,8 telefone por lead — mais o tronco SIP, cobrado à parte por minuto e ainda não orçado.
+>
+> Risco mais alto identificado: conformidade com a Lei do Não Me Perturbe e regras da Anatel sobre
+> discagem automatizada, ainda sem validação jurídica. Riscos médios: recepcionista desligar antes da
+> IA terminar a pergunta, e reputação do número que disca virar spam nas operadoras com volume alto.
+
+## Restated
+
+Substituir a validação humana de telefone de leads (proposta "Sala do LDR") por um agente de voz de
+IA que liga para todos os números de cada lead, confirma por sim/não se é a empresa certa, e só
+repassa ao SDR os números confirmados — eliminando a dependência de contratar e escalar pessoas para
+essa etapa.
+
+## Origin & Context
+
+- **Raised by**: Igor (Nexi Lead 360) — ideia dele de automatizar a etapa de validação já desenhada na proposta "Sala do LDR"
+- **Trigger**: evolução direta da "Sala do LDR" (LDR humano); necessidade de uma solução que escale com volume de chamadas via orçamento, em vez de contratação de pessoas
+
+## First-Glance Unknowns
+
+- [NEEDS CLARIFICATION: validação jurídica sobre a Lei do Não Me Perturbe e regras da Anatel para discagem automatizada em massa — apontada como risco alto, ainda não realizada]
+- [NEEDS CLARIFICATION: custo e SLA exatos do tronco SIP — provedor ainda não contratado nem orçado]
+- [NEEDS CLARIFICATION: taxa real de "recepcionista desliga antes de responder" — só será medida no piloto (dia 5) e na conferência de áudio (dia 6)]
+- [NEEDS CLARIFICATION: se/quando este repositório standalone (`ldr-automatico`) será integrado de volta ao repositório `nexi-lead-360`, onde a arquitetura original da revisão 2 previa que o webhook e o orquestrador fossem código escrito dentro daquele projeto]
