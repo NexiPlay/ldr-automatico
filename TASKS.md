@@ -1,7 +1,7 @@
 # LDR Automático — Tasks (Igor)
 
 Cronograma de execução, só o lado do Igor — o Pedro cuida das próprias tasks (ElevenLabs, roteiro do
-agente, tronco SIP) separadamente. Detalhe técnico completo de cada item está em
+agente, número Twilio) separadamente. Detalhe técnico completo de cada item está em
 `02 - LDR Automatico (IA + 3CX).html` (seção 10) e nos achados do research em
 `.specify/assessments/ldr-automatico/research.md`.
 
@@ -17,12 +17,14 @@ agente, tronco SIP) separadamente. Detalhe técnico completo de cada item está 
 - [x] Rodar `/speckit-assess-intake` (slug=`ldr-automatico`)
 - [x] Rodar `/speckit-assess-research` (slug=`ldr-automatico`) — achados: risco LGPD (voz é dado biométrico, gravação/transcrição exige consentimento) não previsto no plano original; zona cinzenta sobre chamada de verificação vs. telemarketing na regra da Anatel; tentativa anterior não documentada de IA de voz (Nexi SDR/Infobip)
 - [x] Atualizar seção 10 do HTML (datas reais D1-D7 + task nova de validação jurídica)
+- [x] Mudança de arquitetura (26/08): tronco SIP próprio avulso → **integração nativa ElevenLabs + Twilio**, com número brasileiro alugado na conta Twilio (upgrade já feito). Atualizado no HTML (seções 02, 06, 09, 11), no `research.md` e no `intake.md`
 - [ ] Commit + push deste `TASKS.md` e do HTML atualizado
 
 ## D1 — quinta 27/08
 
 - [ ] Migração no banco: adicionar `validado_por_ia`, `validado_em`, `conversation_id` em `np_lead_telefones`
 - [ ] Abrir validação jurídica (Anatel + LGPD) — ver research; **bloqueia o piloto do D5** se não estiver resolvido até lá
+- [ ] *(externo, Pedro)* Regulatory Bundle da Twilio pro número BR — validações de identidade sequenciais, cada etapa só libera depois da anterior aprovada. Pode levar mais que 1 dia (Twilio cita até 3 dias úteis, ou semanas em alguns países) — **também bloqueia o piloto do D5**; vale começar o quanto antes
 
 ## D2 — sexta 28/08
 

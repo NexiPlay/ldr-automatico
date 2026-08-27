@@ -45,6 +45,31 @@
 - [NEEDS CLARIFICATION: por que a iniciativa anterior "Nexi SDR" (Infobip) não avançou — histórico não documentado nos materiais disponíveis]
 - [NEEDS CLARIFICATION: nenhuma comparação de custo/qualidade foi feita contra uma camada simples de validação de número (Twilio Lookup ou similar) como filtro antes de ligar — pode reduzir o volume de chamadas e, portanto, a exposição regulatória e o custo]
 
+## Atualização — 26/08/2026
+
+Mudança de arquitetura (ver `intake.md`): tronco SIP próprio avulso → **integração nativa ElevenLabs
++ Twilio**, número brasileiro. Novo achado relevante que não existia na pesquisa original:
+
+- **Regulatory Bundle da Twilio é um novo item de risco de cronograma.** Para número local brasileiro,
+  a Twilio exige a criação de um "Regulatory Bundle" (documentos de identidade/suporte do titular da
+  conta), submetido para revisão; só depois de aprovado o bundle pode ser atribuído ao número, e só
+  então o número fica disponível para discar. A própria documentação da Twilio diz que a revisão
+  "geralmente leva até 3 dias úteis, mas em algumas regiões pode levar várias semanas" — não há
+  confirmação específica do prazo para o Brasil nas fontes encontradas. — [source: twilio.com/docs/phone-numbers/regulatory/faq, twilio.com/en-us/blog/developers/developers-guide-phone-number-regulatory-requirements] (confidence: medium — prazo específico do Brasil não confirmado, é o prazo genérico documentado pela Twilio)
+- **Isso é uma dependência externa que ameaça o cronograma de 7 dias úteis** tal como fechado: o plano
+  original assumia "abrir a conta e contratar o tronco/número" como uma task de 1 dia (D1). Se o
+  Regulatory Bundle levar mais que isso — o que a própria Twilio admite ser possível — o piloto do D5
+  fica bloqueado até o número ser aprovado, independente do resto do trabalho estar pronto. — [ASSUMPTION — risco inferido a partir do prazo documentado pela Twilio, não confirmado com um caso real de número brasileiro] (confidence: medium)
+- **A integração nativa ElevenLabs↔Twilio em si é bem documentada e simples tecnicamente**: contas
+  pagas nos dois lados, importar o número Twilio no painel ElevenLabs (SID + Auth Token), atribuir a
+  um agente, e chamar `POST /v1/convai/twilio/outbound-call`. Não muda a complexidade do orquestrador
+  ou do webhook que o Igor já ia construir — só troca o provedor de telefonia. — [source: elevenlabs.io/docs/eleven-agents/phone-numbers/twilio-integration/native-integration, elevenlabs.io/docs/api-reference/twilio/outbound-call] (confidence: high; cited)
+- **Não muda a análise de Anatel/LGPD já feita** — é a mesma atividade (chamada automatizada de
+  verificação, com gravação/transcrição), só muda quem origina tecnicamente a chamada. A necessidade
+  de validação jurídica continua a mesma, e o Regulatory Bundle da Twilio (que já valida a identidade
+  de quem está discando) é um requisito *adicional*, não um substituto da validação jurídica sobre
+  Anatel/Não Me Perturbe/LGPD.
+
 ## Sources
 
 - https://www.gov.br/anatel/pt-br/consumidor/destaques/anatel-edita-medida-cautelar-para-combate-a-chamadas-de-robocall (host: gov.br, policy: allowlisted — domínio governamental oficial)
@@ -54,3 +79,7 @@
 - https://www.ddcomsystems.com.br/lgpd-e-a-gravacao-de-voz-do-cliente (host: ddcomsystems.com.br, policy: confirmed-by-user)
 - https://elevenlabs.io/blog/how-we-scaled-inbound-sales (host: elevenlabs.io, policy: confirmed-by-user)
 - internal — artefato Claude "LDR Automático" (revisão 2), `02 - LDR Automatico (IA + 3CX).html` e `03 - Resumo e decisoes.md`, neste repositório
+- https://www.twilio.com/docs/phone-numbers/regulatory/faq (host: twilio.com, policy: confirmed-by-user)
+- https://www.twilio.com/en-us/blog/developers/developers-guide-phone-number-regulatory-requirements (host: twilio.com, policy: confirmed-by-user)
+- https://elevenlabs.io/docs/eleven-agents/phone-numbers/twilio-integration/native-integration (host: elevenlabs.io, policy: confirmed-by-user)
+- https://elevenlabs.io/docs/api-reference/twilio/outbound-call (host: elevenlabs.io, policy: confirmed-by-user)

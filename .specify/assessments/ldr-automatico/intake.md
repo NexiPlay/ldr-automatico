@@ -49,6 +49,16 @@ essa etapa.
 ## First-Glance Unknowns
 
 - [NEEDS CLARIFICATION: validação jurídica sobre a Lei do Não Me Perturbe e regras da Anatel para discagem automatizada em massa — apontada como risco alto, ainda não realizada]
-- [NEEDS CLARIFICATION: custo e SLA exatos do tronco SIP — provedor ainda não contratado nem orçado]
+- [NEEDS CLARIFICATION: custo exato do número brasileiro na Twilio (aluguel + por minuto) — conta já teve upgrade, mas número ainda não aprovado]
 - [NEEDS CLARIFICATION: taxa real de "recepcionista desliga antes de responder" — só será medida no piloto (dia 5) e na conferência de áudio (dia 6)]
 - [NEEDS CLARIFICATION: se/quando este repositório standalone (`ldr-automatico`) será integrado de volta ao repositório `nexi-lead-360`, onde a arquitetura original da revisão 2 previa que o webhook e o orquestrador fossem código escrito dentro daquele projeto]
+
+## Atualização — 26/08/2026 (mesmo dia, pós-intake)
+
+Mudança de arquitetura decidida pelo Igor/Pedro: em vez de um **tronco SIP próprio avulso** (o que
+esta intake original registrava), o projeto passa a usar a **integração nativa ElevenLabs + Twilio**.
+A conta Twilio já recebeu o upgrade necessário; falta alugar um número brasileiro, que exige um
+"Regulatory Bundle" da Twilio — validação de identidade em **etapas sequenciais**, cada uma só
+liberando a próxima depois de aprovada. Isso substitui o item "custo e SLA do tronco SIP" acima pelo
+mesmo tipo de incerteza, agora do lado da Twilio — ver `research.md` para o achado sobre prazo
+(pode levar de poucos dias úteis a algumas semanas, segundo a documentação da própria Twilio).

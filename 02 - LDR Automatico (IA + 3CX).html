@@ -308,7 +308,7 @@
 
 <div class="hero">
   <div class="hero__inner">
-    <span class="eyebrow"><span class="eyebrow__dot"></span>Nexi Lead 360 · revisão 2 · escopo fechado</span>
+    <span class="eyebrow"><span class="eyebrow__dot"></span>Nexi Lead 360 · revisão 3 · integração nativa Twilio</span>
     <h1>LDR Automático</h1>
     <p class="hero__sub">
       A mesma etapa proposta na <a href="https://claude.ai/code/artifact/b637b00c-55e0-470b-9aac-e58a84ff6451" target="_blank" rel="noopener">Sala do LDR</a> —
@@ -396,9 +396,9 @@
             <td><span class="verdict maybe">△ frágil</span><br>Funciona bem no sentido de entrada. Na saída esbarra em autenticação incompatível e roteamento de tronco para tronco — relatos exigem um proxy SIP no meio.</td>
           </tr>
           <tr class="chosen">
-            <th scope="row">Tronco SIP próprio do robô</th>
-            <td>O ElevenLabs disca direto por um tronco contratado só para isso. O 3CX fica só com o SDR.</td>
-            <td><span class="verdict yes">✓ escolhido</span><br>Único caminho em que a chamada ativa é caso de uso documentado, e não contorno.</td>
+            <th scope="row">Integração nativa ElevenLabs + Twilio</th>
+            <td>O ElevenLabs disca pela integração nativa com Twilio, usando um número brasileiro alugado na conta Twilio (já com upgrade feito). O 3CX fica só com o SDR.</td>
+            <td><span class="verdict yes">✓ escolhido</span><br>Caso de uso documentado nativamente pela ElevenLabs — substitui a ideia original de contratar um tronco SIP avulso. Número BR exige aprovação de um "Regulatory Bundle" da Twilio (documentos de identidade em etapas sequenciais, cada uma só libera a próxima depois de validada) antes de poder discar.</td>
           </tr>
         </tbody>
       </table>
@@ -493,7 +493,7 @@
         <div class="flow-body">
           <h4>Abre uma chamada por número da lista</h4>
           <p>Uma requisição para o ElevenLabs por telefone, levando o nome da empresa junto. Diferente do LDR humano, o robô <b>não para</b> no primeiro número que atende — ele testa a lista inteira, mesmo que o segundo já tenha confirmado.</p>
-          <div class="tags"><span class="tag">POST /v1/convai/sip-trunk/outbound-call</span></div>
+          <div class="tags"><span class="tag">POST /v1/convai/twilio/outbound-call</span></div>
         </div>
       </div>
       <div class="flow-step">
@@ -582,8 +582,8 @@
         <p class="voice-note">Sem pedir decisor, sem pedir e-mail — a resposta sim ou não já encerra o que o robô precisa saber daquela chamada. O <span class="mono">{{nome_lead}}</span> é uma variável preenchida por chamada, a partir do cadastro do lead que está sendo verificado naquele momento.</p>
       </div>
     </div>
-    <pre><span class="c"># uma chamada, um número</span>
-POST https://api.elevenlabs.io<span class="k">/v1/convai/sip-trunk/outbound-call</span>
+    <pre><span class="c"># uma chamada, um número — via integração nativa Twilio</span>
+POST https://api.elevenlabs.io<span class="k">/v1/convai/twilio/outbound-call</span>
 xi-api-key: ●●●
 
 {
@@ -716,8 +716,8 @@ xi-api-key: ●●●
           <line x1="582" y1="69" x2="636" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
 
           <rect x="642" y="40" width="132" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
-          <text x="708" y="64" text-anchor="middle" fill="currentColor">tronco SIP</text>
-          <text x="708" y="80" text-anchor="middle" fill="currentColor" opacity=".5">a contratar — dia 1</text>
+          <text x="708" y="64" text-anchor="middle" fill="currentColor">Twilio (número BR)</text>
+          <text x="708" y="80" text-anchor="middle" fill="currentColor" opacity=".5">validação regulatória em curso</text>
           <line x1="774" y1="69" x2="828" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
 
           <rect x="834" y="40" width="166" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
@@ -738,7 +738,7 @@ xi-api-key: ●●●
 
         </g>
       </svg>
-      <figcaption>O orquestrador e o webhook são o código a escrever — ambos dentro do projeto que já existe. O tronco SIP é a única contratação nova além do plano do ElevenLabs.</figcaption>
+      <figcaption>O orquestrador e o webhook são o código a escrever — ambos dentro do projeto que já existe. Twilio (upgrade de conta já feito) é a contratação nova além do plano do ElevenLabs; falta só a aprovação regulatória do número brasileiro.</figcaption>
     </figure>
   </section>
 
@@ -868,7 +868,7 @@ xi-api-key: ●●●
       <span class="gate__icon">🚦</span>
       <div>
         <h4>Critério de go/no-go no dia 7</h4>
-        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisito adicional (D1):</b> o piloto do D5 só roda com validação jurídica (Anatel + LGPD) encerrada — ver task de D1.</p>
+        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisitos adicionais:</b> o piloto do D5 só roda com (1) a validação jurídica (Anatel + LGPD) encerrada — ver task de D1 — e (2) o número brasileiro da Twilio aprovado e importado no ElevenLabs (Pedro, fora deste cronograma — pode levar mais que um dia, ver research).</p>
       </div>
     </div>
   </section>
@@ -941,8 +941,10 @@ xi-api-key: ●●●
       <span class="mono">np_lead_telefones</span>, no lugar da estimativa inicial de 6 — e 40 segundos de
       conversa por chamada, essa ainda a confirmar no piloto de quinta. Com a premissa de telefone corrigida,
       o custo em produção cai a menos de um terço do que a primeira versão deste plano projetava.
-      <b>O tronco SIP é cobrado à parte</b>, por minuto, pelo provedor: é o único item de custo ainda não fechado,
-      e sai da cotação do dia 1.
+      <b>O número brasileiro na Twilio é cobrado à parte</b> — aluguel mensal do número + tarifa por minuto,
+      cobrados pela própria Twilio (não pelo ElevenLabs). É o único item de custo ainda não fechado; a conta
+      Twilio já teve o upgrade feito, mas o número em si só fica disponível depois que o "Regulatory Bundle"
+      (validação de identidade em etapas sequenciais) for aprovado.
     </p>
   </section>
 
@@ -973,6 +975,6 @@ xi-api-key: ●●●
 
   <footer>
     <span>LDR Automático — proposta interna · Nexi Lead 360</span>
-    <span>Revisão 2 · escopo, prazo, custo e responsáveis fechados</span>
+    <span>Revisão 3 · integração nativa ElevenLabs + Twilio (número BR), demais escopo/prazo/custo/responsáveis mantidos</span>
   </footer>
 </div>
