@@ -18,6 +18,7 @@ Cronograma de execução, Igor e Pedro juntos. Detalhe técnico completo de cada
 - [x] Atualizar seção 10 do HTML (datas reais D1-D7 + task nova de validação jurídica)
 - [x] Mudança de arquitetura (26/08): tronco SIP próprio avulso → **integração nativa ElevenLabs + Twilio**, com número brasileiro alugado na conta Twilio (upgrade já feito). Atualizado no HTML (seções 02, 06, 09, 11), no `research.md` e no `intake.md`
 - [x] Reunir as tasks do Pedro de volta neste arquivo (estavam separadas, voltaram a pedido do Igor)
+- [x] Dashboard (1ª parte, adiantada do backlog): nova seção "LDR Automático" dentro de `frontend/telas/ldr-coordenador.html` (projeto `nexi-lead-360`, painel já existente do LDR humano) — KPIs + gráfico de tendência com **dados mockados** (`frontend/js/ldr-automatico-painel.js`, novo arquivo). Não commitado no repo do nexi-lead-360 ainda (tem outras mudanças locais em progresso lá, não mexidas)
 - [ ] Commit + push deste `TASKS.md` e do HTML atualizado
 
 ## Tasks do Pedro (sem data fixa ainda)
@@ -60,10 +61,17 @@ Cronograma de execução, Igor e Pedro juntos. Detalhe técnico completo de cada
 - [ ] Fechar custo real vs. projeção da seção 11 (Igor + Pedro)
 - [ ] Gate de go/no-go: ≥9/10 de acerto no veredito + custo dentro da projeção
 
-## Backlog — depois do go/no-go (sem dia fixo ainda)
+## Backlog — dashboard (parte 2, sem dia fixo ainda)
 
-- [ ] **Dashboard comparativo LDR Automático vs. LDR manual (humano)**: métricas lado a lado dos dois
-  fluxos de validação de telefone — ex. taxa de acerto do veredito, custo por lead/número testado,
-  tempo até liberar pro SDR, volume processado. Depende de dados reais dos dois lados: o piloto do
-  LDR Automático (D5-D6) e a implementação da "Sala do LDR" (LDR humano, projeto do outro dev, ainda
-  não implementado). Escopo (quais métricas exatas, onde vive o dashboard) ainda por definir.
+- [x] ~~Parte 1: seção "LDR Automático" na tela do painel do LDR, com dados mockados~~ — feita hoje, ver Setup
+- [ ] **Trocar mock por dado real** assim que o Pedro tiver o banco salvando as chamadas: substituir
+  `mockSerie()`/`mockResumo()` em `ldr-automatico-painel.js` por uma chamada real, no mesmo formato
+  que `ldrPainelCoordenador`/`ldrPainelSerie` já usam pro LDR humano (ver `api-client.js` no
+  nexi-lead-360), e remover o badge "dados de exemplo" do HTML
+  quando isso acontecer.
+- [ ] Decidir se cabe alguma métrica só do LDR Automático que não tem equivalente no painel humano
+  (ex. custo em US$, breakdown por status Twilio/ElevenLabs) além do que já foi colocado (leads
+  processados, números testados, válidos, taxa de acerto)
+- [ ] Commit + push das mudanças em `frontend/telas/ldr-coordenador.html` e
+  `frontend/js/ldr-automatico-painel.js` no repo `nexi-lead-360` (hoje só editei os arquivos no Drive,
+  não commitei — esse repo tinha outras mudanças locais em progresso)
