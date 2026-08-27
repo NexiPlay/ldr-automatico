@@ -746,10 +746,44 @@ xi-api-key: ●●●
   <section>
     <div class="sec-head">
       <span class="sec-num">10 — Plano de execução</span>
-      <h2>Sete dias úteis — lado do Igor</h2>
-      <p class="lede">Este cronograma cobre só as tarefas do Igor (back-end, banco, webhook, orquestrador, validação jurídica). O Pedro cuida separadamente da conta ElevenLabs, do roteiro do agente e do tronco SIP — sem essas peças prontas do lado dele, o piloto do D5 não roda.</p>
+      <h2>Sete dias úteis, Igor e Pedro juntos</h2>
+      <p class="lede">As tasks do Pedro (Twilio, agente ElevenLabs, dados de chamada, transcrição) ainda não têm data fechada por item — aparecem em bloco antes do D1. Nenhuma delas tem dono trocado: o piloto do D5 só roda com o bloco do Pedro concluído, junto com a validação jurídica do Igor no D1.</p>
     </div>
     <div class="plan">
+
+      <div class="day">
+        <div class="day-rail"><span class="day-num">Pedro</span><span class="day-when">sem data fixa</span></div>
+        <div class="day-tasks">
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Finalizar validações do número BR na Twilio</div>
+              <div class="task-d">Regulatory Bundle da Twilio — validações de identidade em etapas sequenciais, cada uma só libera a próxima depois de aprovada. <b>Bloqueia o piloto do D5.</b> Vale começar o quanto antes: a própria Twilio documenta prazo de até 3 dias úteis, podendo levar semanas em alguns países.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Desenvolver o agente no ElevenLabs</div>
+              <div class="task-d">Roteiro, voz PT-BR, frase de abertura com <span class="mono">{{nome_lead}}</span>, extração de <span class="mono">e_a_empresa</span> — e analisar se é necessário pagar por assinaturas/planos adicionais além do Creator.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Analisar chamadas de API do ElevenLabs</div>
+              <div class="task-d">Mapear os parâmetros retornados pelas chamadas da API sobre as ligações e definir o que salvar no banco de dados.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">Implementar transcrição das chamadas</div>
+              <div class="task-d">Base pra validação humana — é o insumo direto da conferência de áudio do D6.</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div class="day">
         <div class="day-rail"><span class="day-num">D1</span><span class="day-when">quinta · 27/08</span></div>
@@ -814,6 +848,13 @@ xi-api-key: ●●●
               <div class="task-d">Confirmar se a validação jurídica aberta no D1 foi concluída — é pré-requisito para o piloto de amanhã.</div>
             </div>
           </div>
+          <div class="task">
+            <span class="who ambos">Igor + Pedro</span>
+            <div>
+              <div class="task-t">Checar bloco de tasks do Pedro</div>
+              <div class="task-d">Twilio aprovado, agente pronto, salvamento dos parâmetros de chamada e transcrição implementados — tudo isso também é pré-requisito para o piloto de amanhã.</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -821,9 +862,9 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D5</span><span class="day-when">quarta · 02/09</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who igor">Igor</span>
+            <span class="who ambos">Igor + Pedro</span>
             <div>
-              <div class="task-t">Piloto real (com o Pedro): 4 leads, cerca de 20 números</div>
+              <div class="task-t">Piloto real: 4 leads, cerca de 20 números</div>
               <div class="task-d">Primeira rodada ponta a ponta em leads de verdade, acompanhada ao vivo, com liberdade para abortar no meio se a fala não estiver funcionando.</div>
             </div>
           </div>
@@ -834,10 +875,10 @@ xi-api-key: ●●●
         <div class="day-rail"><span class="day-num">D6</span><span class="day-when">quinta · 03/09</span></div>
         <div class="day-tasks">
           <div class="task">
-            <span class="who igor">Igor</span>
+            <span class="who ambos">Igor + Pedro</span>
             <div>
-              <div class="task-t">Conferir os 20 números no áudio</div>
-              <div class="task-d">Ouvir cada chamada pelo <span class="mono">conversation_id</span> e comparar com o veredito gravado. É aqui que sai a taxa de acerto que decide o projeto.</div>
+              <div class="task-t">Conferir os 20 números no áudio/transcrição</div>
+              <div class="task-d">Ouvir/ler cada chamada pelo <span class="mono">conversation_id</span> (transcrição implementada pelo Pedro) e comparar com o veredito gravado. É aqui que sai a taxa de acerto que decide o projeto.</div>
             </div>
           </div>
         </div>
@@ -854,7 +895,7 @@ xi-api-key: ●●●
             </div>
           </div>
           <div class="task">
-            <span class="who igor">Igor</span>
+            <span class="who ambos">Igor + Pedro</span>
             <div>
               <div class="task-t">Fechar o custo e decidir</div>
               <div class="task-d">Custo real por número testado, medido no consumo da semana, contra a projeção da seção 11.</div>
@@ -868,7 +909,7 @@ xi-api-key: ●●●
       <span class="gate__icon">🚦</span>
       <div>
         <h4>Critério de go/no-go no dia 7</h4>
-        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisitos adicionais:</b> o piloto do D5 só roda com (1) a validação jurídica (Anatel + LGPD) encerrada — ver task de D1 — e (2) o número brasileiro da Twilio aprovado e importado no ElevenLabs (Pedro, fora deste cronograma — pode levar mais que um dia, ver research).</p>
+        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisitos adicionais:</b> o piloto do D5 só roda com (1) a validação jurídica (Anatel + LGPD) encerrada — ver task de D1 — e (2) o bloco de tasks do Pedro concluído, sobretudo o número brasileiro da Twilio aprovado e importado no ElevenLabs (pode levar mais que um dia, ver research).</p>
       </div>
     </div>
   </section>
