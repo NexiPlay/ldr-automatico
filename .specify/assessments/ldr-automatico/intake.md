@@ -62,3 +62,22 @@ A conta Twilio já recebeu o upgrade necessário; falta alugar um número brasil
 liberando a próxima depois de aprovada. Isso substitui o item "custo e SLA do tronco SIP" acima pelo
 mesmo tipo de incerteza, agora do lado da Twilio — ver `research.md` para o achado sobre prazo
 (pode levar de poucos dias úteis a algumas semanas, segundo a documentação da própria Twilio).
+
+## Atualização — 31/08/2026 (pivô de volta: Twilio → 3CX)
+
+Twilio **descartado por custo** (número BR alugado + tarifa por minuto, além do Regulatory Bundle) —
+o Pedro passou a nova arquitetura: o robô disca pelo **tronco de saída do 3CX que a empresa já opera
+("3CX Tendência")**, integrado ao ElevenLabs via SIP trunk (não mais integração nativa Twilio). Isso
+é, na prática, uma volta parcial à decisão original desta intake (3CX como tronco), só que usando o
+3CX **existente** da empresa em vez de um tronco SIP avulso contratado à parte — e essa variante já
+tinha sido avaliada como "frágil" na revisão 2 (autenticação/roteamento tronco-a-tronco), mas o Pedro
+validou funcionando de ponta a ponta com conta pessoal do ElevenLabs antes de reportar isso.
+
+Nota à parte: um upgrade de plano do 3CX que tinha sido mencionado antes **não tem relação com este
+projeto** — foi feito por outro motivo.
+
+Isso elimina o item "custo exato do número Twilio" da lista de incertezas abaixo — não existe mais
+número alugado à parte. Em troca, entra uma nova incerteza: **conta/plano oficial do ElevenLabs em
+nome da Nexi** (o Pedro está definindo isso agora — os US$22/mês de Creator eram suposição da fase
+Twilio, não confirmados para este cenário). Ver checklist de progresso do Pedro (1-11) no `TASKS.md`
+do repo.

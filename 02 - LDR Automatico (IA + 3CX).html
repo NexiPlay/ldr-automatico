@@ -308,7 +308,7 @@
 
 <div class="hero">
   <div class="hero__inner">
-    <span class="eyebrow"><span class="eyebrow__dot"></span>Nexi Lead 360 · revisão 3 · integração nativa Twilio</span>
+    <span class="eyebrow"><span class="eyebrow__dot"></span>Nexi Lead 360 · revisão 4 · 3CX Tendência + ElevenLabs</span>
     <h1>LDR Automático</h1>
     <p class="hero__sub">
       A mesma etapa proposta na <a href="https://claude.ai/code/artifact/b637b00c-55e0-470b-9aac-e58a84ff6451" target="_blank" rel="noopener">Sala do LDR</a> —
@@ -371,9 +371,9 @@
   <!-- ============ 02 POR QUE O 3CX SAI ============ -->
   <section>
     <div class="sec-head">
-      <span class="sec-num">02 — Por que o 3CX sai do caminho</span>
-      <h2>O robô não precisa do 3CX para ligar</h2>
-      <p class="lede">Não existe integração programática com o 3CX no projeto, e ela não precisa passar a existir. Foi o maior item de trabalho que saiu do escopo.</p>
+      <span class="sec-num">02 — Como o robô disca sem ramal, fila ou transferência</span>
+      <h2>O 3CX vira tronco de saída, não integração de ramal</h2>
+      <p class="lede">Não existe integração programática com o Call Control API do 3CX no projeto, e ela não precisa passar a existir. O 3CX entra só como o tronco SIP que carrega a chamada até a rede telefônica — igual já faz para o SDR discar hoje.</p>
     </div>
     <div class="scroll-x">
       <table>
@@ -390,20 +390,20 @@
             <td>O orquestrador manda o 3CX discar e injeta o áudio do agente na chamada.</td>
             <td><span class="verdict no">✕ inviável</span><br>A API do 3CX não dá acesso ao áudio da chamada. A própria 3CX orienta usar um cliente SIP no lugar.</td>
           </tr>
-          <tr>
-            <th scope="row">3CX como tronco do ElevenLabs</th>
-            <td>O ElevenLabs origina a chamada e o 3CX a repassa para a rede telefônica.</td>
-            <td><span class="verdict maybe">△ frágil</span><br>Funciona bem no sentido de entrada. Na saída esbarra em autenticação incompatível e roteamento de tronco para tronco — relatos exigem um proxy SIP no meio.</td>
-          </tr>
           <tr class="chosen">
+            <th scope="row">3CX como tronco do ElevenLabs</th>
+            <td>O ElevenLabs disca pela integração nativa de tronco SIP, usando o "3CX Tendência" (tronco + script de chamadas + regra de saída já configurados pelo Pedro) para colocar a chamada na rede telefônica.</td>
+            <td><span class="verdict yes">✓ escolhido</span><br>Avaliado como frágil na primeira passada (autenticação/roteamento tronco-a-tronco), mas o Pedro já validou ponta a ponta com conta pessoal do ElevenLabs — falta só fechar a conta/plano oficial da Nexi e apontar pro "3CX Tendência" de verdade.</td>
+          </tr>
+          <tr>
             <th scope="row">Integração nativa ElevenLabs + Twilio</th>
-            <td>O ElevenLabs disca pela integração nativa com Twilio, usando um número brasileiro alugado na conta Twilio (já com upgrade feito). O 3CX fica só com o SDR.</td>
-            <td><span class="verdict yes">✓ escolhido</span><br>Caso de uso documentado nativamente pela ElevenLabs — substitui a ideia original de contratar um tronco SIP avulso. Número BR exige aprovação de um "Regulatory Bundle" da Twilio (documentos de identidade em etapas sequenciais, cada uma só libera a próxima depois de validada) antes de poder discar.</td>
+            <td>O ElevenLabs discaria pela integração nativa com Twilio, usando um número brasileiro alugado na conta Twilio.</td>
+            <td><span class="verdict no">✕ descartado</span><br>Rejeitado por custo (31/08): aluguel do número BR + tarifa por minuto da Twilio, além da aprovação regulatória ("Regulatory Bundle") que ainda levaria dias/semanas — tudo isso some reaproveitando o 3CX que a empresa já opera.</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <p class="lede" style="margin-top:20px; max-width:64ch;">O 3CX não agregava nada nesse trecho da esteira: o robô não usa ramal, não entra em fila e não transfere ligação. Ele disca, faz uma pergunta e desliga.</p>
+    <p class="lede" style="margin-top:20px; max-width:64ch;">O 3CX segue sem entrar na lógica de negócio da esteira: o robô não usa ramal, não entra em fila e não transfere ligação. Ele só sai pela mesma porta de saída (tronco) que a empresa já usa — dispara, faz uma pergunta e desliga.</p>
   </section>
 
   <!-- ============ 03 ESTEIRA ============ -->
@@ -414,7 +414,7 @@
       <p class="lede">O pool sem dono e o destino (SDR → Agente/Coordenador) não mudam — só quem faz a validação no meio.</p>
     </div>
     <figure>
-      <svg viewBox="0 0 1000 300" role="img" aria-label="Fluxo: o pool sem dono alimenta o robô LDR, que disca por tronco SIP próprio e libera o lead para o SDR já com os números validados; o SDR segue usando o 3CX e o restante da esteira não muda.">
+      <svg viewBox="0 0 1000 300" role="img" aria-label="Fluxo: o pool sem dono alimenta o robô LDR, que disca pelo tronco do 3CX Tendência e libera o lead para o SDR já com os números validados; o SDR segue usando o 3CX normalmente e o restante da esteira não muda.">
         <defs>
           <marker id="a1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
@@ -433,7 +433,7 @@
           <rect x="0" y="0" width="230" height="170" rx="14" fill="#22d3ee1f" stroke="#22d3ee" stroke-width="1.4"/>
           <text x="20" y="32" font-size="13" font-weight="700" fill="#7fe8f7">Robô LDR</text>
           <text x="20" y="52" font-size="11" fill="currentColor" opacity=".75">ElevenLabs Agents</text>
-          <text x="20" y="68" font-size="11" fill="currentColor" opacity=".75">+ tronco SIP próprio</text>
+          <text x="20" y="68" font-size="11" fill="currentColor" opacity=".75">+ tronco 3CX Tendência</text>
           <line x1="20" y1="82" x2="210" y2="82" stroke="currentColor" stroke-opacity=".15"/>
           <text x="20" y="100" font-size="10" fill="currentColor" opacity=".55">liga para todos os números</text>
           <text x="20" y="116" font-size="10" fill="currentColor" opacity=".55">pergunta fechada, sim ou não</text>
@@ -493,7 +493,7 @@
         <div class="flow-body">
           <h4>Abre uma chamada por número da lista</h4>
           <p>Uma requisição para o ElevenLabs por telefone, levando o nome da empresa junto. Diferente do LDR humano, o robô <b>não para</b> no primeiro número que atende — ele testa a lista inteira, mesmo que o segundo já tenha confirmado.</p>
-          <div class="tags"><span class="tag">POST /v1/convai/twilio/outbound-call</span></div>
+          <div class="tags"><span class="tag">POST /v1/convai/sip-trunk/outbound-call</span></div>
         </div>
       </div>
       <div class="flow-step">
@@ -582,8 +582,8 @@
         <p class="voice-note">Sem pedir decisor, sem pedir e-mail — a resposta sim ou não já encerra o que o robô precisa saber daquela chamada. O <span class="mono">{{nome_lead}}</span> é uma variável preenchida por chamada, a partir do cadastro do lead que está sendo verificado naquele momento.</p>
       </div>
     </div>
-    <pre><span class="c"># uma chamada, um número — via integração nativa Twilio</span>
-POST https://api.elevenlabs.io<span class="k">/v1/convai/twilio/outbound-call</span>
+    <pre><span class="c"># uma chamada, um número — via tronco SIP do 3CX Tendência</span>
+POST https://api.elevenlabs.io<span class="k">/v1/convai/sip-trunk/outbound-call</span>
 xi-api-key: ●●●
 
 {
@@ -689,7 +689,7 @@ xi-api-key: ●●●
       <p class="lede">Todas as peças são produtos existentes ou código nosso — nada aqui depende de uma escolha ainda não feita.</p>
     </div>
     <figure>
-      <svg viewBox="0 0 1000 250" role="img" aria-label="Arquitetura: a fila no Supabase alimenta o orquestrador, que chama a API do ElevenLabs Agents; o agente disca pelo tronco SIP até o telefone do lead e, ao fim da chamada, envia o resultado por webhook, que grava o veredito na tabela de telefones e libera o lead para o SDR.">
+      <svg viewBox="0 0 1000 250" role="img" aria-label="Arquitetura: a fila no Supabase alimenta o orquestrador, que chama a API do ElevenLabs Agents; o agente disca pelo tronco do 3CX Tendência até o telefone do lead e, ao fim da chamada, envia o resultado por webhook, que grava o veredito na tabela de telefones e libera o lead para o SDR.">
         <defs>
           <marker id="a2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
@@ -716,8 +716,8 @@ xi-api-key: ●●●
           <line x1="582" y1="69" x2="636" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
 
           <rect x="642" y="40" width="132" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
-          <text x="708" y="64" text-anchor="middle" fill="currentColor">Twilio (número BR)</text>
-          <text x="708" y="80" text-anchor="middle" fill="currentColor" opacity=".5">validação regulatória em curso</text>
+          <text x="708" y="64" text-anchor="middle" fill="currentColor">3CX Tendência</text>
+          <text x="708" y="80" text-anchor="middle" fill="currentColor" opacity=".5">tronco já configurado</text>
           <line x1="774" y1="69" x2="828" y2="69" stroke="currentColor" stroke-opacity=".4" marker-end="url(#a2)"/>
 
           <rect x="834" y="40" width="166" height="58" rx="9" fill="currentColor" fill-opacity=".05" stroke="currentColor" stroke-opacity=".3"/>
@@ -738,7 +738,7 @@ xi-api-key: ●●●
 
         </g>
       </svg>
-      <figcaption>O orquestrador e o webhook são o código a escrever — ambos dentro do projeto que já existe. Twilio (upgrade de conta já feito) é a contratação nova além do plano do ElevenLabs; falta só a aprovação regulatória do número brasileiro.</figcaption>
+      <figcaption>O orquestrador e o webhook são o código a escrever — ambos dentro do projeto que já existe. O tronco (3CX Tendência) já é infraestrutura existente da empresa, sem contratação nova de telefonia; falta fechar a conta/plano oficial do ElevenLabs para a Nexi e ligar as duas pontas de verdade (passos 5-6 do Pedro).</figcaption>
     </figure>
   </section>
 
@@ -746,47 +746,75 @@ xi-api-key: ●●●
   <section>
     <div class="sec-head">
       <span class="sec-num">10 — Plano de execução</span>
-      <h2>Sete dias úteis, Igor e Pedro juntos</h2>
-      <p class="lede">As tasks do Pedro (Twilio, agente ElevenLabs, dados de chamada, transcrição) ainda não têm data fechada por item — aparecem em bloco antes do D1. Nenhuma delas tem dono trocado: o piloto do D5 só roda com o bloco do Pedro concluído, junto com a validação jurídica do Igor no D1.</p>
+      <h2>Igor e Pedro, em paralelo — datas em aberto desde o pivô de 31/08</h2>
+      <p class="lede">O plano original tinha datas fixas (27/08-04/09); o pivô de arquitetura (Twilio → 3CX, 31/08) interrompeu esse calendário no meio e ele não foi refeito ainda. Abaixo, D1-D7 viraram ordem de execução, não dias da semana — recombinar datas reais quando o Pedro estiver perto do passo 6 da lista dele.</p>
     </div>
     <div class="plan">
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">Pedro</span><span class="day-when">sem data fixa</span></div>
+        <div class="day-rail"><span class="day-num">Pedro</span><span class="day-when">passado por ele em 31/08</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who pedro">Pedro</span>
             <div>
-              <div class="task-t">Finalizar validações do número BR na Twilio</div>
-              <div class="task-d">Regulatory Bundle da Twilio — validações de identidade em etapas sequenciais, cada uma só libera a próxima depois de aprovada. <b>Bloqueia o piloto do D5.</b> Vale começar o quanto antes: a própria Twilio documenta prazo de até 3 dias úteis, podendo levar semanas em alguns países.</div>
+              <div class="task-t">1-4. Configurar 3CX + testar com ElevenLabs pessoal <span class="verdict yes">✓ concluído</span></div>
+              <div class="task-d">Tronco no 3CX, script de chamadas, regra de saída, e um primeiro teste de ponta a ponta com conta pessoal do ElevenLabs — os quatro já fechados.</div>
             </div>
           </div>
           <div class="task">
             <span class="who pedro">Pedro</span>
             <div>
-              <div class="task-t">Desenvolver o agente no ElevenLabs</div>
-              <div class="task-d">Roteiro, voz PT-BR, frase de abertura com <span class="mono">{{nome_lead}}</span>, extração de <span class="mono">e_a_empresa</span> — e analisar se é necessário pagar por assinaturas/planos adicionais além do Creator.</div>
+              <div class="task-t">5. Definir conta da Nexi do ElevenLabs e escolher o plano <span class="verdict maybe">△ em andamento</span></div>
+              <div class="task-d">Sai da conta pessoal usada no teste — precisa da conta oficial da Nexi e do plano certo (o Creator da seção 11 era a suposição da fase Twilio, ainda não confirmado pra este cenário).</div>
             </div>
           </div>
           <div class="task">
             <span class="who pedro">Pedro</span>
             <div>
-              <div class="task-t">Analisar chamadas de API do ElevenLabs</div>
+              <div class="task-t">6. Configurar ElevenLabs Nexi com 3CX Tendência</div>
+              <div class="task-d">Ligar as duas pontas de verdade (não mais a conta pessoal) — é o que destrava o webhook/orquestrador do Igor.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">7. Desenvolver o agente no ElevenLabs Nexi</div>
+              <div class="task-d">Roteiro, voz PT-BR, frase de abertura com <span class="mono">{{nome_lead}}</span>, extração de <span class="mono">e_a_empresa</span>.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">8. Teste para números internos</div>
+              <div class="task-d">Validar a discagem via 3CX Tendência antes de qualquer número de lead de verdade.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">9. Testar API</div>
               <div class="task-d">Mapear os parâmetros retornados pelas chamadas da API sobre as ligações e definir o que salvar no banco de dados.</div>
             </div>
           </div>
           <div class="task">
             <span class="who pedro">Pedro</span>
             <div>
-              <div class="task-t">Implementar transcrição das chamadas</div>
-              <div class="task-d">Base pra validação humana — é o insumo direto da conferência de áudio do D6.</div>
+              <div class="task-t">10. Integrar API com dashboard do Igor</div>
+              <div class="task-d">Ponto de encontro com o dashboard já adiantado no <span class="mono">nexi-lead-360</span> (painel do LDR) — troca os dados mockados por reais.</div>
+            </div>
+          </div>
+          <div class="task">
+            <span class="who pedro">Pedro</span>
+            <div>
+              <div class="task-t">11. Produção</div>
+              <div class="task-d">Depois do gate de go/no-go (final desta seção).</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D1</span><span class="day-when">quinta · 27/08</span></div>
+        <div class="day-rail"><span class="day-num">D1</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -806,7 +834,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D2</span><span class="day-when">sexta · 28/08</span></div>
+        <div class="day-rail"><span class="day-num">D2</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -819,7 +847,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D3</span><span class="day-when">segunda · 31/08</span></div>
+        <div class="day-rail"><span class="day-num">D3</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -832,7 +860,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D4</span><span class="day-when">terça · 01/09</span></div>
+        <div class="day-rail"><span class="day-num">D4</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -852,14 +880,14 @@ xi-api-key: ●●●
             <span class="who ambos">Igor + Pedro</span>
             <div>
               <div class="task-t">Checar bloco de tasks do Pedro</div>
-              <div class="task-d">Twilio aprovado, agente pronto, salvamento dos parâmetros de chamada e transcrição implementados — tudo isso também é pré-requisito para o piloto de amanhã.</div>
+              <div class="task-d">ElevenLabs Nexi configurado com o 3CX Tendência (passo 6), agente pronto (7), testes internos e de API feitos (8-9) — tudo isso também é pré-requisito para o piloto.</div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D5</span><span class="day-when">quarta · 02/09</span></div>
+        <div class="day-rail"><span class="day-num">D5</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who ambos">Igor + Pedro</span>
@@ -872,7 +900,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D6</span><span class="day-when">quinta · 03/09</span></div>
+        <div class="day-rail"><span class="day-num">D6</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who ambos">Igor + Pedro</span>
@@ -885,7 +913,7 @@ xi-api-key: ●●●
       </div>
 
       <div class="day">
-        <div class="day-rail"><span class="day-num">D7</span><span class="day-when">sexta · 04/09</span></div>
+        <div class="day-rail"><span class="day-num">D7</span><span class="day-when">a recombinar</span></div>
         <div class="day-tasks">
           <div class="task">
             <span class="who igor">Igor</span>
@@ -909,7 +937,7 @@ xi-api-key: ●●●
       <span class="gate__icon">🚦</span>
       <div>
         <h4>Critério de go/no-go no dia 7</h4>
-        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisitos adicionais:</b> o piloto do D5 só roda com (1) a validação jurídica (Anatel + LGPD) encerrada — ver task de D1 — e (2) o bloco de tasks do Pedro concluído, sobretudo o número brasileiro da Twilio aprovado e importado no ElevenLabs (pode levar mais que um dia, ver research).</p>
+        <p>Segue para produção se o robô acertar o veredito em pelo menos 9 de cada 10 números conferidos no áudio, e se o custo por número testado couber na projeção da seção 11. Abaixo disso, o problema volta para o roteiro do agente antes de qualquer expansão. <b>Pré-requisitos adicionais:</b> o piloto só roda com (1) a validação jurídica (Anatel + LGPD) encerrada — ver task de D1 — e (2) o bloco de tasks do Pedro concluído até o passo 9, sobretudo o ElevenLabs Nexi de verdade ligado ao 3CX Tendência (passo 6, ver research).</p>
       </div>
     </div>
   </section>
@@ -918,8 +946,8 @@ xi-api-key: ●●●
   <section>
     <div class="sec-head">
       <span class="sec-num">11 — Custo</span>
-      <h2>US$ 22 no mês 1 — e o que acontece depois dele</h2>
-      <p class="lede">O plano contratado cobre o piloto e boa parte da produção com folga. A tabela abaixo já usa a média real de telefones por lead, medida direto no banco (<span class="mono">np_lead_telefones</span>) — não é mais estimativa.</p>
+      <h2>US$ 22/mês era a conta da fase Twilio — ainda a confirmar pra Nexi</h2>
+      <p class="lede">A matemática de minutos abaixo (ElevenLabs) segue valendo, mas o plano Creator era a suposição feita quando o piloto rodava com Twilio. O Pedro ainda está no passo 5 (definir conta/plano oficial da Nexi) — os números desta seção precisam de confirmação assim que ele fechar isso. O que <b>não</b> muda: sem custo novo de telefonia, já que o 3CX Tendência é infra que a empresa já opera (ao contrário do número BR alugado na Twilio, que saiu do plano).</p>
     </div>
     <div class="cost-grid">
       <div class="cost-card">
@@ -980,12 +1008,12 @@ xi-api-key: ●●●
       Contas feitas com <b>1,8 números por lead</b> — média real dos últimos 30 dias entre os leads efetivamente
       distribuídos pros agentes (mediana 1), medida em <span class="mono">np_reposicao_execucoes</span> ×
       <span class="mono">np_lead_telefones</span>, no lugar da estimativa inicial de 6 — e 40 segundos de
-      conversa por chamada, essa ainda a confirmar no piloto de quinta. Com a premissa de telefone corrigida,
+      conversa por chamada, essa ainda a confirmar no piloto. Com a premissa de telefone corrigida,
       o custo em produção cai a menos de um terço do que a primeira versão deste plano projetava.
-      <b>O número brasileiro na Twilio é cobrado à parte</b> — aluguel mensal do número + tarifa por minuto,
-      cobrados pela própria Twilio (não pelo ElevenLabs). É o único item de custo ainda não fechado; a conta
-      Twilio já teve o upgrade feito, mas o número em si só fica disponível depois que o "Regulatory Bundle"
-      (validação de identidade em etapas sequenciais) for aprovado.
+      <b>Não há mais item de telefonia cobrado à parte</b> (era o número BR da Twilio, descartado em
+      31/08 por custo) — o tronco sai pelo 3CX Tendência, infra que a empresa já opera. O que falta
+      fechar é o plano/conta do ElevenLabs em nome da Nexi (passo 5 do Pedro); até lá, os valores
+      desta seção são a referência da fase anterior, não uma cotação confirmada.
     </p>
   </section>
 
@@ -1008,14 +1036,14 @@ xi-api-key: ●●●
       </div>
       <div class="risk">
         <div class="risk-h"><h4>Reputação do número que disca</h4><span class="risk-sev">médio</span></div>
-        <p>Volume alto saindo de um número novo tende a ser marcado como spam pelas operadoras, derrubando a taxa de atendimento com o tempo.</p>
-        <p class="mit"><b>Mitigação:</b> subir volume aos poucos e acompanhar a taxa de atendimento por semana desde o piloto.</p>
+        <p>Volume alto de chamadas curtas e repetitivas tende a ser marcado como spam pelas operadoras, derrubando a taxa de atendimento com o tempo — vale mesmo saindo por um número/tronco já em uso (3CX Tendência), não só por número novo.</p>
+        <p class="mit"><b>Mitigação:</b> subir volume aos poucos e acompanhar a taxa de atendimento por semana desde o piloto; confirmar com o Pedro se o robô vai discar pelo mesmo tronco/números que o time comercial já usa ou por um separado.</p>
       </div>
     </div>
   </section>
 
   <footer>
     <span>LDR Automático — proposta interna · Nexi Lead 360</span>
-    <span>Revisão 3 · integração nativa ElevenLabs + Twilio (número BR), demais escopo/prazo/custo/responsáveis mantidos</span>
+    <span>Revisão 4 · Twilio descartado por custo, tronco de saída volta a ser o 3CX (Tendência) integrado ao ElevenLabs, demais escopo/responsáveis mantidos, datas em aberto</span>
   </footer>
 </div>

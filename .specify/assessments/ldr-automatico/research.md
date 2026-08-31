@@ -70,6 +70,40 @@ Mudança de arquitetura (ver `intake.md`): tronco SIP próprio avulso → **inte
   de quem está discando) é um requisito *adicional*, não um substituto da validação jurídica sobre
   Anatel/Não Me Perturbe/LGPD.
 
+## Atualização — 31/08/2026 (pivô de volta: Twilio → 3CX)
+
+Twilio descartado por custo (ver `intake.md`); o robô volta a discar por um tronco SIP, agora o
+próprio 3CX que a empresa já opera ("3CX Tendência"), integrado ao ElevenLabs via **SIP trunk**
+(não mais a integração nativa Twilio). Verificação feita nesta atualização:
+
+- **O endpoint SIP trunk é real e documentado, não é a versão antiga/depreciada da API.**
+  `POST /v1/convai/sip-trunk/outbound-call` exige `agent_id`, `agent_phone_number_id`, `to_number` —
+  mesmos parâmetros que o código da seção 06 do HTML já usava antes da fase Twilio — e devolve
+  `conversation_id` + `sip_call_id`. SIP trunking é a categoria de integração telefônica "genérica" do
+  ElevenLabs (ao lado de Twilio nativo), com conexão direta entre a infraestrutura de telefonia do
+  cliente e a plataforma: chamadas de saída são roteadas para o hostname do tronco configurado.
+  Batch calling (múltiplas chamadas simultâneas, relevante pro orquestrador do Igor) é suportado tanto
+  por SIP trunk quanto por Twilio. — [source: elevenlabs.io/docs/api-reference/sip-trunk/outbound-call,
+  elevenlabs.io/docs/eleven-agents/phone-numbers/sip-trunking] (confidence: high; cited)
+- **Isso remove o item de risco de cronograma do Regulatory Bundle da Twilio** (achado da atualização
+  de 26/08) — não existe mais número BR alugado à parte esperando aprovação regulatória. O 3CX já é
+  infra existente e operante da empresa.
+- **A avaliação "frágil" que a revisão 2 original fazia de "3CX como tronco do ElevenLabs"** (autenticação
+  incompatível, roteamento tronco-a-tronco exigindo proxy SIP) precisa ser tratada como **superada na
+  prática, não como refutada por evidência nova**: o Pedro reportou ter configurado tronco + script de
+  chamadas + regra de saída no 3CX e testado ponta a ponta com conta pessoal do ElevenLabs (passos 1-4
+  concluídos). Não há, nesta pesquisa, uma fonte técnica externa que explique OS detalhes de como esse
+  proxy/roteamento foi resolvido — é um relato de primeira mão do Pedro, não verificado por uma segunda
+  fonte. — [ASSUMPTION — confiança no relato do Pedro, sem verificação técnica independente desta sessão]
+  (confidence: medium)
+- **Não muda a análise de Anatel/LGPD** (mesma nota da atualização de 26/08) — troca de novo quem
+  origina tecnicamente a chamada, não a natureza da chamada em si (automatizada, com gravação e
+  transcrição). A validação jurídica pendente continua sendo a mesma.
+- **Novo item de incerteza, substituindo o do Regulatory Bundle**: conta/plano oficial do ElevenLabs em
+  nome da Nexi (não mais a conta pessoal usada no teste) — o Pedro está nesse passo agora. Os
+  US$22/mês de Creator citados na seção 11 do HTML eram a suposição feita na fase Twilio; não há, até
+  esta atualização, confirmação de que é o plano que a conta da Nexi vai usar.
+
 ## Sources
 
 - https://www.gov.br/anatel/pt-br/consumidor/destaques/anatel-edita-medida-cautelar-para-combate-a-chamadas-de-robocall (host: gov.br, policy: allowlisted — domínio governamental oficial)
@@ -83,3 +117,5 @@ Mudança de arquitetura (ver `intake.md`): tronco SIP próprio avulso → **inte
 - https://www.twilio.com/en-us/blog/developers/developers-guide-phone-number-regulatory-requirements (host: twilio.com, policy: confirmed-by-user)
 - https://elevenlabs.io/docs/eleven-agents/phone-numbers/twilio-integration/native-integration (host: elevenlabs.io, policy: confirmed-by-user)
 - https://elevenlabs.io/docs/api-reference/twilio/outbound-call (host: elevenlabs.io, policy: confirmed-by-user)
+- https://elevenlabs.io/docs/api-reference/sip-trunk/outbound-call (host: elevenlabs.io, policy: confirmed-by-user)
+- https://elevenlabs.io/docs/eleven-agents/phone-numbers/sip-trunking (host: elevenlabs.io, policy: confirmed-by-user)
