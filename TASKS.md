@@ -19,25 +19,32 @@ validou com conta pessoal do ElevenLabs; falta fechar a conta/plano oficial da N
 verdade com o "3CX Tendência".
 
 **As datas fixas do plano D1-D7 abaixo (27/08-04/09) ficaram inválidas** — o pivô interrompeu o
-cronograma no meio (hoje seria "D3" pela contagem antiga) e ainda não foi combinada uma data nova com
-o Pedro. Mantive a ORDEM das tasks do Igor (ainda fazem sentido, são backend/webhook/orquestrador,
-não mudam com o provedor de telefonia), só tirei as datas — recombinar quando o Pedro estiver mais
-perto do passo 6 da lista dele.
+cronograma no meio (hoje seria "D3" pela contagem antiga). Mantive a ORDEM das tasks do Igor (ainda
+fazem sentido, são backend/webhook/orquestrador, não mudam com o provedor de telefonia), só tirei as
+datas — recombinar quando o Pedro estiver mais perto do fim da lista dele.
+
+**Datas do Pedro combinadas em 31/08**: passo 5 (definir conta/plano) fecha **hoje**; passos 6 a 11
+(config ElevenLabs Nexi + 3CX, agente, testes internos, teste de API, integração com o dashboard e
+produção) ficam pra **amanhã, terça 01/09**. É um dia bem cheio pra 6 passos incluindo produção — vale
+confirmar com o Pedro se "amanhã" é a meta otimista ou se dá pra escalonar, antes de tratar como
+compromisso fechado.
 
 ## Tasks do Pedro — passadas por ele em 31/08 (substitui a lista antiga)
+
+Datas combinadas em 31/08: passo 5 fecha **hoje**, passos 6-11 ficam pra **amanhã, terça 01/09**.
 
 1. [x] Configurar tronco no 3CX
 2. [x] Configurar Script de Chamadas 3CX
 3. [x] Configurar Regra de saída 3CX
 4. [x] Integrar com o ElevenLabs pessoal para primeiros testes
-5. [ ] **Em andamento** — Definir conta da Nexi do ElevenLabs e escolher o plano
-6. [ ] Próximo — Configurar ElevenLabs Nexi com 3CX Tendência
-7. [ ] Próximo — Desenvolver agente no ElevenLabs Nexi
-8. [ ] Próximo — Teste para números internos
-9. [ ] Próximo — Testar API
-10. [ ] Próximo — **Integrar API com dashboard do Igor** (ver seção do dashboard mais abaixo — é o
-    ponto de encontro com o trabalho que já foi adiantado no `nexi-lead-360`)
-11. [ ] Produção
+5. [ ] **Hoje, segunda 31/08** — Definir conta da Nexi do ElevenLabs e escolher o plano
+6. [ ] **Amanhã, terça 01/09** — Configurar ElevenLabs Nexi com 3CX Tendência
+7. [ ] **Amanhã, terça 01/09** — Desenvolver agente no ElevenLabs Nexi
+8. [ ] **Amanhã, terça 01/09** — Teste para números internos
+9. [ ] **Amanhã, terça 01/09** — Testar API
+10. [ ] **Amanhã, terça 01/09** — **Integrar API com dashboard do Igor** (ver seção do dashboard mais
+    abaixo — é o ponto de encontro com o trabalho que já foi adiantado no `nexi-lead-360`)
+11. [ ] **Amanhã, terça 01/09** — Produção
 
 Passos 6-9 (config ElevenLabs Nexi + 3CX Tendência, agente, testes internos, teste de API)
 **bloqueiam** o D1/D2 do Igor abaixo — não dá pra escrever webhook/orquestrador contra uma API que
