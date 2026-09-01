@@ -275,9 +275,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!telefone) {
-      // Não é erro — pode ser um teste feito fora do fluxo, ou o
-      // orquestrador ainda não gravou o conversation_id nesta chamada.
-      console.warn(
+      // Não é erro — é o caminho normal pra qualquer ligação feita fora do
+      // orquestrador (teste manual direto no ElevenLabs, por exemplo). Fica
+      // em console.log (não warn) de propósito, pra não acender como alerta
+      // no painel do Supabase por algo que não é um problema.
+      console.log(
         "[WEBHOOK] Nenhum telefone com este conversation_id",
         conversationId,
       );
