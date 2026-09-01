@@ -69,7 +69,18 @@ ainda não está batendo em nada real.
 
 ## Igor — passo 1 (sem data fixa, depende do Pedro fechar os passos 6-9)
 
-- [ ] Migração no banco: adicionar `validado_por_ia`, `validado_em`, `conversation_id` em `np_lead_telefones`
+- [x] Migração no banco: **desenhada** (não aplicada ainda — sem credencial de escrita nesta
+  sessão) em `backend/migrations/` deste repo, 0320-0323. Tudo separado da infra do LDR
+  Trilha Humana (Guilherme) — colunas próprias em `np_lead_telefones` (`ia_conversation_id`,
+  `ia_testado_em`, `ia_resultado`), tag própria (`qualificacao:validado-ldr-ia`), roster
+  próprio (`np_ldr_ia_participantes`), RPC própria pro coordenador puxar leads
+  (`np_fn_ldr_ia_obter_leads` — não mexe em `np_fn_pool_reposicao`, a função compartilhada
+  do Guilherme). **Falta**: (a) aplicar de verdade contra o banco — confirmar antes que
+  0320+ ainda está livre, os repos `nexi-lead-360`/`ldr-trilha-humana` já colidiram de
+  número uma vez (0300-0302); (b) botão/tela pro coordenador chamar essa RPC — ela é
+  separada do "Obter novos leads" de sempre, não aparece em lugar nenhum ainda; (c) povoar
+  `np_ldr_ia_participantes` com quem vai receber lead do robô no piloto (nasce vazio de
+  propósito).
 - [ ] Abrir validação jurídica (Anatel + LGPD) — ver research; continua bloqueando o piloto, independente do provedor de telefonia
 
 ## Igor — passo 2
