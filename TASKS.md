@@ -93,12 +93,12 @@ ainda não está batendo em nada real.
   `ElevenLabs-Signature`), acha o telefone pelo `conversation_id` (coluna `ia_conversation_id`,
   migration 0320), grava `ia_resultado`/`ia_testado_em` e aplica a tag `qualificacao:validado-ldr-ia`
   quando o veredito é `confirmado`. Secrets `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` já existiam no
-  projeto (compartilhados com as outras functions). **Falta**: (a) `ELEVENLABS_WEBHOOK_SECRET` — só
-  existe depois que o Pedro cadastrar a URL acima no painel do ElevenLabs (webhook do agente) e nos
-  passar o segredo gerado, pra eu cadastrar como secret do Supabase; (b) migrations 0320-0323
-  aplicadas no banco de verdade (pré-requisito, ver passo 1); (c) sem o orquestrador (passo 3) este
-  webhook não acha telefone pra nenhum `conversation_id` — comportamento esperado até aquela peça
-  existir. Detalhe completo em `backend/edge-functions/README.md`.
+  projeto (compartilhados com as outras functions); `ELEVENLABS_WEBHOOK_SECRET` cadastrado em 01/09
+  (o Pedro já configurou a URL no painel do ElevenLabs) — **webhook 100% ativo**, confirmado por teste
+  (GET responde 405, não mais 500 de secret ausente). **Falta**: (a) migrations 0320-0323 aplicadas no
+  banco de verdade (pré-requisito, ver passo 1); (b) sem o orquestrador (passo 3) este webhook não
+  acha telefone pra nenhum `conversation_id` — comportamento esperado até aquela peça existir, é o
+  próximo bloqueio real do pipeline. Detalhe completo em `backend/edge-functions/README.md`.
 
 ## Igor — passo 3
 
