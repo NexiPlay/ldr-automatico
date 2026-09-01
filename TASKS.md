@@ -85,7 +85,18 @@ ainda não está batendo em nada real.
 
 ## Igor — passo 2
 
-- [ ] Endpoint do webhook: receber resultado da chamada, validar assinatura, gravar veredito no telefone certo
+- [x] Endpoint do webhook: **escrito** (não deployado ainda) em
+  `backend/edge-functions/ldr-automatico-webhook/index.ts` deste repo — recebe
+  `post_call_transcription` do ElevenLabs, verifica a assinatura HMAC (header
+  `ElevenLabs-Signature`, segredo próprio `ELEVENLABS_WEBHOOK_SECRET`, **não** é a API key), acha o
+  telefone pelo `conversation_id` (coluna `ia_conversation_id`, migration 0320), grava
+  `ia_resultado`/`ia_testado_em` e aplica a tag `qualificacao:validado-ldr-ia` quando o veredito é
+  `confirmado`. **Falta**: (a) deploy (`supabase functions deploy ldr-automatico-webhook`) + cadastrar
+  os secrets no Supabase; (b) Pedro cadastrar a URL no painel do ElevenLabs e colar o
+  `ELEVENLABS_WEBHOOK_SECRET` gerado; (c) migrations 0320-0323 aplicadas no banco de verdade (pré-requisito,
+  ver passo 1); (d) sem o orquestrador (passo 3) este webhook não acha telefone pra nenhum
+  `conversation_id` — comportamento esperado até aquela peça existir. Detalhe completo em
+  `backend/edge-functions/README.md`.
 
 ## Igor — passo 3
 
