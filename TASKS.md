@@ -106,7 +106,21 @@ ainda não está batendo em nada real.
 
 ## Igor — passo 3
 
-- [ ] Orquestrador: puxar lead da fila, disparar uma chamada por número, controlar simultaneidade, marcar lead como liberado quando a lista esgotar
+- [x] Orquestrador: **escrito, deployado e testado** (01/09) —
+  `backend/edge-functions/ldr-automatico-orquestrador/index.ts` deste repo. Decisão do Igor:
+  **não** puxa lead de um pool automático — recebe `{ telefone_ids: [...] }` explícito (botão manual no
+  dashboard, escopo do piloto é 4 leads/~20 números escolhidos a dedo, não disparo em massa). Pra
+  cada telefone: busca o lead (nome pro `dynamic_variables.empresa`), dispara
+  `POST /v1/convai/sip-trunk/outbound-call` (shape exato passado pelo Pedro em 01/09 — `agent_id`/
+  `agent_phone_number_id` fixos, `to_number` sempre com `+55` como já vem em `np_lead_telefones.e164`),
+  espera 4s entre ligações (trunco não aguenta rajada), grava `conversation_id` em
+  `ia_conversation_id`. Pula telefone que já tem `ia_conversation_id` (nunca liga 2x pro mesmo
+  número por clique duplicado). Trava de segurança: máximo 50 telefones por lote. Function com
+  **JWT exigido** (diferente do webhook) — só usuário logado no dashboard dispara. Secrets
+  cadastrados: `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_AGENT_PHONE_NUMBER_ID`.
+  Testado com id falso autenticado — confirma auth + lógica sem discar de verdade. **Falta**:
+  tela/botão no dashboard (`nexi-lead-360`) pra escolher os leads e chamar essa function — ainda
+  não existe.
 
 ## Igor — passo 4
 
