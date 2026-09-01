@@ -69,18 +69,19 @@ ainda não está batendo em nada real.
 
 ## Igor — passo 1 (sem data fixa, depende do Pedro fechar os passos 6-9)
 
-- [x] Migração no banco: **desenhada** (não aplicada ainda — sem credencial de escrita nesta
-  sessão) em `backend/migrations/` deste repo, 0320-0323. Tudo separado da infra do LDR
-  Trilha Humana (Guilherme) — colunas próprias em `np_lead_telefones` (`ia_conversation_id`,
-  `ia_testado_em`, `ia_resultado`), tag própria (`qualificacao:validado-ldr-ia`), roster
-  próprio (`np_ldr_ia_participantes`), RPC própria pro coordenador puxar leads
-  (`np_fn_ldr_ia_obter_leads` — não mexe em `np_fn_pool_reposicao`, a função compartilhada
-  do Guilherme). **Falta**: (a) aplicar de verdade contra o banco — confirmar antes que
-  0320+ ainda está livre, os repos `nexi-lead-360`/`ldr-trilha-humana` já colidiram de
-  número uma vez (0300-0302); (b) botão/tela pro coordenador chamar essa RPC — ela é
-  separada do "Obter novos leads" de sempre, não aparece em lugar nenhum ainda; (c) povoar
-  `np_ldr_ia_participantes` com quem vai receber lead do robô no piloto (nasce vazio de
-  propósito).
+- [x] Migração no banco: **desenhada e aplicada no banco real** (01/09, via `supabase db query -f`,
+  Management API — não precisou de senha de Postgres). Conferido ANTES de rodar que nenhum dos 4
+  objetos novos já existia (zero conflito) e que os objetos do Guilherme (`np_ldr_participantes`,
+  `np_fn_pool_reposicao`) seguem intactos; conferido DEPOIS que as 4 migrations realmente criaram
+  tudo. Tudo separado da infra do LDR Trilha Humana (Guilherme) — colunas próprias em
+  `np_lead_telefones` (`ia_conversation_id`, `ia_testado_em`, `ia_resultado`), tag própria
+  (`qualificacao:validado-ldr-ia`), roster próprio (`np_ldr_ia_participantes`), RPC própria pro
+  coordenador puxar leads (`np_fn_ldr_ia_obter_leads` — não mexe em `np_fn_pool_reposicao`).
+  Confirmado por teste de fumaça (payload assinado real contra o webhook) que a cadeia toda
+  funciona agora — antes dava 500 (coluna não existia), agora responde 200. **Falta**: (a)
+  botão/tela pro coordenador chamar essa RPC — ela é separada do "Obter novos leads" de sempre,
+  não aparece em lugar nenhum ainda; (b) povoar `np_ldr_ia_participantes` com quem vai receber
+  lead do robô no piloto (nasce vazio de propósito).
 - [ ] Abrir validação jurídica (Anatel + LGPD) — ver research; continua bloqueando o piloto, independente do provedor de telefonia
 
 ## Igor — passo 2
@@ -94,11 +95,14 @@ ainda não está batendo em nada real.
   migration 0320), grava `ia_resultado`/`ia_testado_em` e aplica a tag `qualificacao:validado-ldr-ia`
   quando o veredito é `confirmado`. Secrets `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` já existiam no
   projeto (compartilhados com as outras functions); `ELEVENLABS_WEBHOOK_SECRET` cadastrado em 01/09
-  (o Pedro já configurou a URL no painel do ElevenLabs) — **webhook 100% ativo**, confirmado por teste
-  (GET responde 405, não mais 500 de secret ausente). **Falta**: (a) migrations 0320-0323 aplicadas no
-  banco de verdade (pré-requisito, ver passo 1); (b) sem o orquestrador (passo 3) este webhook não
-  acha telefone pra nenhum `conversation_id` — comportamento esperado até aquela peça existir, é o
-  próximo bloqueio real do pipeline. Detalhe completo em `backend/edge-functions/README.md`.
+  (o Pedro já configurou a URL no painel do ElevenLabs). **Webhook 100% ativo e testado ponta a
+  ponta** (01/09): o Pedro fez uma ligação de teste de verdade, o ElevenLabs mandou o webhook, a
+  assinatura bateu — só faltava a migration 0320 (coluna não existia ainda, deu 500). Migrations
+  aplicadas no mesmo dia (ver passo 1) e confirmado por um segundo teste (payload assinado
+  sintético) que a cadeia completa responde 200. **Falta**: sem o orquestrador (passo 3) o webhook
+  ainda não acha telefone pra nenhum `conversation_id` real — comportamento esperado até aquela
+  peça existir, é o próximo bloqueio real do pipeline. Detalhe completo em
+  `backend/edge-functions/README.md`.
 
 ## Igor — passo 3
 

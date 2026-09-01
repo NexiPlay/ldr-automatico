@@ -2,9 +2,13 @@
 
 Estas migrations aplicam no MESMO banco Supabase do `nexi-lead-360` (é o banco único do
 projeto — `ldr-trilha-humana` também aplica migrations nele, ver `06-tarefas-piloto.md`
-daquele repo). **Ainda não foram aplicadas** — este diretório é o rascunho pra revisão antes
-de rodar contra o banco de verdade (nenhuma credencial de escrita no banco está disponível
-nesta sessão agora).
+daquele repo). **Aplicadas no banco real em 01/09/2026**, via
+`supabase db query -f <arquivo> --linked --project-ref wbagoinuxgvntvbbnmab` (Management API,
+sem precisar de senha de Postgres). Antes de rodar, conferimos contra o estado real do banco
+que nenhum dos 4 objetos novos existia e que os objetos do Guilherme (`np_ldr_participantes`,
+`np_fn_pool_reposicao`) seguiam intactos; depois de rodar, confirmamos os 4 criados e um teste
+de fumaça (payload assinado real) confirmou o webhook respondendo 200 (antes dava 500 por
+`ia_conversation_id` não existir).
 
 ## Numeração — cuidado real, não é só formalidade
 
