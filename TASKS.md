@@ -120,12 +120,17 @@ ainda não está batendo em nada real.
   número por clique duplicado). Trava de segurança: máximo 50 telefones por lote. Function com
   **JWT exigido** (diferente do webhook) — só usuário logado no dashboard dispara. Secrets
   cadastrados: `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_AGENT_PHONE_NUMBER_ID`.
-  Testado com id falso autenticado — confirma auth + lógica sem discar de verdade. **Falta**:
-  tela/botão no dashboard (`nexi-lead-360`) pra escolher os leads e chamar essa function — ainda
-  não existe. **Desenho da V1 combinado com o Igor em 01/09**: fica no Painel do LDR — primeiro um
-  botão que abre um popup pra disparar UMA ligação por vez (escolhe o número + nome do lead na hora,
-  chama o orquestrador com `telefone_ids` de 1 item); depois evolui pra fila/lote de até ~20 números
-  de uma vez (o endpoint já aceita array, só falta a UI de multi-seleção).
+  Testado com id falso autenticado — confirma auth + lógica sem discar de verdade. **V1 do popup
+  construída (01/09)**: `nexi-lead-360/frontend/js/ldr-automatico-disparo.js` (arquivo novo,
+  isolado — não toca em `ldr-coordenador.html`/`.js` além de 1 linha de `<script>`). Injeta botão +
+  popup no Painel do LDR (nome da empresa + telefone); ao disparar, cria um `np_leads` de teste
+  (prefixo `[TESTE LDR-IA]`, `origem='ldr-automatico-teste'`) + `np_lead_telefones`, e só então
+  chama o orquestrador — assim a chamada vira dado real rastreável (resolve o
+  "telefone_nao_encontrado" do teste de ontem, que foi feito fora desse fluxo). Inserts validados
+  por dry-run direto no banco (transação com rollback, sem erro de coluna/constraint). **Falta**:
+  teste de verdade no navegador (não testável nesta sessão) — Igor/Pedro precisam clicar de fato;
+  depois evolui pra fila/lote de até ~20 números de uma vez (o endpoint já aceita array, só falta a
+  UI de multi-seleção).
 
 ## Igor — passo 4
 
