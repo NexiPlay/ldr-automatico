@@ -81,8 +81,10 @@ ainda não está batendo em nada real.
   funciona agora — antes dava 500 (coluna não existia), agora responde 200. **Falta**: (a)
   botão/tela pro coordenador chamar essa RPC — ela é separada do "Obter novos leads" de sempre,
   não aparece em lugar nenhum ainda; (b) povoar `np_ldr_ia_participantes` com quem vai receber
-  lead do robô no piloto (nasce vazio de propósito).
-- [ ] Abrir validação jurídica (Anatel + LGPD) — ver research; continua bloqueando o piloto, independente do provedor de telefonia
+  lead do robô no piloto (nasce vazio de propósito) — **decisão marcada pro Igor tomar em 01/09,
+  ainda não fechada**.
+- [x] Abrir validação jurídica (Anatel + LGPD) — **validada pelo Igor em 01/09: tudo certo, a v1
+  não chega perto de zona de bloqueio.** Deixa de bloquear o piloto.
 
 ## Igor — passo 2
 
@@ -120,13 +122,19 @@ ainda não está batendo em nada real.
   cadastrados: `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`, `ELEVENLABS_AGENT_PHONE_NUMBER_ID`.
   Testado com id falso autenticado — confirma auth + lógica sem discar de verdade. **Falta**:
   tela/botão no dashboard (`nexi-lead-360`) pra escolher os leads e chamar essa function — ainda
-  não existe.
+  não existe. **Desenho da V1 combinado com o Igor em 01/09**: fica no Painel do LDR — primeiro um
+  botão que abre um popup pra disparar UMA ligação por vez (escolhe o número + nome do lead na hora,
+  chama o orquestrador com `telefone_ids` de 1 item); depois evolui pra fila/lote de até ~20 números
+  de uma vez (o endpoint já aceita array, só falta a UI de multi-seleção).
 
 ## Igor — passo 4
 
 - [ ] Repescagem dos "sem resposta": volta pra fila em outro horário, com limite de tentativas
-- [ ] Checar se a validação jurídica foi concluída — condição para o piloto
-- [ ] Checar se os passos 6-9 do Pedro (3CX Tendência + ElevenLabs Nexi + agente + testes) estão prontos — condição para o piloto
+- [x] Checar se a validação jurídica foi concluída — condição para o piloto. **Validada pelo Igor
+  em 01/09: Anatel/LGPD ok, a v1 não chega perto de zona de risco.** Deixa de ser bloqueio.
+- [x] Checar se os passos 6-9 do Pedro (3CX Tendência + ElevenLabs Nexi + agente + testes) estão
+  prontos — condição para o piloto. **Confirmado pelo Igor em 01/09: integração ElevenLabs+3CX via
+  API está tudo certa** (bate com o teste real do Pedro no mesmo dia, ver passo 2/3 acima).
 
 ## Igor + Pedro — piloto
 
@@ -139,7 +147,9 @@ ainda não está batendo em nada real.
 ## Igor + Pedro — fechamento
 
 - [ ] Tela do SDR: esconder números descartados, destacar o confirmado
-- [ ] Fechar custo real vs. projeção da seção 11 (número da Twilio sai da conta; custo do 3CX em si — a confirmar se é incremental ou já coberto pela infra existente)
+- [x] Fechar custo real vs. projeção da seção 11 — **confirmado pelo Igor em 01/09: US$ 11 no
+  primeiro mês, US$ 22/mês a partir do segundo** (plano ElevenLabs da conta Nexi). Falta só refletir
+  isso no HTML (seção 11), que ainda tem a projeção antiga.
 - [ ] Gate de go/no-go: ≥9/10 de acerto no veredito + custo dentro da projeção
 
 ## Backlog — dashboard (parte 2, sem dia fixo ainda)
@@ -153,8 +163,12 @@ ainda não está batendo em nada real.
 - [ ] Decidir se cabe alguma métrica só do LDR Automático que não tem equivalente no painel humano
   (ex. custo em US$, breakdown por status 3CX/ElevenLabs) além do que já foi colocado (leads
   processados, números testados, válidos, taxa de acerto)
-- [ ] Commit + push das mudanças em `frontend/telas/ldr-coordenador.html`,
-  `frontend/js/ldr-automatico-painel.js`, `frontend/js/shell.js` e `frontend/js/sala-comando.js` no
-  repo `nexi-lead-360` (por enquanto só editei os arquivos no Drive, não commitei — combinar com o
-  Igor antes, esse repo tinha outras mudanças locais em progresso e o `ldr-coordenador.js` é do
-  Guilherme)
+- [x] Commit + push parcial (01/09) — `frontend/js/shell.js` e `frontend/js/ldr-automatico-painel.js`
+  commitados e pushados pra `origin/refactor/sala-comando` no repo `nexi-lead-360` (branch já
+  existente, 6 commits à frente de `origin/main`, main intocada). **Ficaram de fora de propósito**:
+  `frontend/telas/ldr-coordenador.html`, `frontend/js/ldr-coordenador.js`, `frontend/js/sala-comando.js`
+  e `frontend/css/sala-comando.css` — conferi o diff de cada um e estão com trabalho **não commitado
+  de outras pessoas** misturado (feature "Aprovações" do Fernando; cruzamento "ESTOQUE × LDR" do
+  Guilherme, literalmente datado de 01/09; e o próprio Painel do LDR do Guilherme em
+  `ldr-coordenador.html`/`.js`). Commitar esses arquivos publicaria o trabalho deles sem review —
+  precisa alinhar antes de soltar.
