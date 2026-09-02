@@ -204,7 +204,10 @@ Deno.serve(async (req: Request) => {
 
       const { error: updateError } = await sb
         .from("np_lead_telefones")
-        .update({ ia_conversation_id: resBody.conversation_id })
+        .update({
+          ia_conversation_id: resBody.conversation_id,
+          ia_disparado_em: new Date().toISOString(),
+        })
         .eq("id", telefoneId);
 
       if (updateError) {

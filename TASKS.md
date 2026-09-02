@@ -174,6 +174,26 @@ ainda não está batendo em nada real.
 - [ ] Decidir se cabe alguma métrica só do LDR Automático que não tem equivalente no painel humano
   (ex. custo em US$, breakdown por status 3CX/ElevenLabs) além do que já foi colocado (leads
   processados, números testados, válidos, taxa de acerto)
+- [x] **Visibilidade por chamada + retry + transcript** — feito 02/09, a pedido do Igor ("maior
+  buraco" do painel: só dava pra ver agregado). Nova coluna `ia_disparado_em` (migration 0325,
+  gravada pelo orquestrador no disparo) e nova função `np_fn_ldr_ia_painel_detalhe(p_dias)`
+  (migration 0326) devolvendo 1 linha por telefone discado, com status calculado incluindo
+  `em_andamento` (disparado, webhook ainda não voltou). Novo arquivo isolado `nexi-lead-360/
+  frontend/js/ldr-automatico-detalhe.js`: injeta uma seção "Chamadas recentes" logo abaixo da
+  tabela "Por SDR" do Guilherme (só visível no modo Automático), com botão **Rediscar** (limpa
+  `ia_conversation_id`/`ia_resultado`/`ia_testado_em`/`ia_disparado_em` e chama o orquestrador de
+  novo pro mesmo telefone — necessário porque o orquestrador pula quem já tem `conversation_id`)
+  pra sem_resposta/não_confirmado/inconclusivo, e botão **Ver conversa** abrindo o transcript.
+  Auto-atualiza a cada 15s só enquanto existir alguma linha "em andamento" (pra sem_atendimento não
+  ficar preso até um clique manual). Nova edge function `ldr-automatico-conversa` (deployada, COM
+  verificação de JWT) faz proxy pra `GET /v1/convai/conversations/{id}` do ElevenLabs — só ela tem
+  acesso à `ELEVENLABS_API_KEY`, nunca vai pro browser. Migrations 0325/0326 aplicadas no banco
+  real; RPC de detalhe testado com as 14 chamadas reais existentes, bate com o agregado. Deploy do
+  orquestrador atualizado (grava `ia_disparado_em`) e da função `ldr-automatico-conversa` feitos.
+  **Falta**: verificação visual no navegador (arquivo criado nesta sessão, ainda não commitado no
+  Drive-synced `nexi-lead-360` — mesma regra de sempre confirmar janela segura antes de commitar
+  ali) e testar "Ver conversa" contra uma ligação real (não dá pra testar a API do ElevenLabs sem
+  logar como o Igor no dashboard).
 - [x] Commit + push parcial (01/09) — `frontend/js/shell.js` e `frontend/js/ldr-automatico-painel.js`
   commitados e pushados pra `origin/refactor/sala-comando` no repo `nexi-lead-360` (branch já
   existente, 6 commits à frente de `origin/main`, main intocada). **Ficaram de fora de propósito**:
