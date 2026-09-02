@@ -160,11 +160,17 @@ ainda não está batendo em nada real.
 ## Backlog — dashboard (parte 2, sem dia fixo ainda)
 
 - [x] ~~Parte 1: seção "LDR Automático" na tela do painel do LDR, com dados mockados~~ — feita em 26/08, ver Setup
-- [ ] **Trocar mock por dado real** assim que o Pedro tiver o banco salvando as chamadas (passo 10 da
-  lista dele, "Integrar API com dashboard do Igor"): substituir `mockSerie()`/`mockResumo()` em
-  `ldr-automatico-painel.js` por uma chamada real, no mesmo formato que `ldrPainelCoordenador`/
-  `ldrPainelSerie` já usam pro LDR humano (ver `api-client.js` no nexi-lead-360), e remover o badge
-  "dados de exemplo" do HTML quando isso acontecer.
+- [x] **Trocar mock por dado real** — feito 02/09. Nova SQL function
+  `np_fn_ldr_ia_painel_serie(p_dias)` (migration 0324, aplicada no banco real) conta todo telefone
+  testado (`ia_testado_em not null`) por dia, mesmo shape de campos que o mock já usava. `nexi-
+  lead-360/frontend/js/ldr-automatico-painel.js` reescrito pra buscar via RPC em background e
+  cachear — `.serie()`/`.resumo()` continuam **síncronos** (mesma interface, `ldr-coordenador.js`
+  do Guilherme não precisou mudar), com o gerador mock antigo como fallback só até o cache
+  carregar. `taxa_acerto_pct` virou sinal real (`validos/testados`) em vez da simulação de
+  conferência de áudio antiga; `custo_usd_periodo` segue estimativa (não há billing real por
+  minuto ainda, só o plano mensal US$11/US$22). Testado com os números reais do popup de disparo
+  (14 testados, 3 confirmados, 11 sem resposta no dia). **Falta**: remover o badge "dados de
+  exemplo" do HTML (`ldr-coordenador.html`, arquivo entrelaçado — fora de escopo por ora).
 - [ ] Decidir se cabe alguma métrica só do LDR Automático que não tem equivalente no painel humano
   (ex. custo em US$, breakdown por status 3CX/ElevenLabs) além do que já foi colocado (leads
   processados, números testados, válidos, taxa de acerto)
