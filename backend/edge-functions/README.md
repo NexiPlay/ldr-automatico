@@ -21,6 +21,7 @@ URL ativa: `https://wbagoinuxgvntvbbnmab.supabase.co/functions/v1/ldr-automatico
 - `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` — já existiam no projeto.
 - `ELEVENLABS_WEBHOOK_SECRET` — cadastrado (gerado pelo ElevenLabs quando o Pedro configurou o
   webhook no painel do agente). **Não é a API key** — segredos diferentes, telas diferentes.
+- `ELEVENLABS_API_KEY` — consulta o custo da conversa quando `metadata.cost_fiat` não vem no evento.
 
 ## `ldr-automatico-orquestrador`
 
@@ -44,14 +45,16 @@ URL ativa: `https://wbagoinuxgvntvbbnmab.supabase.co/functions/v1/ldr-automatico
 
 ## Deploy (referência — sem Docker local, via Management API)
 
-**LDR / SON-2.4 (PR em preparação):** o workflow `.github/workflows/ldr-release.yml`
-exige R5 no prompt vivo, hash da versão Bruno e suíte adversarial aprovada. O deploy
-está explicitamente bloqueado até reconciliar os arquivos implantados manualmente,
-que contêm carimbo por chamada e custos ausentes da main. Este PR preserva o
-orquestrador, o webhook e as migrations da base; a integração do briefing e da
-trava runtime permanece pendente. O comando avulso abaixo é referência técnica
-e não executa a trava de release. Consulte
-[`docs/SON-2.4-bruno.md`](../../docs/SON-2.4-bruno.md) para a integração ainda pendente.
+**LDR / SON-2.4:** o workflow `.github/workflows/ldr-release.yml` exige R5 no
+prompt vivo, hash da versão Bruno e suíte adversarial aprovada. Release somente
+manual na main; abrir PR executa apenas checks locais. Os fontes de produção
+fornecidos pelo PO foram conciliados: o orquestrador envia `empresa` e
+`briefing_lead`, validando R5/versão na mesma leitura que gera o carimbo original
+por chamada. O webhook conserva a apuração USD e a proteção de reentregas.
+O workflow publica somente o orquestrador, sem webhook ou migrations. Consulte
+[`docs/SON-2.4-bruno.md`](../../docs/SON-2.4-bruno.md) para testes, secrets e
+pendências. O comando avulso abaixo é referência técnica e **não executa a trava
+de release**; o release LDR deve passar pelo workflow.
 
 ```
 supabase functions deploy <nome> --project-ref wbagoinuxgvntvbbnmab --use-api [--no-verify-jwt]

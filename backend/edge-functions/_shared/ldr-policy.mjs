@@ -67,20 +67,6 @@ export async function fetchApprovedAgent({ apiKey, agentId, approval, baseUrl, f
 
 export class PromptGateError extends Error {}
 
-export async function dispatchApprovedCall({ payload, apiKey, agentId, approval, baseUrl, fetchImpl = fetch }) {
-  try {
-    if (payload.agent_id !== agentId) throw new Error("Destino da chamada diverge do agente verificado");
-    await fetchApprovedAgent({ apiKey, agentId, approval, baseUrl, fetchImpl });
-  } catch (error) {
-    throw new PromptGateError(error instanceof Error ? error.message : "Verificação indisponível");
-  }
-  // Do not retry: an ambiguous network failure may have already created a real call.
-  return await fetchImpl(`${elevenlabsBase(baseUrl)}/v1/convai/sip-trunk/outbound-call`, {
-    method: "POST", headers: { "Content-Type": "application/json", "xi-api-key": apiKey },
-    body: JSON.stringify(payload), signal: AbortSignal.timeout(30000),
-  });
-}
-
 function clean(value) {
   return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 240) : "";
 }

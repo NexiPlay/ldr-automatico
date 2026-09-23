@@ -27,8 +27,10 @@ jobs:
         run: node --test tests/*.test.mjs
       - name: R5 no artefato versionado
         run: node scripts/ldr-release.mjs --local
-      - name: Verificar orquestrador
-        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts
+      - name: Regressão do carimbo, briefing e custos (sem rede)
+        run: deno test --config tests/runtime/deno.json --allow-read --allow-env --deny-net tests/runtime/
+      - name: Verificar edge functions
+        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts
 
   r5-adversarial:
     name: R5 remoto e suíte adversarial obrigatórios
@@ -67,12 +69,6 @@ jobs:
       ELEVENLABS_AGENT_ID: ${{ vars.ELEVENLABS_AGENT_ID }}
       ELEVENLABS_BASE_URL: ${{ vars.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io' }}
     steps:
-      # Remover somente junto da integração revisada das fontes realmente implantadas.
-      # main ainda não contém o carimbo/custeio que foi publicado manualmente.
-      - name: Bloqueio obrigatório até reconciliar código de produção
-        run: |
-          echo "::error::Deploy bloqueado: faltam ldr-automatico-orquestrador.ts e ldr-automatico-webhook.ts de produção com carimbo/custos."
-          exit 1
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:

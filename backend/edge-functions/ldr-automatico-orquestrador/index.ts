@@ -6,7 +6,8 @@
 // Entrada:  POST { telefone_ids: string[] }  — ids de np_lead_telefones
 // Saída:    { ok, processados, ligados: [...], pulados: [...], falhas: [...] }
 //
-// Pra cada telefone: busca o lead (nome pro dynamic_variables.empresa),
+// Pra cada telefone: busca o lead e o briefing estruturado permitido,
+// valida R5/versão na mesma leitura que produz o carimbo por chamada,
 // dispara POST /v1/convai/sip-trunk/outbound-call e grava o conversation_id
 // devolvido em np_lead_telefones.ia_conversation_id — é esse campo que o
 // ldr-automatico-webhook usa depois pra saber qual telefone recebeu qual
@@ -15,18 +16,22 @@
 // Shape do body EXATO conforme passado pelo Pedro em 01/09/2026 (agent_id e
 // agent_phone_number_id fixos da conta Nexi no ElevenLabs; to_number sempre
 // com +55, igual já vem gravado em np_lead_telefones.e164; dynamic_variables
-// só com "empresa" por enquanto):
+// com "empresa" e "briefing_lead" desde SON-2.4):
 //   {
 //     "agent_id": "...",
 //     "agent_phone_number_id": "...",
 //     "to_number": "+55...",
-//     "conversation_initiation_client_data": { "dynamic_variables": { "empresa": "..." } }
+//     "conversation_initiation_client_data": {
+//       "dynamic_variables": { "empresa": "...", "briefing_lead": "{...}" }
+//     }
 //   }
 //
 // Resposta real da API (conferida na doc pública em 01/09/2026):
 //   { success: boolean, message: string, conversation_id: string|null, sip_call_id: string|null }
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } from "../_shared/ldr-policy.mjs";
+import approval from "../_shared/ldr-approval.json" with { type: "json" };
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -55,8 +60,9 @@ const ELEVENLABS_AGENT_PHONE_NUMBER_ID = envObrigatoria(
   "ELEVENLABS_AGENT_PHONE_NUMBER_ID",
 );
 
+const ELEVENLABS_BASE_URL = elevenlabsBase(Deno.env.get("ELEVENLABS_BASE_URL"));
 const ELEVENLABS_OUTBOUND_CALL_URL =
-  "https://api.elevenlabs.io/v1/convai/sip-trunk/outbound-call";
+  `${ELEVENLABS_BASE_URL}/v1/convai/sip-trunk/outbound-call`;
 
 // Espaço entre uma ligação e outra — o tronco 3CX/ElevenLabs não aguenta
 // disparo em rajada. Ajustável, sem dado real de limite ainda (piloto vai
@@ -93,7 +99,7 @@ function textoApi(valor: unknown, campo: string): string {
 }
 
 async function lerCarimboAgente() {
-  const url = `https://api.elevenlabs.io/v1/convai/agents/${encodeURIComponent(ELEVENLABS_AGENT_ID)}`;
+  const url = `${ELEVENLABS_BASE_URL}/v1/convai/agents/${encodeURIComponent(ELEVENLABS_AGENT_ID)}`;
   let res: Response;
   try {
     res = await fetch(url, {
@@ -112,6 +118,14 @@ async function lerCarimboAgente() {
   const agente = objetoApi(await res.json(), "agente");
   if (agente.agent_id !== ELEVENLABS_AGENT_ID) {
     throw new Error("carimbo_invalido: agent_id retornado difere do solicitado");
+  }
+  // A validação e o carimbo usam EXATAMENTE a mesma resposta GET, sem nova leitura.
+  // O hash de aprovação (prompt + abertura) não substitui ia_prompt_hash, que
+  // continua incluindo voz e preservando os bytes dos textos conforme SON-2.10.
+  try {
+    await assertApprovedAgent(agente, approval);
+  } catch (error) {
+    throw new PromptGateError(error instanceof Error ? error.message : "Verificação R5 indisponível");
   }
   const config = objetoApi(agente.conversation_config, "conversation_config");
   const fala = objetoApi(config.agent, "conversation_config.agent");
@@ -312,6 +326,7 @@ Deno.serve(async (req: Request) => {
   const falhas: Record<string, unknown>[] = [];
 
   let processados = 0;
+  let promptBloqueado = false;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
     const telefoneId = telefoneIds[i];
@@ -347,14 +362,19 @@ Deno.serve(async (req: Request) => {
 
       // deno-lint-ignore no-explicit-any
       const lead = telefone.np_leads as any;
-      const empresa = normalizarNomeEmpresa(lead?.nome_exibicao || lead?.razao_social || "");
+      const briefing = await loadBriefing(sb, telefone.lead_id, lead?.nome_exibicao || lead?.razao_social || "");
+      const empresa = normalizarNomeEmpresa(briefing.empresa);
+      if (!empresa) {
+        pulados.push({ telefoneId, motivo: "empresa_de_referencia_ausente" });
+        continue;
+      }
 
       const payload = {
         agent_id: ELEVENLABS_AGENT_ID,
         agent_phone_number_id: ELEVENLABS_AGENT_PHONE_NUMBER_ID,
         to_number: telefone.e164,
         conversation_initiation_client_data: {
-          dynamic_variables: { empresa },
+          dynamic_variables: { ...briefing, empresa },
         },
       };
 
@@ -443,6 +463,11 @@ Deno.serve(async (req: Request) => {
         telefoneId,
         erro: erro instanceof Error ? erro.message : String(erro),
       });
+      if (erro instanceof PromptGateError) {
+        // Para o lote sem perder o carimbo/resultado das chamadas anteriores.
+        promptBloqueado = true;
+        break;
+      }
     } finally {
       // O finally também roda nos caminhos com continue (falha na API).
       if (tentouDisparar && i < telefoneIds.length - 1) {
@@ -458,5 +483,5 @@ Deno.serve(async (req: Request) => {
     ligados,
     pulados,
     falhas,
-  });
+  }, promptBloqueado ? 503 : 200);
 });

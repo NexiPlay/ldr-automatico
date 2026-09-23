@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { R5, assertR5, promptDigest, assertApprovedAgent, fetchApprovedAgent, dispatchApprovedCall, PromptGateError, buildBriefing, loadBriefing, BRIEFING_FIELDS } from "../backend/edge-functions/_shared/ldr-policy.mjs";
+import { R5, assertR5, promptDigest, assertApprovedAgent, fetchApprovedAgent, buildBriefing, loadBriefing, BRIEFING_FIELDS } from "../backend/edge-functions/_shared/ldr-policy.mjs";
 import approval from "../backend/edge-functions/_shared/ldr-approval.json" with { type: "json" };
 
 const prompt = await readFile(new URL("../prompts/bruno/system.md", import.meta.url), "utf8");
@@ -96,43 +96,4 @@ test("consulta escolhe registro mais recente por lead, com desempate e sem brief
   ]);
   query.maybeSingle = async () => ({ data: null, error: { message: "column missing" } });
   await assert.rejects(loadBriefing(query, "lead-1", "Antigo"), /bloqueada/);
-});
-
-test("discagem só faz POST após validar agente e transmite somente briefing filtrado", async () => {
-  const calls = [];
-  const payload = { agent_id: approval.agent_id, to_number: "+5500000000000", conversation_initiation_client_data: {
-    dynamic_variables: buildBriefing({ razao_social: "Exemplo", socios: "Não transmitir" }),
-  } };
-  await dispatchApprovedCall({ payload, apiKey: "fake", agentId: approval.agent_id, approval,
-    fetchImpl: async (url, options) => {
-      calls.push({ url, options });
-      return Response.json(options.method === "POST" ? { success: true } : agent());
-    },
-  });
-  assert.equal(calls.length, 2);
-  assert.ok(calls[0].url.endsWith(`/agents/${approval.agent_id}`));
-  assert.ok(calls[1].url.endsWith("/sip-trunk/outbound-call"));
-  assert.deepEqual(JSON.parse(calls[1].options.body), payload);
-  const vars = JSON.parse(calls[1].options.body).conversation_initiation_client_data.dynamic_variables;
-  assert.deepEqual(Object.keys(vars).sort(), ["briefing_lead", "empresa"]);
-  assert.equal(vars.empresa, "Exemplo");
-  assert.equal(JSON.parse(vars.briefing_lead).empresa.razao_social, "Exemplo");
-  assert.ok(!calls[1].options.body.includes("Não transmitir"));
-});
-test("cada elemento R5 removido impede POST de discagem real", async () => {
-  for (const phrase of Object.values(R5)) {
-    let posts = 0;
-    const live = agent(); live.conversation_config.agent.first_message = first.replace(phrase, "");
-    await assert.rejects(dispatchApprovedCall({ payload: { agent_id: approval.agent_id }, apiKey: "fake", agentId: approval.agent_id, approval,
-      fetchImpl: async (_url, options) => { if (options.method === "POST") posts++; return Response.json(live); },
-    }), PromptGateError);
-    assert.equal(posts, 0);
-  }
-});
-test("erro de transporte ao discar não repete uma chamada potencialmente criada", async () => {
-  let posts = 0;
-  await assert.rejects(dispatchApprovedCall({ payload: { agent_id: approval.agent_id }, apiKey: "fake", agentId: approval.agent_id, approval,
-    fetchImpl: async (_url, options) => { if (options.method === "POST") { posts++; throw new Error("outbound timeout"); } return Response.json(agent()); },
-  }), /outbound timeout/);
-  assert.equal(posts, 1);
 });
