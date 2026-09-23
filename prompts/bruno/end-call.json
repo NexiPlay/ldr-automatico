@@ -1,0 +1,18 @@
+{
+  "conversation_config": {
+    "agent": {
+      "prompt": {
+        "built_in_tools": {
+          "end_call": {
+            "type": "system",
+            "name": "end_call",
+            "description": "Encerre imediatamente quando o roteiro do Bruno mandar encerrar: verificação concluída, recusa, pedido de encerramento, gravação não aceita ou confirmação inconclusiva após a tentativa permitida. Use reason com motivo factual e message somente para uma despedida breve ainda não dita. Não espere nova resposta nem ofereça ajuda adicional. Em opt-out, siga a regra de recusa do prompt antes de encerrar; esta ferramenta não registra nem aplica bloqueio de contato.",
+            "params": {
+              "system_tool_type": "end_call"
+            }
+          }
+        }
+      }
+    }
+  }
+}

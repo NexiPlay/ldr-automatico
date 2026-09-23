@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "npm:@supabase/supabase-js@2": "./supabase-stub.ts"
+  },
+  "lock": false
+}

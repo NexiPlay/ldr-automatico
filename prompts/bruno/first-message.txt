@@ -1,0 +1,1 @@
+Olá! Sou o Bruno, assistente virtual da Tendência Energia. Esta ligação está sendo gravada. Estou ligando para confirmar a empresa deste telefone e saber quem cuida de energia. Aqui é da {{empresa}}?
