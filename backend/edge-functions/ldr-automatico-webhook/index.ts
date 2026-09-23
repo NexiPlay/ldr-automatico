@@ -14,12 +14,11 @@
 // commitado em lugar nenhum: só como secret do Supabase
 // (ELEVENLABS_WEBHOOK_SECRET).
 //
-// Correlação com o telefone testado é feita por ia_conversation_id — colunas
-// próprias do LDR Automático em np_lead_telefones (migration 0320), gravadas
-// pelo orquestrador (a construir) a partir do conversation_id que o
-// POST /v1/convai/sip-trunk/outbound-call devolve ao disparar a ligação. Sem
-// o orquestrador rodando ainda, este webhook não vai achar telefone pra
-// nenhum conversation_id — isso é esperado até aquela peça existir.
+// Correlação pelo ia_conversation_id gravado pelo orquestrador.
+// SONAR: grava custo pós-chamada nas colunas da migração 01-sonar-carimbo.sql.
+// Custo principal = metadata.cost_fiat, USD (total reportado pela ElevenLabs).
+// Referência: https://api.elevenlabs.io/openapi.json
+// Não inclui automaticamente despesas de telefonia cobradas pelo tronco externo.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -145,14 +144,15 @@ async function assinaturaValida(
   const timestamp = partes["t"];
   const assinaturaRecebida = partes["v0"];
 
-  if (!timestamp || !assinaturaRecebida) {
+  if (!timestamp || !/^\d+$/.test(timestamp) ||
+    !assinaturaRecebida || !/^[0-9a-fA-F]{64}$/.test(assinaturaRecebida)) {
     return { ok: false, motivo: "header_malformado" };
   }
 
   const agora = Math.floor(Date.now() / 1000);
-  const ts = parseInt(timestamp, 10);
+  const ts = Number(timestamp);
 
-  if (!Number.isFinite(ts) || Math.abs(agora - ts) > TOLERANCIA_TIMESTAMP_SEGUNDOS) {
+  if (!Number.isSafeInteger(ts) || Math.abs(agora - ts) > TOLERANCIA_TIMESTAMP_SEGUNDOS) {
     return { ok: false, motivo: "timestamp_fora_da_janela" };
   }
 
@@ -196,6 +196,124 @@ function extrairResultado(analysis: any): ResultadoIa | null {
     ? (normalizado as ResultadoIa)
     : null;
 }
+
+// ============================================================
+// SONAR — custo da conversa, separado de créditos e de telefonia externa
+// ============================================================
+
+function objeto(valor: unknown): Record<string, unknown> {
+  return valor !== null && typeof valor === "object" && !Array.isArray(valor)
+    ? valor as Record<string, unknown>
+    : {};
+}
+
+function valorMonetarioValido(valor: unknown): valor is number {
+  // Zero explícito é válido. NULL, string vazia, boolean e número negativo não.
+  return typeof valor === "number" && Number.isFinite(valor) && valor >= 0;
+}
+
+function metadadosCobranca(data: Record<string, unknown>) {
+  const metadata = objeto(data.metadata);
+  const charging = objeto(metadata.charging);
+  const selecionados: Record<string, unknown> = {};
+  for (const nome of [
+    "llm_price", "llm_charge", "call_charge", "platform_price",
+    "platform_charge", "free_minutes_consumed", "free_llm_dollars_consumed",
+  ]) {
+    if (valorMonetarioValido(charging[nome])) selecionados[nome] = charging[nome];
+  }
+  for (const nome of ["dev_discount", "is_burst"]) {
+    if (typeof charging[nome] === "boolean") selecionados[nome] = charging[nome];
+  }
+  if (typeof charging.tier === "string") selecionados.tier = charging.tier;
+
+  return {
+    // Os nomes e valores brutos são preservados para auditoria. Não somar
+    // metadata.cost ou charging.* ao cost_fiat: são representações/componentes.
+    cost_fiat: valorMonetarioValido(metadata.cost_fiat) ? metadata.cost_fiat : null,
+    cost: valorMonetarioValido(metadata.cost) ? metadata.cost : null,
+    charging: selecionados,
+    call_duration_secs: valorMonetarioValido(metadata.call_duration_secs)
+      ? metadata.call_duration_secs : null,
+    start_time_unix_secs: valorMonetarioValido(metadata.start_time_unix_secs)
+      ? metadata.start_time_unix_secs : null,
+  };
+}
+
+async function resolverCusto(
+  data: Record<string, unknown>,
+  conversationId: string,
+  agentIdEsperado: string | null,
+): Promise<{ campos: Record<string, unknown>; pendente: boolean; motivo: string | null }> {
+  let origem = "post_call_transcription";
+  let consulta = data;
+  let motivo: string | null = null;
+
+  if (!valorMonetarioValido(objeto(data.metadata).cost_fiat)) {
+    // Mesmo secret do orquestrador. Só necessário se o evento não trouxer custo.
+    const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
+    if (!apiKey) {
+      motivo = "api_key_ausente_para_consultar_custo";
+    } else {
+      try {
+        const res = await fetch(
+          `https://api.elevenlabs.io/v1/convai/conversations/${encodeURIComponent(conversationId)}`,
+          { headers: { "xi-api-key": apiKey }, signal: AbortSignal.timeout(10_000) },
+        );
+        if (!res.ok) {
+          motivo = `consulta_custo_http_${res.status}`;
+        } else {
+          const recebida = objeto(await res.json());
+          if (recebida.conversation_id !== conversationId ||
+            (agentIdEsperado && recebida.agent_id !== agentIdEsperado)) {
+            motivo = "consulta_custo_identidade_divergente";
+          } else if (recebida.status !== "done" && recebida.status !== "failed") {
+            motivo = "conversa_ainda_nao_finalizada";
+          } else {
+            consulta = recebida;
+            origem = "conversation_get";
+          }
+        }
+      } catch {
+        motivo = "consulta_custo_rede_timeout_ou_json_invalido";
+      }
+    }
+  }
+
+  const valor = objeto(consulta.metadata).cost_fiat;
+  const apurado = motivo === null && valorMonetarioValido(valor);
+  if (!apurado && motivo === null) motivo = "cost_fiat_ausente_ou_invalido";
+  const detalhes = {
+    schema_version: 1,
+    status: apurado ? "apurado" : "pendente",
+    escopo: "custo_conversa_elevenlabs",
+    origem,
+    campo_valor: "metadata.cost_fiat",
+    conversation_id: conversationId,
+    agent_id: typeof consulta.agent_id === "string" ? consulta.agent_id : null,
+    // Versão efetiva, quando fornecida. Não substitui o hash lido no disparo.
+    version_id: typeof consulta.version_id === "string" ? consulta.version_id
+      : typeof data.version_id === "string" ? data.version_id : null,
+    metadata: metadadosCobranca(consulta),
+    motivo_pendencia: motivo,
+  };
+
+  return {
+    pendente: !apurado,
+    motivo,
+    campos: apurado ? {
+      ia_custo_valor: valor,
+      ia_custo_unidade: "USD",
+      ia_custo_detalhes: detalhes,
+      ia_custo_atualizado_em: new Date().toISOString(),
+    } : {
+      // Nunca escrever zero/null por falta de informação, nem apagar valor
+      // válido anterior em uma reentrega incompleta do webhook.
+      ia_custo_detalhes: detalhes,
+    },
+  };
+}
+
 
 // ============================================================
 // WEBHOOK
@@ -264,7 +382,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: telefone, error: buscaError } = await sb
       .from("np_lead_telefones")
-      .select("id, lead_id")
+      .select("id, lead_id, ia_agent_id, ia_custo_valor, ia_custo_unidade, ia_custo_detalhes, ia_custo_atualizado_em")
       .eq("ia_conversation_id", conversationId)
       .maybeSingle();
 
@@ -292,22 +410,52 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const dataConversa = objeto(body.data);
+    // Conferir o agente também evita atribuir cobrança de outro agente à linha.
+    const agentIdEsperado = telefone.ia_agent_id ||
+      (typeof dataConversa.agent_id === "string" ? dataConversa.agent_id : null);
+    if (telefone.ia_agent_id && dataConversa.agent_id !== telefone.ia_agent_id) {
+      throw new Error("agent_id do webhook difere do agente carimbado no telefone");
+    }
+
+    // Primeira apuração válida é preservada nas reentregas. Não acumular custo.
+    const custoJaGravado = valorMonetarioValido(telefone.ia_custo_valor) &&
+      telefone.ia_custo_unidade === "USD";
+    const custo = custoJaGravado
+      ? { campos: {} as Record<string, unknown>, pendente: false, motivo: null }
+      : await resolverCusto(dataConversa, conversationId, agentIdEsperado);
+
     // ==========================================================
     // GRAVAR O VEREDITO
     // ==========================================================
 
-    const { error: updateError } = await sb
+    let atualizacao = sb
       .from("np_lead_telefones")
       .update({
         ia_resultado: resultado,
         ia_testado_em: new Date().toISOString(),
+        ...custo.campos,
       })
-      .eq("id", telefone.id);
+      .eq("id", telefone.id)
+      .eq("ia_conversation_id", conversationId);
+
+    // Reentregas simultâneas: um payload incompleto não pode sobrescrever os
+    // detalhes de um custo que outro request acabou de apurar.
+    if (!custoJaGravado && telefone.ia_custo_valor == null) {
+      atualizacao = atualizacao.is("ia_custo_valor", null);
+    }
+    const { data: atualizado, error: updateError } = await atualizacao
+      .select("id")
+      .maybeSingle();
 
     if (updateError) {
       throw new Error(
         `Erro gravando veredito do telefone ${telefone.id}: ${updateError.message}`,
       );
+    }
+
+    if (!atualizado) {
+      throw new Error("Telefone não atualizado: correlação ou custo mudou durante o processamento; reentrega necessária");
     }
 
     // ==========================================================
@@ -355,6 +503,22 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    if (custo.pendente) {
+      // Veredito/tag já foram tratados. Falha explícita permite reentrega
+      // quando retries estão habilitados na ElevenLabs; nunca reportar custo 0.
+      console.warn("[WEBHOOK] Custo pendente", { conversationId, motivo: custo.motivo });
+      return respostaJson({
+        ok: false,
+        conversationId,
+        telefoneId: telefone.id,
+        resultado,
+        tagAplicada,
+        vereditoGravado: true,
+        custoPendente: true,
+        motivo: custo.motivo,
+      }, 503);
+    }
+
     console.log("[WEBHOOK] OK", {
       conversationId,
       telefoneId: telefone.id,
@@ -365,6 +529,8 @@ Deno.serve(async (req: Request) => {
 
     return respostaJson({
       ok: true,
+      custoGravado: true,
+      custoReutilizado: custoJaGravado,
       conversationId,
       telefoneId: telefone.id,
       leadId: telefone.lead_id,
