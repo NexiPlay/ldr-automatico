@@ -9,9 +9,11 @@ anteriores sem repetir a identificação/perguntas, proíbe pitch, preço, comis
 promessa de economia e apresentação como Karla.
 
 Agente: `agent_3501m1c2yxmye1q99p9nh7r7ndkg`; versão local
-`bruno-son-2.4-v2`. O PO informou draft não publicado e voz **Manoel Cota**.
-O texto completo do draft e seu voice_id ainda precisam ser conferidos no painel;
-o PR não altera nem publica o agente.
+`bruno-son-2.4-v3`. Texto final em `prompts/bruno/system.md`, abertura em
+`prompts/bruno/first-message.txt` e configuração mínima em `prompts/bruno/end-call.json`.
+O PO deve aplicar/publicar esses campos; o PR não altera nem publica o agente.
+Após a publicação, conferir hash e `end_call` e executar os mesmos 14 cenários
+contra a versão publicada, sem override. SON-1.5 continua pendente.
 
 O orquestrador envia `dynamic_variables.empresa` (nome normalizado para fala) e
 `briefing_lead` (JSON serializado). Consulta `np_lead_enriquecimento` por `lead_id`,
