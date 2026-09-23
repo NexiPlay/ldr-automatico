@@ -9,11 +9,12 @@ anteriores sem repetir a identificação/perguntas, proíbe pitch, preço, comis
 promessa de economia e apresentação como Karla.
 
 Agente: `agent_3501m1c2yxmye1q99p9nh7r7ndkg`; versão local
-`bruno-son-2.4-v3`. Texto final em `prompts/bruno/system.md`, abertura em
+`bruno-son-2.4-v3.1`. Texto final em `prompts/bruno/system.md`, abertura em
 `prompts/bruno/first-message.txt` e configuração mínima em `prompts/bruno/end-call.json`.
-O PO deve aplicar/publicar esses campos; o PR não altera nem publica o agente.
-Após a publicação, conferir hash e `end_call` e executar os mesmos 14 cenários
-contra a versão publicada, sem override. SON-1.5 continua pendente.
+Publicado pelo PO como `agtvrsn_0601m37cb2v3fq0v2zxgtjedwad0`, com `end_call`.
+A v3.1 registra somente a remoção de 27 linhas em branco feita no painel;
+texto e abertura idênticos à v3, sem flexibilizar o algoritmo de hash.
+Validação: mesmos 14 cenários contra essa versão, sem override. SON-1.5 pendente.
 
 O orquestrador envia `dynamic_variables.empresa` (nome normalizado para fala) e
 `briefing_lead` (JSON serializado). Consulta `np_lead_enriquecimento` por `lead_id`,
