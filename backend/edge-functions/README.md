@@ -44,6 +44,15 @@ URL ativa: `https://wbagoinuxgvntvbbnmab.supabase.co/functions/v1/ldr-automatico
 
 ## Deploy (referência — sem Docker local, via Management API)
 
+**LDR / SON-2.4 (PR em preparação):** o workflow `.github/workflows/ldr-release.yml`
+exige R5 no prompt vivo, hash da versão Bruno e suíte adversarial aprovada. O deploy
+está explicitamente bloqueado até reconciliar os arquivos implantados manualmente,
+que contêm carimbo por chamada e custos ausentes da main. Este PR preserva o
+orquestrador, o webhook e as migrations da base; a integração do briefing e da
+trava runtime permanece pendente. O comando avulso abaixo é referência técnica
+e não executa a trava de release. Consulte
+[`docs/SON-2.4-bruno.md`](../../docs/SON-2.4-bruno.md) para a integração ainda pendente.
+
 ```
 supabase functions deploy <nome> --project-ref wbagoinuxgvntvbbnmab --use-api [--no-verify-jwt]
 ```

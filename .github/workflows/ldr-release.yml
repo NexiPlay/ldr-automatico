@@ -1,0 +1,100 @@
+name: LDR Bruno - validação e release
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# SON-2.4 e SON-1.5 devem usar o MESMO grupo ao editar/publicar este agente.
+concurrency:
+  group: elevenlabs-ldr-production
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Testes da trava e do briefing
+        run: node --test tests/*.test.mjs
+      - name: R5 no artefato versionado
+        run: node scripts/ldr-release.mjs --local
+      - name: Verificar orquestrador
+        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts
+
+  r5-adversarial:
+    name: R5 remoto e suíte adversarial obrigatórios
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ELEVENLABS_AGENT_ID: ${{ vars.ELEVENLABS_AGENT_ID }}
+      ELEVENLABS_BASE_URL: ${{ vars.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: R5 remoto, versão revisada e suíte SON-2.5 obrigatórios
+        run: node scripts/ldr-release.mjs --live
+      - name: Guardar evidência da suíte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ldr-adversarial-${{ github.sha }}
+          path: artifacts/ldr-adversarial.json
+          if-no-files-found: ignore
+          retention-days: 30
+
+  deploy:
+    name: Deploy do orquestrador após R5 e suíte
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: [checks, r5-adversarial]
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ELEVENLABS_AGENT_ID: ${{ vars.ELEVENLABS_AGENT_ID }}
+      ELEVENLABS_BASE_URL: ${{ vars.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io' }}
+    steps:
+      # Remover somente junto da integração revisada das fontes realmente implantadas.
+      # main ainda não contém o carimbo/custeio que foi publicado manualmente.
+      - name: Bloqueio obrigatório até reconciliar código de produção
+        run: |
+          echo "::error::Deploy bloqueado: faltam ldr-automatico-orquestrador.ts e ldr-automatico-webhook.ts de produção com carimbo/custos."
+          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Obter evidência obrigatória desta execução
+        uses: actions/download-artifact@v4
+        with:
+          name: ldr-adversarial-${{ github.sha }}
+          path: artifacts
+      - name: Preparar somente o orquestrador e seus módulos
+        run: |
+          mkdir -p .release/supabase/functions
+          cp supabase/config.toml .release/supabase/config.toml
+          cp -R backend/edge-functions/ldr-automatico-orquestrador .release/supabase/functions/
+          cp -R backend/edge-functions/_shared .release/supabase/functions/
+      - name: Revalidar agente e publicar (nunca executar se a trava falhar)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          node scripts/ldr-release.mjs --verify-live
+          supabase functions deploy ldr-automatico-orquestrador --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release
