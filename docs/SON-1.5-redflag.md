@@ -27,7 +27,13 @@ Publicar a configuração. O hash de prompt da SON-2.4 continua exigindo revisã
 
 32 testes Node e 26 testes Deno de runtime passaram; tipos das duas funções conferidos. Cobertura inclui true/false/ausência, formato booleano da análise, reentrega, bloqueio por ambas as chaves, falha parcial, assinatura inválida, preservação de custo/veredito e recusa antes da API de telefonia. Testes de runtime não fazem requisições externas.
 
-As fontes publicadas foram baixadas e comparadas ao Git antes da edição, sem divergências. A publicação autorizada abrange apenas `ldr-automatico-webhook` (assinatura HMAC, JWT desativado) e `ldr-automatico-orquestrador` (JWT ativado). Não inclui frontend, agente, chamadas ou liberação das 200 discagens, que continuam em espera.
+Publicação concluída em 25/09/2026 no projeto `wbagoinuxgvntvbbnmab`: `ldr-automatico-webhook` **v21** (assinatura HMAC, JWT desativado) e `ldr-automatico-orquestrador` **v24** (JWT ativado), ambas ACTIVE. Os dois fontes e quatro dependências foram baixados após o deploy e conferidos byte a byte contra o Git, sem divergências. Requisições sem assinatura/autenticação receberam HTTP 401. Implementação: [PR #6](https://github.com/NexiPlay/ldr-automatico/pull/6), incorporada em `a2652cc`.
+
+As RPCs reais da SON-1.4 também foram verificadas em transação revertida: telefone bloqueado, outro número/filial bloqueado pelo mesmo CNPJ raiz e reentrega com a mesma data sem duplicação ou incremento da contagem. O ensaio confirmou que nenhum registro de teste persistiu. O teste do orquestrador usa telefonia simulada e verifica a recusa antes do POST; não foi feita tentativa telefônica real.
+
+Na leitura do ElevenLabs às **17:39:37 UTC**, o campo `redflag` Boolean já estava publicado. O prompt ainda mantinha o trecho antigo de gravação antes de encerrar, com o mesmo hash aprovado. A substituição pelo texto acima continua pendente; depois de publicada, a nova versão precisa ter o hash revisado e atualizado na aprovação do orquestrador antes de novas discagens. [Conferência somente leitura](https://github.com/NexiPlay/ldr-automatico/actions/runs/36168492263).
+
+Evidência de versões, hashes e verificações: [deployment.json](evidence/son-1.5/deployment.json). Não houve publicação de frontend ou agente, nem liberação das 200 discagens, que continuam em espera.
 
 O teste de uma conversa real com o data point publicado continua distinto dos testes de integração locais. Não marcar essa prova no checklist antes de existir uma conversa identificada com `redflag=true` e opt-out correspondente no banco.
 

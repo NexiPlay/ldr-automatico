@@ -1,0 +1,87 @@
+{
+  "task": "SON-1.5",
+  "verified_at": "2026-09-25T17:49:39.511301+00:00",
+  "project_ref": "wbagoinuxgvntvbbnmab",
+  "implementation_pr": "https://github.com/NexiPlay/ldr-automatico/pull/6",
+  "merge_commit": "a2652cc",
+  "functions": [
+    {
+      "name": "ldr-automatico-webhook",
+      "version": 21,
+      "status": "ACTIVE",
+      "verify_jwt": false,
+      "updated_at": 1790358137112
+    },
+    {
+      "name": "ldr-automatico-orquestrador",
+      "version": 24,
+      "status": "ACTIVE",
+      "verify_jwt": true,
+      "updated_at": 1790358169234
+    }
+  ],
+  "downloaded_files": [
+    {
+      "path": "_shared/ldr-approval.json",
+      "sha256": "f5ef17328a92a9d95a31c3534ad74a8c3763ec7e187572833d80b8706d911476",
+      "matches_repository": true
+    },
+    {
+      "path": "_shared/ldr-optout.ts",
+      "sha256": "2d5093ccc9f6c6922cde97573f05a0852b5f8bee93d7a2ea3a0700f0568bb0d4",
+      "matches_repository": true
+    },
+    {
+      "path": "_shared/ldr-policy.mjs",
+      "sha256": "350937184554b28fcba3869c72aba347d2c282c2957fd10bc1969ead0e5b0897",
+      "matches_repository": true
+    },
+    {
+      "path": "_shared/sonar-reputacao.ts",
+      "sha256": "042803faea49303d0eb59482e9d42d642e311710de122bf139c2dbc6f77d6a33",
+      "matches_repository": true
+    },
+    {
+      "path": "ldr-automatico-orquestrador/index.ts",
+      "sha256": "001e1ba4ddcfa96ba43597c38b7fc86c4417a243e818af29ba7d198d94748f86",
+      "matches_repository": true
+    },
+    {
+      "path": "ldr-automatico-webhook/index.ts",
+      "sha256": "6ffb7e9461fef0fbc7b4bfc665bc4bf7d8b24ee5e96ed06ad0ebe3d2ee79af4a",
+      "matches_repository": true
+    }
+  ],
+  "checks": {
+    "node_tests_passed": 32,
+    "deno_runtime_tests_passed": 26,
+    "typecheck_passed": true,
+    "unauthenticated_webhook_http": 401,
+    "unauthenticated_orchestrator_http": 401,
+    "live_database_rollback_check": {
+      "phone_blocked": true,
+      "other_phone_same_cnpj_root_blocked": true,
+      "same_event_retry_idempotent": true,
+      "no_test_rows_persisted": true
+    },
+    "telephone_api_in_runtime_tests": "mocked; no outbound calls",
+    "real_conversation_end_to_end": "pending"
+  },
+  "elevenlabs_read": {
+    "checked_at": "2026-09-25T17:39:37.491Z",
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "version_id": "agtvrsn_5101m3csnrg5fds9s1zhq56wrcd6",
+    "redflag": {
+      "type": "boolean",
+      "description": "deve ser dado como true caso o lead fale explicitamente que nao quer receber mais ligações,"
+    },
+    "prompt_sha256": "1a1b98b3864ad886d991834ac2fa57a226f3103aa5e26353563f4dcae8edc792"
+  },
+  "agent_read_run": "https://github.com/NexiPlay/ldr-automatico/actions/runs/36168492263",
+  "pending": [
+    "Replace old opt-out prompt block and publish in ElevenLabs.",
+    "Review and update approved prompt hash after prompt publication.",
+    "Verify redflag=true and stored opt-out from an identified real test conversation."
+  ],
+  "pilot_200_calls": "on hold; none started"
+}
