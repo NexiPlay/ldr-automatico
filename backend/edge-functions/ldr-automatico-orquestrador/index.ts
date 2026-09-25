@@ -30,6 +30,7 @@
 //   { success: boolean, message: string, conversation_id: string|null, sip_call_id: string|null }
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { OptoutIndisponivel, podeContatar } from "../_shared/ldr-optout.ts";
 import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } from "../_shared/ldr-policy.mjs";
 import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
@@ -336,6 +337,7 @@ Deno.serve(async (req: Request) => {
   let processados = 0;
   let promptBloqueado = false;
   let reputacaoBloqueada = false;
+  let optoutIndisponivel = false;
   let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
@@ -345,7 +347,7 @@ Deno.serve(async (req: Request) => {
     try {
       const { data: telefone, error: buscaError } = await sb
         .from("np_lead_telefones")
-        .select("id, e164, ia_conversation_id, ia_tentativas, lead_id, np_leads(nome_exibicao, razao_social)")
+        .select("id, e164, ia_conversation_id, ia_tentativas, lead_id, np_leads(nome_exibicao, razao_social, cnpj, origem)")
         .eq("id", telefoneId)
         .maybeSingle();
 
@@ -372,6 +374,12 @@ Deno.serve(async (req: Request) => {
 
       // deno-lint-ignore no-explicit-any
       const lead = telefone.np_leads as any;
+      const cnpj = lead?.origem === "ldr-automatico-teste" ? null : lead?.cnpj ?? null;
+      if (!cnpj && lead?.origem !== "ldr-automatico-teste") throw new OptoutIndisponivel("CNPJ do lead real ausente; discagem bloqueada");
+      if (!await podeContatar(sb, telefone.e164, cnpj)) {
+        pulados.push({ telefoneId, motivo: "opt_out" });
+        continue;
+      }
       const briefing = await loadBriefing(sb, telefone.lead_id, lead?.nome_exibicao || lead?.razao_social || "");
       const empresa = normalizarNomeEmpresa(briefing.empresa);
       if (!empresa) {
@@ -396,6 +404,12 @@ Deno.serve(async (req: Request) => {
       // Ultima verificacao antes do efeito externo: um clique durante o lote
       // impede o proximo POST. Nao cancela ligacoes ja aceitas pelo provedor.
       await conferirReputacao(sb, origem);
+      // Revalidar imediatamente antes do efeito externo, inclusive se outro
+      // webhook registrou bloqueio durante a preparação deste telefone.
+      if (!await podeContatar(sb, telefone.e164, cnpj)) {
+        pulados.push({ telefoneId, motivo: "opt_out" });
+        continue;
+      }
       tentouDisparar = true;
       const res = await fetch(ELEVENLABS_OUTBOUND_CALL_URL, {
         method: "POST",
@@ -481,6 +495,11 @@ Deno.serve(async (req: Request) => {
         primeiroPendente = i;
         break;
       }
+      if (erro instanceof OptoutIndisponivel) {
+        optoutIndisponivel = true;
+        primeiroPendente = i;
+        break;
+      }
       if (erro instanceof PromptGateError) {
         // Para o lote sem perder o carimbo/resultado das chamadas anteriores.
         promptBloqueado = true;
@@ -499,8 +518,9 @@ Deno.serve(async (req: Request) => {
     processados,
     pendentes: telefoneIds.slice(primeiroPendente ?? processados),
     reputacaoBloqueada,
+    optoutIndisponivel,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado || reputacaoBloqueada ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel ? 503 : 200);
 });

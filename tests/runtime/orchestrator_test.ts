@@ -22,6 +22,7 @@ type Options = {
   getFailure?: number; postFailure?: boolean; postThrow?: boolean;
   changeAgent?: (value: ReturnType<typeof agent>, index: number) => void;
   reputationError?: boolean; pauseAfterFirst?: boolean;
+  optout?: boolean; optoutError?: boolean; optoutBeforePost?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
@@ -41,7 +42,7 @@ async function scenario(options: Options, ids = ["phone-1"]) {
       return { error: null, data: {
         id: q.filters[0][2], lead_id: "lead-1", e164: "+5500000000000", ia_tentativas: 2,
         ia_conversation_id: options.alreadyCalled ? "existing" : null,
-        np_leads: { nome_exibicao: options.noCompany ? "" : "COMERCIO DE PECAS LTDA" },
+        np_leads: { nome_exibicao: options.noCompany ? "" : "COMERCIO DE PECAS LTDA", cnpj: "12345678000195" },
       } };
     }
     if (q.table === "np_lead_enriquecimento") {
@@ -60,6 +61,11 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   await withEdge("ldr-automatico-orquestrador", {
     db,
     rpc(name, args) {
+      if (name === "np_fn_pode_contatar") {
+        assert.equal(args.p_e164, "+5500000000000");
+        assert.equal(args.p_cnpj, "12345678000195");
+        return { data: !(options.optout || (options.optoutBeforePost && reads.length > 0)), error: options.optoutError ? { message: "offline" } : null };
+      }
       assert.equal(name, "np_fn_sonar_reputacao_portao");
       assert.equal(args.p_origem, "+5511000000010");
       return { error: options.reputationError ? { message: "offline" } : null,
@@ -96,6 +102,20 @@ Deno.test("reputacao: pausa durante o lote impede o proximo POST e conserva pend
   assert.equal(r.body.reputacaoBloqueada, true);
   assert.equal(r.status, 503);
   assert.deepEqual(r.body.pendentes, ["phone-2", "phone-3"]);
+});
+
+Deno.test("opt-out: bloqueio por telefone/CNPJ impede POST; falha do portão conserva pendentes", async () => {
+  for (const options of [{ optout: true }, { optoutError: true }, { optoutBeforePost: true }]) {
+    const r = await scenario(options);
+    assert.equal(r.payloads.length, 0);
+    if (options.optoutError) {
+      assert.equal(r.status, 503);
+      assert.equal(r.body.optoutIndisponivel, true);
+      assert.deepEqual(r.body.pendentes, ["phone-1"]);
+    } else {
+      assert.equal(r.body.pulados[0].motivo, "opt_out");
+    }
+  }
 });
 
 Deno.test("reputacao: erro do monitor impede qualquer discagem", async () => {

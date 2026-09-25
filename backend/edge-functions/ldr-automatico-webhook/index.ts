@@ -22,6 +22,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { registrarReputacao } from "../_shared/sonar-reputacao.ts";
+import { extrairRedflag, podeContatar, registrarOptout } from "../_shared/ldr-optout.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -386,7 +387,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: telefone, error: buscaError } = await sb
       .from("np_lead_telefones")
-      .select("id, lead_id, ia_agent_id, ia_custo_valor, ia_custo_unidade, ia_custo_detalhes, ia_custo_atualizado_em")
+      .select("id, lead_id, e164, ia_agent_id, ia_custo_valor, ia_custo_unidade, ia_custo_detalhes, ia_custo_atualizado_em, np_leads(cnpj, origem)")
       .eq("ia_conversation_id", conversationId)
       .maybeSingle();
 
@@ -397,6 +398,11 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!telefone) {
+      // Um pedido de bloqueio não pode desaparecer como evento ignorado.
+      // Pode ser corrida entre gravação do conversation_id e entrega do webhook.
+      if (extrairRedflag(body?.data?.analysis) === true) {
+        throw new Error("redflag_sem_telefone_correlacionado: reentrega/reconciliação necessária");
+      }
       // Não é erro — é o caminho normal pra qualquer ligação feita fora do
       // orquestrador (teste manual direto no ElevenLabs, por exemplo). Fica
       // em console.log (não warn) de propósito, pra não acender como alerta
@@ -421,6 +427,20 @@ Deno.serve(async (req: Request) => {
     if (telefone.ia_agent_id && dataConversa.agent_id !== telefone.ia_agent_id) {
       throw new Error("agent_id do webhook difere do agente carimbado no telefone");
     }
+
+    const redflag = extrairRedflag(dataConversa.analysis);
+    const lead = telefone.np_leads as unknown as { cnpj?: string; origem?: string } | null;
+    // O popup de teste usa CNPJ fictício. Só esse fluxo identificado usa bloqueio
+    // por telefone. Cadastro real inválido não pode perder o bloqueio por CNPJ.
+    const cnpj = lead?.origem === "ldr-automatico-teste" ? null : lead?.cnpj ?? null;
+    if (redflag === true) {
+      if (!cnpj && lead?.origem !== "ldr-automatico-teste") throw new Error("CNPJ do lead real ausente para opt-out");
+      await registrarOptout(sb, { e164: telefone.e164, lead_id: telefone.lead_id, cnpj }, conversationId, body.event_timestamp);
+    }
+    // Veredito/custo continuam normais. O opt-out prevalece sobre liberar o lead
+    // para prospecção, inclusive quando uma reentrega posterior trouxer false.
+    const contatoPermitido = redflag === true ? false
+      : resultado === "confirmado" ? await podeContatar(sb, telefone.e164, cnpj) : true;
 
     // Primeira apuração válida é preservada nas reentregas. Não acumular custo.
     const custoJaGravado = valorMonetarioValido(telefone.ia_custo_valor) &&
@@ -468,7 +488,7 @@ Deno.serve(async (req: Request) => {
 
     let tagAplicada = false;
 
-    if (resultado === "confirmado") {
+    if (resultado === "confirmado" || !contatoPermitido) {
       const { data: tag, error: tagError } = await sb
         .from("np_tags")
         .select("id")
@@ -487,6 +507,10 @@ Deno.serve(async (req: Request) => {
           "[WEBHOOK] Tag de qualificação não encontrada — 0321 aplicada?",
           TAG_VALIDADO_LDR_IA,
         );
+      } else if (!contatoPermitido) {
+        const { error: removerError } = await sb.from("np_lead_tags").delete()
+          .eq("lead_id", telefone.lead_id).eq("tag_id", tag.id);
+        if (removerError) throw new Error("Falha retirando qualificação de lead com opt-out; reentrega necessária");
       } else {
         const { error: upsertError } = await sb
           .from("np_lead_tags")
@@ -516,6 +540,9 @@ Deno.serve(async (req: Request) => {
         conversationId,
         telefoneId: telefone.id,
         resultado,
+        redflag,
+        optoutRegistrado: redflag === true,
+        contatoPermitido,
         tagAplicada,
         vereditoGravado: true,
         custoPendente: true,
@@ -528,6 +555,9 @@ Deno.serve(async (req: Request) => {
       telefoneId: telefone.id,
       leadId: telefone.lead_id,
       resultado,
+      redflag,
+      optoutRegistrado: redflag === true,
+      contatoPermitido,
       tagAplicada,
     });
 
@@ -539,6 +569,9 @@ Deno.serve(async (req: Request) => {
       telefoneId: telefone.id,
       leadId: telefone.lead_id,
       resultado,
+      redflag,
+      optoutRegistrado: redflag === true,
+      contatoPermitido,
       tagAplicada,
     });
   } catch (erro) {

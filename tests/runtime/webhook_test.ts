@@ -29,7 +29,7 @@ Deno.test("reputacao: assinatura valida persiste origem antes da correlacao; fal
 });
 
 function signed(data: Record<string, unknown>, valid = true) {
-  const body = JSON.stringify({ type: "post_call_transcription", data: {
+  const body = JSON.stringify({ type: "post_call_transcription", event_timestamp: 1800000000, data: {
     conversation_id: "conversation-1", agent_id: agentId,
     analysis: { data_collection_results: { resultado_validacao: { value: "confirmado" } } }, ...data,
   } });
@@ -54,7 +54,7 @@ async function scenario(data: Record<string, unknown>, options: {
       queries.push(q);
       if (q.table === "np_lead_telefones" && q.action === "select") {
         assert.deepEqual(q.filters, [["eq", "ia_conversation_id", "conversation-1"]]);
-        return { error: null, data: { id: "phone-1", lead_id: "lead-1", ia_agent_id: agentId,
+        return { error: null, data: { id: "phone-1", lead_id: "lead-1", e164: "+5511000000001", np_leads: { cnpj: "12345678000195" }, ia_agent_id: agentId,
           ia_custo_valor: saved ?? null, ia_custo_unidade: saved === undefined ? null : "USD" } };
       }
       if (q.table === "np_lead_telefones" && q.action === "update") {
