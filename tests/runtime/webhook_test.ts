@@ -3,6 +3,31 @@ import { createHmac } from "node:crypto";
 import { withEdge, unexpectedFetch, type Query } from "./harness.ts";
 
 const agentId = "agent_3501m1c2yxmye1q99p9nh7r7ndkg";
+
+Deno.test("reputacao: assinatura valida persiste origem antes da correlacao; falha pede reentrega", async () => {
+  const data = { status: "done", metadata: { start_time_unix_secs: 1800000000, call_duration_secs: 6,
+    phone_call: { direction: "outbound", agent_number: "+5511000000001", external_number: "+5522000000001" } } };
+  for (const mode of ["ok", "unsigned", "offline"]) {
+    let ingestions = 0, lookups = 0;
+    await withEdge("ldr-automatico-webhook", {
+      fetch: unexpectedFetch,
+      rpc(name, args) {
+        assert.equal(name, "np_fn_sonar_reputacao_registrar");
+        assert.equal(args.p_origem, "+5511000000001");
+        assert.equal(args.p_duracao, 6);
+        ingestions++;
+        return { data: {}, error: mode === "offline" ? { message: "offline" } : null };
+      },
+      db() { lookups++; return { data: null, error: null }; },
+    }, async handle => {
+      const response = await handle(signed(data, mode !== "unsigned"));
+      assert.equal(response.status, mode === "ok" ? 200 : mode === "unsigned" ? 401 : 500);
+      assert.equal(ingestions, mode === "unsigned" ? 0 : 1);
+      assert.equal(lookups, mode === "ok" ? 1 : 0);
+    });
+  }
+});
+
 function signed(data: Record<string, unknown>, valid = true) {
   const body = JSON.stringify({ type: "post_call_transcription", data: {
     conversation_id: "conversation-1", agent_id: agentId,

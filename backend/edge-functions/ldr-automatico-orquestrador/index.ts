@@ -32,6 +32,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } from "../_shared/ldr-policy.mjs";
 import approval from "../_shared/ldr-approval.json" with { type: "json" };
+import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -307,6 +308,13 @@ Deno.serve(async (req: Request) => {
   }
 
   const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
+  let origem: string;
+  try {
+    origem = await buscarOrigem(ELEVENLABS_API_KEY, ELEVENLABS_AGENT_PHONE_NUMBER_ID, ELEVENLABS_BASE_URL);
+  } catch {
+    return respostaJson({ ok: false, erro: "Origem de telefonia indisponivel; nenhuma chamada disparada",
+      processados: 0, pendentes: telefoneIds, ligados: [], pulados: [], falhas: [] }, 503);
+  }
 
   // Impede discagem se a migração não foi aplicada ou o banco está indisponível.
   try {
@@ -327,6 +335,8 @@ Deno.serve(async (req: Request) => {
 
   let processados = 0;
   let promptBloqueado = false;
+  let reputacaoBloqueada = false;
+  let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
     const telefoneId = telefoneIds[i];
@@ -383,6 +393,9 @@ Deno.serve(async (req: Request) => {
       const carimbo = await lerCarimboAgente();
       const disparadoEm = new Date().toISOString();
 
+      // Ultima verificacao antes do efeito externo: um clique durante o lote
+      // impede o proximo POST. Nao cancela ligacoes ja aceitas pelo provedor.
+      await conferirReputacao(sb, origem);
       tentouDisparar = true;
       const res = await fetch(ELEVENLABS_OUTBOUND_CALL_URL, {
         method: "POST",
@@ -463,6 +476,11 @@ Deno.serve(async (req: Request) => {
         telefoneId,
         erro: erro instanceof Error ? erro.message : String(erro),
       });
+      if (erro instanceof ReputacaoBloqueada) {
+        reputacaoBloqueada = true;
+        primeiroPendente = i;
+        break;
+      }
       if (erro instanceof PromptGateError) {
         // Para o lote sem perder o carimbo/resultado das chamadas anteriores.
         promptBloqueado = true;
@@ -479,9 +497,10 @@ Deno.serve(async (req: Request) => {
   return respostaJson({
     ok: falhas.length === 0,
     processados,
-    pendentes: telefoneIds.slice(processados),
+    pendentes: telefoneIds.slice(primeiroPendente ?? processados),
+    reputacaoBloqueada,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada ? 503 : 200);
 });

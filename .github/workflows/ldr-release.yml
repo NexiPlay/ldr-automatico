@@ -59,7 +59,7 @@ jobs:
           retention-days: 30
 
   deploy:
-    name: Deploy do orquestrador após R5 e suíte
+    name: Deploy do orquestrador e webhook após R5 e suíte
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     needs: [checks, r5-adversarial]
     runs-on: ubuntu-latest
@@ -81,11 +81,12 @@ jobs:
         with:
           name: ldr-adversarial-${{ github.sha }}
           path: artifacts
-      - name: Preparar somente o orquestrador e seus módulos
+      - name: Preparar orquestrador, webhook e módulos compartilhados
         run: |
           mkdir -p .release/supabase/functions
           cp supabase/config.toml .release/supabase/config.toml
           cp -R backend/edge-functions/ldr-automatico-orquestrador .release/supabase/functions/
+          cp -R backend/edge-functions/ldr-automatico-webhook .release/supabase/functions/
           cp -R backend/edge-functions/_shared .release/supabase/functions/
       - name: Revalidar agente e publicar (nunca executar se a trava falhar)
         env:
@@ -93,4 +94,6 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/ldr-release.mjs --verify-live
+          supabase db query --linked --project-ref wbagoinuxgvntvbbnmab --file scripts/sonar-reputacao-preflight.sql
+          supabase functions deploy ldr-automatico-webhook --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
           supabase functions deploy ldr-automatico-orquestrador --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release

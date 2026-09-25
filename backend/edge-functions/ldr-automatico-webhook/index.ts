@@ -21,6 +21,7 @@
 // Não inclui automaticamente despesas de telefonia cobradas pelo tronco externo.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { registrarReputacao } from "../_shared/sonar-reputacao.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -376,6 +377,9 @@ Deno.serve(async (req: Request) => {
   const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
 
   try {
+    // So depois da assinatura. Mesmo sem telefone correlacionado, o trafego
+    // outbound afeta a origem. Reentregas sao deduplicadas por conversation_id.
+    await registrarReputacao(sb, body.data);
     // ==========================================================
     // ACHAR O TELEFONE TESTADO
     // ==========================================================
