@@ -6,7 +6,7 @@ O orquestrador resolve o telefone de origem pela API oficial de phone-numbers e 
 
 O webhook assinado registra `conversation_id`, agente, origem, início, duração e estado, inclusive para chamadas sem lead correlacionado. Reentregas são deduplicadas no banco. Origem vem de `metadata.phone_call.agent_number`, nunca do telefone de destino. Dados sem duração não viram zero. Web/widget/inbound não entram.
 
-**Dependência obrigatória:** branch `feat/son-2.8-reputacao` no repo `NexiPlay/nexilead`, migration `0384_np_sonar_reputacao.sql`. Ali ficam as tabelas/RPCs/RLS, janela de 24h, painel, alertas, dono e integração SDR. Limiares: ≥30% alerta e ≥60% bloqueio; pausa manual persistida em um clique. Responsável: Pedro Tibúrcio (SON-2.8). O módulo `_shared/sonar-reputacao.ts` é igual nos dois repos e deve continuar sincronizado.
+**Dependência obrigatória:** branch `feat/son-2.8-reputacao` no repo `NexiPlay/nexilead`, migration `0389_np_sonar_reputacao.sql`. Ali ficam as tabelas/RPCs/RLS, janela de 24h, painel, alertas, dono e integração SDR. Limiares: ≥30% alerta e ≥60% bloqueio; pausa manual persistida em um clique. Responsável: Pedro Tibúrcio (SON-2.8). O módulo `_shared/sonar-reputacao.ts` é igual nos dois repos e deve continuar sincronizado.
 
 Validado: 20 testes runtime sem rede, 28 testes de política/release, R5 local e `deno check`. Teste existente de CRLF corrigido para Windows sem alterar prompt/hash. Novos cenários verificam pausa no meio do lote, indisponibilidade e ingestão somente após assinatura válida. Nenhuma chamada real.
 
