@@ -49,12 +49,16 @@ jobs:
           node-version: '24'
       - name: R5 remoto, versão revisada e suíte SON-2.5 obrigatórios
         run: node scripts/ldr-release.mjs --live
+      - name: SON-2.5 - provar que uma versão ruim reprova (somente simulação)
+        run: node scripts/son25-negative-control.mjs
       - name: Guardar evidência da suíte
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ldr-adversarial-${{ github.sha }}
-          path: artifacts/ldr-adversarial.json
+          path: |
+            artifacts/ldr-adversarial.json
+            artifacts/son25-negative-control.json
           if-no-files-found: ignore
           retention-days: 30
 

@@ -1,0 +1,46 @@
+name: SON-2.5 - controle negativo sem deploy
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_run_id:
+        description: Run do release positivo correspondente ao agente atual
+        required: true
+        default: '36143441848'
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: elevenlabs-ldr-production
+  cancel-in-progress: false
+jobs:
+  negative-control:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+      ELEVENLABS_AGENT_ID: ${{ vars.ELEVENLABS_AGENT_ID }}
+      ELEVENLABS_BASE_URL: ${{ vars.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/negative-control.test.mjs tests/release.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.baseline_run_id }}
+          pattern: ldr-adversarial-*
+          merge-multiple: true
+          path: artifacts
+      - name: Quatro violações precisam ser reprovadas, com agente publicado intacto
+        run: node scripts/son25-negative-control.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: son25-negative-control-${{ github.sha }}
+          path: artifacts/son25-negative-control.json
+          if-no-files-found: ignore
+          retention-days: 30
