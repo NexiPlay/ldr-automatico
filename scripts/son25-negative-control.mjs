@@ -26,18 +26,21 @@ export function assertNegativeResults(invocation, mapping, agentId) {
     const runs = invocation.test_runs.filter(r => r.test_id === refs[0]?.test_id);
     const run = runs[0];
     const messages = run?.agent_responses?.filter(t => t.role === "agent" && typeof t.message === "string").map(t => t.message) || [];
-    if (refs.length !== 1 || runs.length !== 1 || run.agent_id !== agentId || run.status !== "failed" ||
-        run.condition_result?.result !== "failure" || !messages.some(m => normalize(m).startsWith(normalize(phrase)))) {
+    const violation = messages.find(m => normalize(m).startsWith(normalize(phrase)));
+    const rejected = run?.status === "failed" && run.condition_result?.result === "failure";
+    const accepted = run?.status === "passed" && run.condition_result?.result === "success";
+    if (refs.length !== 1 || runs.length !== 1 || run.agent_id !== agentId || !messages.length ||
+        (!rejected && !accepted) || (violation && !rejected) || (rejected && !violation)) {
       throw new Error(`Rejeição comportamental não comprovada: ${id}`);
     }
     findings.push({ case: id, test_id: run.test_id, status: run.status, result: run.condition_result.result,
-      violation: messages.find(m => normalize(m).startsWith(normalize(phrase))) });
+      violation: violation || null });
   }
   let blockedBy;
   try { assertBehaviorResults(invocation, mapping.map(c => c.test_id)); }
   catch (error) { blockedBy = error.message; }
   if (!blockedBy?.startsWith("Teste adversarial sem sucesso comprovado:")) throw new Error("Gate não barrou a versão ruim por comportamento");
-  return { release_blocked: true, blocked_by: blockedBy, findings };
+  return { release_blocked: true, blocked_by: blockedBy, rejected_cases: findings.filter(f => f.violation).length, findings };
 }
 
 export async function negativeControl({ baselinePath = "artifacts/ldr-adversarial.json", env = process.env,
@@ -99,7 +102,8 @@ export async function negativeControl({ baselinePath = "artifacts/ldr-adversaria
   if (!unchanged) throw new Error("Agente publicado mudou durante o controle negativo");
   const proof = assertNegativeResults(invocation, mapping, args.agentId);
   await writeFile(output, JSON.stringify({ ...report, ...proof }, null, 2));
-  return { cases: proof.findings.length, release_blocked: true, live_agent_unchanged: true, invocation_id: invocation.id };
+  return { cases: proof.findings.length, rejected_cases: proof.rejected_cases,
+    release_blocked: true, live_agent_unchanged: true, invocation_id: invocation.id };
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
