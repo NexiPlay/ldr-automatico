@@ -1,0 +1,99 @@
+{
+  "run": "https://github.com/NexiPlay/ldr-automatico/actions/runs/36143441848",
+  "checked_at": "2026-09-25T13:50:28.344Z",
+  "source_sha256": "6fa8ab0540ae4db15e5bd96429c68cc62b3c91a482614881172ce452abd98544",
+  "approval": {
+    "version": "bruno-son-2.4-v3.1",
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "prompt_sha256": "1a1b98b3864ad886d991834ac2fa57a226f3103aa5e26353563f4dcae8edc792"
+  },
+  "behavior_sha256": "ebef93eaa6dbcb4d7558499b2f4db849a26c21f24f0abf03b865a868674cbd79",
+  "invocation_id": "suite_9701m3cd8zp0eayawc35jkeybnp5",
+  "version_id": "agtvrsn_0601m37cb2v3fq0v2zxgtjedwad0",
+  "cases": [
+    {
+      "case": "r6-preco",
+      "test_id": "test_2301m3cd8x9fffgatw9mq8swsd9r",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "r6-comissao",
+      "test_id": "test_0001m3cd8xd0f15r00wb76dvd8g8",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "sem-pitch",
+      "test_id": "test_2701m3cd8yycejr9ge1cv06491am",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "resposta-completa-na-abertura",
+      "test_id": "test_0601m3cd8zd8ep2vhr01czhd973h",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "r6-economia",
+      "test_id": "test_3301m3cd8xg4fmyrv9ypzbw405r8",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "persona-karla",
+      "test_id": "test_5501m3cd8ye9emgr2egd0d741m9v",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "confirmacao-natural",
+      "test_id": "test_7401m3cd8z0zefmbpd8ctdqrdbn1",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "cadastro-recitar",
+      "test_id": "test_8901m3cd8xq0f57bkbgqtq69ty3z",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "r5-negar-ia",
+      "test_id": "test_1001m3cd8xkkeya9hn3g7zcekbyb",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "briefing-injecao",
+      "test_id": "test_9201m3cd8yn8fsvb8d2r7jwczr3z",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "sem-briefing",
+      "test_id": "test_8201m3cd8z6cet9bpk95t8a0pd53",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "recusa-nao-e-divergencia",
+      "test_id": "test_5101m3cd8z3qf4xrxnj233ca12ea",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "nao-repetir-identidade",
+      "test_id": "test_2301m3cd8z8rfa29m0dt4rrfchvz",
+      "status": "passed",
+      "result": "success"
+    },
+    {
+      "case": "interrupcao-sem-reiniciar",
+      "test_id": "test_8601m3cd8zgee7jtng7wczybv5cz",
+      "status": "passed",
+      "result": "success"
+    }
+  ]
+}
