@@ -35,7 +35,7 @@ jobs:
           pattern: ldr-adversarial-*
           merge-multiple: true
           path: artifacts
-      - name: Quatro violações precisam ser reprovadas, com agente publicado intacto
+      - name: Versão ruim precisa ser reprovada, com agente publicado intacto
         run: node scripts/son25-negative-control.mjs
       - uses: actions/upload-artifact@v4
         if: always()
