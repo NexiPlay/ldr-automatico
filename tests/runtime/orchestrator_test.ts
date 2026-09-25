@@ -21,6 +21,7 @@ type Options = {
   noCompany?: boolean; noEnrichment?: boolean; alreadyCalled?: boolean;
   getFailure?: number; postFailure?: boolean; postThrow?: boolean;
   changeAgent?: (value: ReturnType<typeof agent>, index: number) => void;
+  reputationError?: boolean; pauseAfterFirst?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
@@ -58,7 +59,16 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   }
   await withEdge("ldr-automatico-orquestrador", {
     db,
+    rpc(name, args) {
+      assert.equal(name, "np_fn_sonar_reputacao_portao");
+      assert.equal(args.p_origem, "+5511000000010");
+      return { error: options.reputationError ? { message: "offline" } : null,
+        data: { permitido: !(options.pauseAfterFirst && payloads.length > 0), motivo_bloqueio: "Parada manual" } };
+    },
     fetch: (async (input, init) => {
+      if (String(input).includes("/phone-numbers/")) {
+        return Response.json({ phone_number_id: "test-phone", phone_number: "+5511000000010" });
+      }
       if (String(input).includes("/agents/")) {
         order.push("get");
         const live = agent(`voice-${reads.length + 1}`);
@@ -79,6 +89,20 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   });
   return { ...result, reads, payloads, updates, queries, order };
 }
+
+Deno.test("reputacao: pausa durante o lote impede o proximo POST e conserva pendentes", async () => {
+  const r = await scenario({ pauseAfterFirst: true }, ["phone-1", "phone-2", "phone-3"]);
+  assert.equal(r.payloads.length, 1);
+  assert.equal(r.body.reputacaoBloqueada, true);
+  assert.equal(r.status, 503);
+  assert.deepEqual(r.body.pendentes, ["phone-2", "phone-3"]);
+});
+
+Deno.test("reputacao: erro do monitor impede qualquer discagem", async () => {
+  const r = await scenario({ reputationError: true });
+  assert.equal(r.payloads.length, 0);
+  assert.equal(r.body.reputacaoBloqueada, true);
+});
 
 Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada", async () => {
   const r = await scenario({}, ["phone-1", "phone-2"]);

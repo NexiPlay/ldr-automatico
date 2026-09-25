@@ -11,7 +11,7 @@ const agent = () => ({ agent_id: approval.agent_id, conversation_config: { agent
 test("prompt e abertura Bruno aprovados", async () => {
   assertR5(prompt); assertR5(first);
   await assertApprovedAgent(agent(), approval);
-  assert.equal(await promptDigest(prompt.replaceAll("\n", "\r\n"), first), approval.prompt_sha256);
+  assert.equal(await promptDigest(prompt.replace(/\r?\n/g, "\r\n"), first), approval.prompt_sha256);
 });
 test("abertura faz uma única pergunta de identidade e a versão anterior é bloqueada", async () => {
   assert.ok(first.trim().endsWith("Aqui é da {{empresa}}?"));

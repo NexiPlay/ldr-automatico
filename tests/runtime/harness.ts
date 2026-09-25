@@ -8,8 +8,13 @@ export type Query = {
 export type Result = { data?: unknown; error: unknown };
 export type Handler = (req: Request) => Promise<Response>;
 
-export function clientFor(execute: (q: Query) => Result | Promise<Result>) {
+export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result>) {
   return {
+    rpc(name: string, args: Record<string, unknown>) {
+      if (rpc) return Promise.resolve(rpc(name, args));
+      if (name === "np_fn_sonar_reputacao_portao") return Promise.resolve({ data: { permitido: true }, error: null });
+      throw new Error(`Unexpected RPC ${name}`);
+    },
     from(table: string) {
       const q: Query = { table, action: "select", filters: [], orders: [] };
       const builder = {
@@ -33,7 +38,8 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>) {
 let serial = 0;
 export async function withEdge(
   name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook",
-  options: { db: (q: Query) => Result | Promise<Result>; fetch: typeof fetch; noApiKey?: boolean },
+  options: { db: (q: Query) => Result | Promise<Result>; fetch: typeof fetch; noApiKey?: boolean;
+    rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result> },
   run: (handler: Handler, pauses: number[]) => Promise<void>,
 ) {
   const originalServe = Object.getOwnPropertyDescriptor(Deno, "serve")!;
@@ -51,7 +57,7 @@ export async function withEdge(
   try {
     for (const [key, value] of Object.entries(values)) Deno.env.set(key, value);
     if (options.noApiKey) Deno.env.delete("ELEVENLABS_API_KEY");
-    setClient(clientFor(options.db));
+    setClient(clientFor(options.db, options.rpc));
     Object.defineProperty(Deno, "serve", { configurable: true, value: (handler: Handler) => { captured = handler; return {}; } });
     globalThis.fetch = options.fetch;
     globalThis.setTimeout = ((callback: () => void, delay = 0) => {
