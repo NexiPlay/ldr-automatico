@@ -1,7 +1,7 @@
 import { setClient } from "./supabase-stub.ts";
 
 export type Query = {
-  table: string; action: "select" | "update" | "upsert"; columns?: string;
+  table: string; action: "select" | "update" | "upsert" | "delete"; columns?: string;
   values?: Record<string, unknown>; limit?: number;
   filters: Array<[string, string, unknown]>; orders: Array<[string, unknown]>;
 };
@@ -13,6 +13,7 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
     rpc(name: string, args: Record<string, unknown>) {
       if (rpc) return Promise.resolve(rpc(name, args));
       if (name === "np_fn_sonar_reputacao_portao") return Promise.resolve({ data: { permitido: true }, error: null });
+      if (name === "np_fn_pode_contatar") return Promise.resolve({ data: true, error: null });
       throw new Error(`Unexpected RPC ${name}`);
     },
     from(table: string) {
@@ -21,6 +22,7 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
         select(columns: string) { q.columns = columns; return builder; },
         update(values: Record<string, unknown>) { q.action = "update"; q.values = values; return builder; },
         upsert(values: Record<string, unknown>, _options: unknown) { q.action = "upsert"; q.values = values; return builder; },
+        delete() { q.action = "delete"; return builder; },
         eq(key: string, value: unknown) { q.filters.push(["eq", key, value]); return builder; },
         is(key: string, value: unknown) { q.filters.push(["is", key, value]); return builder; },
         order(key: string, value: unknown) { q.orders.push([key, value]); return builder; },

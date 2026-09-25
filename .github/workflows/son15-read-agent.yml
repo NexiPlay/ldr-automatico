@@ -1,0 +1,28 @@
+name: SON-1.5 - conferir agente (somente leitura)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: elevenlabs-ldr-production
+  cancel-in-progress: false
+jobs:
+  inspect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/son15-read-agent.mjs
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_AGENT_ID: ${{ vars.ELEVENLABS_AGENT_ID }}
+          ELEVENLABS_BASE_URL: ${{ vars.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io' }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: son15-agent
+          path: artifacts/son15-agent.json
+          retention-days: 7
