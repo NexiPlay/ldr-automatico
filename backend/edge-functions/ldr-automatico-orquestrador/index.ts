@@ -34,6 +34,7 @@ import { OptoutIndisponivel, podeContatar } from "../_shared/ldr-optout.ts";
 import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } from "../_shared/ldr-policy.mjs";
 import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
+import { janelaDeDiscagem } from "../_shared/janela-discagem.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -368,6 +369,31 @@ Deno.serve(async (req: Request) => {
           telefoneId,
           motivo: "ja_tinha_conversation_id",
           conversationIdExistente: telefone.ia_conversation_id,
+        });
+        continue;
+      }
+
+      // SON-1.6 — portão de janela (R3). Vem antes do opt-out de propósito:
+      // é computação pura, sem banco nem rede, então um número fora de hora
+      // nem chega a custar uma consulta. A hora que vale é a de QUEM RECEBE,
+      // derivada do DDD — sem isso, "9h-20h" seria sempre o fuso de quem
+      // programou, e um lead do Acre receberia ligação às 7h da manhã.
+      const janela = janelaDeDiscagem(telefone.e164);
+      if (!janela.pode) {
+        // Recusa COM motivo: é o que permite responder depois "por que esse
+        // número não foi discado ontem à noite" sem abrir o código.
+        pulados.push({
+          telefoneId,
+          motivo: "fora_de_janela",
+          codigo: janela.codigo,
+          detalhe: janela.motivo,
+          horaLocal: janela.horaLocal,
+          ddd: janela.ddd,
+        });
+        console.log("[ORQUESTRADOR] Fora da janela de discagem", {
+          telefoneId,
+          codigo: janela.codigo,
+          motivo: janela.motivo,
         });
         continue;
       }

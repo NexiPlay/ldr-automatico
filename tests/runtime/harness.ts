@@ -37,16 +37,49 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
   };
 }
 
+/**
+ * SON-1.6: o relógio entra na lista do que o harness congela, junto de
+ * fetch, setTimeout e Deno.serve.
+ *
+ * O portão de janela (R3) recusa discagem fora de 9h-20h. Sem congelar a
+ * hora, a suíte do orquestrador passaria durante o expediente e falharia de
+ * madrugada, no fim de semana e em feriado — o pior tipo de teste instável,
+ * porque a falha parece bug de código e é só a hora do CI.
+ *
+ * O padrão é uma quarta-feira às 14h de Brasília: dia útil, meio da janela,
+ * longe de qualquer borda. Um teste que queira provar a recusa passa `agora`.
+ */
+export const AGORA_PADRAO = new Date("2026-09-30T17:00:00.000Z"); // quarta, 14h BRT
+
+function congelarRelogio(instante: Date) {
+  const Original = globalThis.Date;
+  const fixo = instante.getTime();
+  class Congelada extends Original {
+    // deno-lint-ignore no-explicit-any
+    constructor(...args: any[]) {
+      // `new Date()` devolve o instante fixo; com argumento, comportamento normal.
+      if (args.length === 0) super(fixo);
+      else super(...(args as [any]));
+    }
+    static override now() { return fixo; }
+  }
+  globalThis.Date = Congelada as unknown as DateConstructor;
+  return () => { globalThis.Date = Original; };
+}
+
 let serial = 0;
 export async function withEdge(
   name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook",
   options: { db: (q: Query) => Result | Promise<Result>; fetch: typeof fetch; noApiKey?: boolean;
-    rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result> },
+    rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result>;
+    /** Instante que o código sob teste enxerga. Default: quarta, 14h BRT. */
+    agora?: Date },
   run: (handler: Handler, pauses: number[]) => Promise<void>,
 ) {
   const originalServe = Object.getOwnPropertyDescriptor(Deno, "serve")!;
   const originalFetch = globalThis.fetch;
   const originalTimeout = globalThis.setTimeout;
+  const descongelar = congelarRelogio(options.agora ?? AGORA_PADRAO);
   const values: Record<string, string> = {
     SUPABASE_URL: "https://supabase.invalid", SUPABASE_SERVICE_ROLE_KEY: "test-service-role",
     ELEVENLABS_API_KEY: "test-eleven-key", ELEVENLABS_AGENT_ID: "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
@@ -70,6 +103,7 @@ export async function withEdge(
     if (!captured) throw new Error("Entrypoint did not register a handler");
     await run(captured, pauses);
   } finally {
+    descongelar();
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalTimeout;
     Object.defineProperty(Deno, "serve", originalServe);
