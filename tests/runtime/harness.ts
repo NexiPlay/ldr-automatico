@@ -73,7 +73,7 @@ function congelarRelogio(instante: Date) {
 
 let serial = 0;
 export async function withEdge(
-  name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook",
+  name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook" | "ldr-automatico-conversa",
   options: { db: (q: Query) => Result | Promise<Result>; fetch: typeof fetch; noApiKey?: boolean;
     rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result>;
     /** Instante que o código sob teste enxerga. Default: quarta, 14h BRT. */
@@ -86,6 +86,7 @@ export async function withEdge(
   const descongelar = congelarRelogio(options.agora ?? AGORA_PADRAO);
   const values: Record<string, string> = {
     SUPABASE_URL: "https://supabase.invalid", SUPABASE_SERVICE_ROLE_KEY: "test-service-role",
+    SUPABASE_ANON_KEY: "test-anon-key",
     ELEVENLABS_API_KEY: "test-eleven-key", ELEVENLABS_AGENT_ID: "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
     ELEVENLABS_AGENT_PHONE_NUMBER_ID: "test-phone", ELEVENLABS_WEBHOOK_SECRET: "test-signing-key",
     ELEVENLABS_BASE_URL: "https://api.elevenlabs.io",
