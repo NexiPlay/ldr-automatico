@@ -3,6 +3,8 @@ import { setClient } from "./supabase-stub.ts";
 export type Query = {
   table: string; action: "select" | "update" | "upsert" | "delete"; columns?: string;
   values?: Record<string, unknown>; limit?: number;
+  /** SON-2.11: as opcoes do upsert importam — e nelas que mora `ignoreDuplicates`. */
+  options?: Record<string, unknown>;
   filters: Array<[string, string, unknown]>; orders: Array<[string, unknown]>;
 };
 export type Result = { data?: unknown; error: unknown };
@@ -21,7 +23,9 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
       const builder = {
         select(columns: string) { q.columns = columns; return builder; },
         update(values: Record<string, unknown>) { q.action = "update"; q.values = values; return builder; },
-        upsert(values: Record<string, unknown>, _options: unknown) { q.action = "upsert"; q.values = values; return builder; },
+        upsert(values: Record<string, unknown>, options?: Record<string, unknown>) {
+          q.action = "upsert"; q.values = values; q.options = options; return builder;
+        },
         delete() { q.action = "delete"; return builder; },
         eq(key: string, value: unknown) { q.filters.push(["eq", key, value]); return builder; },
         is(key: string, value: unknown) { q.filters.push(["is", key, value]); return builder; },

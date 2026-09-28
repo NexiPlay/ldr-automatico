@@ -23,6 +23,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { registrarReputacao } from "../_shared/sonar-reputacao.ts";
 import { extrairRedflag, podeContatar, registrarOptout } from "../_shared/ldr-optout.ts";
+import { gravarConversa, montarLinha } from "../_shared/ldr-conversa.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -412,11 +413,30 @@ Deno.serve(async (req: Request) => {
         conversationId,
       );
 
+      // SON-2.11 — sem telefone correlacionado a conversa continua sendo
+      // nossa: ligacao de teste feita direto no painel da ElevenLabs cai
+      // aqui, e e justamente o material que o Gate A precisa auditar.
+      // Falhar aqui nao vira 503: nao ha veredito em jogo, e transformar um
+      // caminho que hoje e 200 em erro faria a ElevenLabs reentregar para
+      // sempre um evento que nunca vai correlacionar.
+      const conversaSemTelefone = await gravarConversa(
+        sb,
+        montarLinha(objeto(body.data), {
+          conversationId, origem: "webhook",
+        }),
+      );
+      if (!conversaSemTelefone.ok) {
+        console.error("[WEBHOOK] Conversa sem telefone nao gravada", {
+          conversationId, motivo: conversaSemTelefone.motivo,
+        });
+      }
+
       return respostaJson({
         ok: true,
         conversationId,
         ignorado: true,
         motivo: "telefone_nao_encontrado",
+        conversaGravada: conversaSemTelefone.ok,
       });
     }
 
@@ -531,8 +551,29 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    if (custo.pendente) {
-      // Veredito/tag já foram tratados. Falha explícita permite reentrega
+    // ==========================================================
+    // SON-2.11 — GRAVAR A CONVERSA
+    // ==========================================================
+    // Depois do veredito de proposito. Se gravar a transcricao falhar, o
+    // ia_resultado, o opt-out e o custo ja estao salvos: a task existe para
+    // parar de perder a transcricao, nao para passar a perder o opt-out.
+    const conversa = await gravarConversa(
+      sb,
+      montarLinha(dataConversa, {
+        conversationId, origem: "webhook",
+        telefoneId: telefone.id,
+        leadId: telefone.lead_id,
+        resultado,
+        custoValor: custoJaGravado
+          ? (telefone.ia_custo_valor as number | null)
+          : (custo.campos.ia_custo_valor as number | null) ?? null,
+        custoUnidade: custoJaGravado
+          ? (telefone.ia_custo_unidade as string | null)
+          : (custo.campos.ia_custo_unidade as string | null) ?? null,
+      }),
+    );
+
+    if (custo.pendente) {      // Veredito/tag já foram tratados. Falha explícita permite reentrega
       // quando retries estão habilitados na ElevenLabs; nunca reportar custo 0.
       console.warn("[WEBHOOK] Custo pendente", { conversationId, motivo: custo.motivo });
       return respostaJson({
@@ -550,8 +591,27 @@ Deno.serve(async (req: Request) => {
       }, 503);
     }
 
-    console.log("[WEBHOOK] OK", {
-      conversationId,
+    if (!conversa.ok) {
+      console.warn("[WEBHOOK] Conversa nao gravada", {
+        conversationId, motivo: conversa.motivo,
+      });
+      return respostaJson({
+        ok: false,
+        conversationId,
+        telefoneId: telefone.id,
+        resultado,
+        redflag,
+        optoutRegistrado: redflag === true,
+        contatoPermitido,
+        tagAplicada,
+        vereditoGravado: true,
+        custoGravado: true,
+        conversaGravada: false,
+        motivo: conversa.motivo,
+      }, 503);
+    }
+
+    console.log("[WEBHOOK] OK", {      conversationId,
       telefoneId: telefone.id,
       leadId: telefone.lead_id,
       resultado,
@@ -564,6 +624,7 @@ Deno.serve(async (req: Request) => {
     return respostaJson({
       ok: true,
       custoGravado: true,
+      conversaGravada: true,
       custoReutilizado: custoJaGravado,
       conversationId,
       telefoneId: telefone.id,

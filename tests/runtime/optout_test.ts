@@ -52,6 +52,7 @@ async function run(values: unknown[], options: { failure?: string; missingPhone?
       }
       if (q.table === "np_tags") return { data:{id:"qualificado"},error:null };
       if (q.table === "np_lead_tags") { writes.push(q); return { error:null }; }
+      if (q.table === "np_ldr_conversas") return { error:null }; // SON-2.11
       throw new Error(`Unexpected query ${JSON.stringify(q)}`);
     },
   }, async handle => {
