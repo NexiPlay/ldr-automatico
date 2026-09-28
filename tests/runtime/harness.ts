@@ -3,6 +3,8 @@ import { setClient } from "./supabase-stub.ts";
 export type Query = {
   table: string; action: "select" | "update" | "upsert" | "delete"; columns?: string;
   values?: Record<string, unknown>; limit?: number;
+  /** SON-2.11: as opcoes do upsert importam — e nelas que mora `ignoreDuplicates`. */
+  options?: Record<string, unknown>;
   filters: Array<[string, string, unknown]>; orders: Array<[string, unknown]>;
 };
 export type Result = { data?: unknown; error: unknown };
@@ -21,7 +23,9 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
       const builder = {
         select(columns: string) { q.columns = columns; return builder; },
         update(values: Record<string, unknown>) { q.action = "update"; q.values = values; return builder; },
-        upsert(values: Record<string, unknown>, _options: unknown) { q.action = "upsert"; q.values = values; return builder; },
+        upsert(values: Record<string, unknown>, options?: Record<string, unknown>) {
+          q.action = "upsert"; q.values = values; q.options = options; return builder;
+        },
         delete() { q.action = "delete"; return builder; },
         eq(key: string, value: unknown) { q.filters.push(["eq", key, value]); return builder; },
         is(key: string, value: unknown) { q.filters.push(["is", key, value]); return builder; },
@@ -69,7 +73,7 @@ function congelarRelogio(instante: Date) {
 
 let serial = 0;
 export async function withEdge(
-  name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook",
+  name: "ldr-automatico-orquestrador" | "ldr-automatico-webhook" | "ldr-automatico-conversa",
   options: { db: (q: Query) => Result | Promise<Result>; fetch: typeof fetch; noApiKey?: boolean;
     rpc?: (name: string, args: Record<string, unknown>) => Result | Promise<Result>;
     /** Instante que o código sob teste enxerga. Default: quarta, 14h BRT. */
@@ -82,6 +86,7 @@ export async function withEdge(
   const descongelar = congelarRelogio(options.agora ?? AGORA_PADRAO);
   const values: Record<string, string> = {
     SUPABASE_URL: "https://supabase.invalid", SUPABASE_SERVICE_ROLE_KEY: "test-service-role",
+    SUPABASE_ANON_KEY: "test-anon-key",
     ELEVENLABS_API_KEY: "test-eleven-key", ELEVENLABS_AGENT_ID: "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
     ELEVENLABS_AGENT_PHONE_NUMBER_ID: "test-phone", ELEVENLABS_WEBHOOK_SECRET: "test-signing-key",
     ELEVENLABS_BASE_URL: "https://api.elevenlabs.io",

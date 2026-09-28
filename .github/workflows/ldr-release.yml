@@ -30,7 +30,7 @@ jobs:
       - name: Regressão do carimbo, briefing e custos (sem rede)
         run: deno test --config tests/runtime/deno.json --allow-read --allow-env --deny-net tests/runtime/
       - name: Verificar edge functions
-        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts
+        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts backend/edge-functions/ldr-automatico-conversa/index.ts
 
   r5-adversarial:
     name: R5 remoto e suíte adversarial obrigatórios
@@ -91,6 +91,7 @@ jobs:
           cp supabase/config.toml .release/supabase/config.toml
           cp -R backend/edge-functions/ldr-automatico-orquestrador .release/supabase/functions/
           cp -R backend/edge-functions/ldr-automatico-webhook .release/supabase/functions/
+          cp -R backend/edge-functions/ldr-automatico-conversa .release/supabase/functions/
           cp -R backend/edge-functions/_shared .release/supabase/functions/
       - name: Revalidar agente e publicar (nunca executar se a trava falhar)
         env:
@@ -101,3 +102,4 @@ jobs:
           supabase db query --linked --project-ref wbagoinuxgvntvbbnmab --file scripts/sonar-reputacao-preflight.sql
           supabase functions deploy ldr-automatico-webhook --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
           supabase functions deploy ldr-automatico-orquestrador --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release
+          supabase functions deploy ldr-automatico-conversa --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release

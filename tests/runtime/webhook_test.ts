@@ -23,7 +23,10 @@ Deno.test("reputacao: assinatura valida persiste origem antes da correlacao; fal
       const response = await handle(signed(data, mode !== "unsigned"));
       assert.equal(response.status, mode === "ok" ? 200 : mode === "unsigned" ? 401 : 500);
       assert.equal(ingestions, mode === "unsigned" ? 0 : 1);
-      assert.equal(lookups, mode === "ok" ? 1 : 0);
+      // SON-2.11: sao 2 idas ao banco agora — a busca do telefone e a gravacao
+      // da conversa. Ligacao sem telefone correlacionado (teste feito direto no
+      // painel) tambem e guardada; antes era descartada.
+      assert.equal(lookups, mode === "ok" ? 2 : 0);
     });
   }
 });
@@ -42,9 +45,11 @@ function signed(data: Record<string, unknown>, valid = true) {
 async function scenario(data: Record<string, unknown>, options: {
   existing?: number; fallback?: Record<string, unknown>; noApiKey?: boolean;
   saveConflict?: boolean; invalidSignature?: boolean; repeat?: boolean;
+  conversaFalha?: boolean;
 } = {}) {
   const queries: Query[] = [];
   const updates: Query[] = [];
+  const conversas: Query[] = [];
   let saved = options.existing;
   let fetches = 0;
   const responses: Array<{ status: number; body: Record<string, any> }> = [];
@@ -65,6 +70,10 @@ async function scenario(data: Record<string, unknown>, options: {
       }
       if (q.table === "np_tags") return { error: null, data: { id: "tag-1" } };
       if (q.table === "np_lead_tags" && q.action === "upsert") return { error: null };
+      if (q.table === "np_ldr_conversas") {
+        conversas.push(q);
+        return { error: options.conversaFalha ? { message: "banco fora" } : null };
+      }
       throw new Error(`Unexpected query ${JSON.stringify(q)}`);
     },
     fetch: (async (input, init) => {
@@ -80,7 +89,7 @@ async function scenario(data: Record<string, unknown>, options: {
       responses.push({ status: response.status, body: await response.json() });
     }
   });
-  return { queries, updates, fetches, responses, saved };
+  return { queries, updates, fetches, responses, saved, conversas };
 }
 
 Deno.test("custos: cost_fiat é USD, créditos e componentes não são somados", async () => {
@@ -147,4 +156,71 @@ Deno.test("custos: outro agente e assinatura inválida não atualizam telefone",
   assert.equal(other.responses[0].status, 500); assert.equal(other.updates.length, 0);
   const invalid = await scenario({}, { invalidSignature: true });
   assert.equal(invalid.responses[0].status, 401); assert.equal(invalid.queries.length, 0); assert.equal(invalid.fetches, 0);
+});
+
+// ===========================================================================
+// SON-2.11 — a conversa deixa de ser descartada
+// ===========================================================================
+
+const doisTurnos = [
+  { role: "agent", message: "Oi, aqui é o Bruno da Tendência Energia.", time_in_call_secs: 0 },
+  { role: "user",  message: "Pois não.",                                time_in_call_secs: 3 },
+];
+
+Deno.test("SON-2.11: a conversa é gravada com transcript, duração e correlação", async () => {
+  const r = await scenario({
+    status: "done",
+    transcript: doisTurnos,
+    metadata: { start_time_unix_secs: 1800000000, call_duration_secs: 42, cost_fiat: 0.5 },
+  });
+
+  assert.equal(r.conversas.length, 1, "uma gravação por entrega");
+  const linha = r.conversas[0].values!;
+  assert.equal(linha.conversation_id, "conversation-1");
+  assert.equal(linha.telefone_id, "phone-1", "correlacionada ao telefone testado");
+  assert.equal(linha.lead_id, "lead-1");
+  assert.equal(linha.origem, "webhook");
+  assert.equal(linha.resultado, "confirmado", "o veredito viaja junto");
+  assert.equal(linha.duracao_seg, 42);
+  assert.equal(linha.iniciada_em, new Date(1800000000 * 1000).toISOString());
+
+  // `agent` vira `robo`, que é o vocabulário que a tela já usa.
+  assert.deepEqual(linha.transcript, [
+    { role: "robo",    mensagem: "Oi, aqui é o Bruno da Tendência Energia.", seg: 0 },
+    { role: "empresa", mensagem: "Pois não.",                                seg: 3 },
+  ]);
+
+  // Com conteúdo, substitui: é o caso em que a reentrega traz a versão boa.
+  assert.equal(r.conversas[0].options?.onConflict, "conversation_id");
+  assert.equal(r.conversas[0].options?.ignoreDuplicates, false);
+});
+
+Deno.test("SON-2.11: reentrega sem transcript não pode apagar o que já foi guardado", async () => {
+  // Payload sem transcript — acontece de verdade em reentrega. Um upsert cego
+  // aqui zeraria uma conversa boa, que é exatamente o que a task existe para
+  // impedir. A proteção é o ignoreDuplicates.
+  const r = await scenario({
+    status: "done",
+    metadata: { start_time_unix_secs: 1800000000, call_duration_secs: 42, cost_fiat: 0.5 },
+  });
+  assert.deepEqual(r.conversas[0].values!.transcript, []);
+  assert.equal(r.conversas[0].options?.ignoreDuplicates, true, "sem conteúdo, nunca sobrescreve");
+});
+
+Deno.test("SON-2.11: falha ao gravar a conversa pede reentrega SEM perder o veredito", async () => {
+  const r = await scenario({
+    status: "done",
+    transcript: doisTurnos,
+    metadata: { start_time_unix_secs: 1800000000, call_duration_secs: 42, cost_fiat: 0.5 },
+  }, { conversaFalha: true });
+
+  const resposta = r.responses[0];
+  assert.equal(resposta.status, 503, "503 é o que faz a ElevenLabs reentregar");
+  assert.equal(resposta.body.conversaGravada, false);
+  assert.equal(resposta.body.vereditoGravado, true, "o veredito NÃO se perde junto");
+  assert.equal(resposta.body.resultado, "confirmado");
+
+  // A prova que importa: o UPDATE do veredito saiu antes, e saiu de verdade.
+  assert.equal(r.updates.length, 1);
+  assert.equal(r.updates[0].values!.ia_resultado, "confirmado");
 });

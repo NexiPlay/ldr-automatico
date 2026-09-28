@@ -9,8 +9,22 @@
 // Entrada:  POST { conversation_id: string }
 // Saída:    { ok, status, duracao_seg, transcript: [{ role, mensagem, seg }] }
 //
-// Deploy COM verificação de JWT (igual o orquestrador) — só usuário logado
-// no dashboard chama isto.
+// Deploy COM verificação de JWT (igual o orquestrador). Mas estar logado
+// não basta: SON-2.11.
+//
+// Até 28/09/2026 qualquer usuário autenticado lia qualquer transcript por
+// aqui, sem checagem de papel. Com a conversa agora guardada em casa e a RLS
+// de np_ldr_conversas restrita a super_admin e gestor, deixar esta porta
+// aberta tornaria a restrição cosmética — quem quisesse ler passaria por
+// este caminho.
+//
+// A autorização pergunta a MESMA função que a RLS usa
+// (np_fn_ldr_conversas_leitor), com o JWT de quem chamou. Uma lista de
+// papéis copiada aqui viraria uma segunda política, e políticas duplicadas
+// divergem: mudar np_ldr_conversas_politica passaria a valer para a tabela
+// e não para o proxy.
+
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 function envObrigatoria(nome: string): string {
   const valor = Deno.env.get(nome);
@@ -23,6 +37,10 @@ function envObrigatoria(nome: string): string {
 }
 
 const ELEVENLABS_API_KEY = envObrigatoria("ELEVENLABS_API_KEY");
+const SUPABASE_URL = envObrigatoria("SUPABASE_URL");
+// Injetada pela plataforma em toda edge; é pública por construção (vive no
+// frontend). Quem autoriza é o JWT de quem chamou, não esta chave.
+const SUPABASE_ANON_KEY = envObrigatoria("SUPABASE_ANON_KEY");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -57,6 +75,28 @@ Deno.serve(async (req: Request) => {
 
   if (typeof conversationId !== "string" || !conversationId) {
     return respostaJson({ ok: false, erro: "conversation_id obrigatório" }, 400);
+  }
+
+  // Quem pode ler? A mesma resposta que a tabela dá.
+  const autorizacao = req.headers.get("Authorization");
+  if (!autorizacao) {
+    return respostaJson({ ok: false, erro: "nao_autenticado" }, 401);
+  }
+
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: autorizacao } },
+  });
+  const { data: podeLer, error: erroPapel } = await sb.rpc("np_fn_ldr_conversas_leitor");
+
+  if (erroPapel) {
+    // Falha ao decidir NÃO libera: sem resposta da política, a resposta é não.
+    console.error("[CONVERSA] Não foi possível apurar o papel", erroPapel.message);
+    return respostaJson({ ok: false, erro: "autorizacao_indisponivel" }, 503);
+  }
+
+  if (podeLer !== true) {
+    console.log("[CONVERSA] Leitura negada pela política", { conversationId });
+    return respostaJson({ ok: false, erro: "sem_permissao_para_ler_conversa" }, 403);
   }
 
   const res = await fetch(
