@@ -388,7 +388,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: telefone, error: buscaError } = await sb
       .from("np_lead_telefones")
-      .select("id, lead_id, e164, ia_agent_id, ia_custo_valor, ia_custo_unidade, ia_custo_detalhes, ia_custo_atualizado_em, np_leads(cnpj, origem)")
+      .select("id, lead_id, e164, ia_agent_id, ia_prompt_hash, ia_custo_valor, ia_custo_unidade, ia_custo_detalhes, ia_custo_atualizado_em, np_leads(cnpj, origem)")
       .eq("ia_conversation_id", conversationId)
       .maybeSingle();
 
@@ -563,6 +563,7 @@ Deno.serve(async (req: Request) => {
         conversationId, origem: "webhook",
         telefoneId: telefone.id,
         leadId: telefone.lead_id,
+        promptHash: telefone.ia_prompt_hash,
         resultado,
         custoValor: custoJaGravado
           ? (telefone.ia_custo_valor as number | null)

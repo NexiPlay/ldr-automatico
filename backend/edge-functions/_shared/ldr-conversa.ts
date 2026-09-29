@@ -9,6 +9,8 @@
 // Este módulo é puro, de propósito: sem banco, sem rede, sem relógio implícito.
 // Quem grava é `montarLinha` + o cliente de quem chama.
 
+import { extrairQualidade } from "./ldr-qualidade.mjs";
+
 export type Turno = { role: "robo" | "empresa"; mensagem: string; seg: number | null };
 
 export type LinhaConversa = {
@@ -90,6 +92,7 @@ export function montarLinha(
     resultado?: string | null;
     custoValor?: number | null;
     custoUnidade?: string | null;
+    promptHash?: string | null;
   },
 ): LinhaConversa {
   const metadata = objeto(data.metadata);
@@ -114,6 +117,9 @@ export function montarLinha(
       metadata,
       analysis: objeto(data.analysis),
       conversation_initiation_client_data: objeto(data.conversation_initiation_client_data),
+      // The normalized transcript deliberately retains its existing contract.
+      // SON-6.8 telemetry keeps timing/interruptions before normalization loses them.
+      qualidade: extrairQualidade(data, { promptHash: extras.promptHash }),
     },
     origem: extras.origem,
   };

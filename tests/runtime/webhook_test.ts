@@ -60,7 +60,7 @@ async function scenario(data: Record<string, unknown>, options: {
       if (q.table === "np_lead_telefones" && q.action === "select") {
         assert.deepEqual(q.filters, [["eq", "ia_conversation_id", "conversation-1"]]);
         return { error: null, data: { id: "phone-1", lead_id: "lead-1", e164: "+5511000000001", np_leads: { cnpj: "12345678000195" }, ia_agent_id: agentId,
-          ia_custo_valor: saved ?? null, ia_custo_unidade: saved === undefined ? null : "USD" } };
+          ia_prompt_hash: "a".repeat(64), ia_custo_valor: saved ?? null, ia_custo_unidade: saved === undefined ? null : "USD" } };
       }
       if (q.table === "np_lead_telefones" && q.action === "update") {
         updates.push(q);
@@ -166,6 +166,19 @@ const doisTurnos = [
   { role: "agent", message: "Oi, aqui é o Bruno da Tendência Energia.", time_in_call_secs: 0 },
   { role: "user",  message: "Pois não.",                                time_in_call_secs: 3 },
 ];
+
+Deno.test("SON-6.8: webhook guarda hash correlacionado, versao e medicao sem atribuir falha a interrupcao", async () => {
+  const r = await scenario({status:"done",version_id:"historical_version_1",
+    metadata:{cost_fiat:0.5},transcript:[{role:"agent",message:"Oi",interrupted:true,time_in_call_secs:0,
+      conversation_turn_metrics:{metrics:{convai_ttf_audio_since_silence:{elapsed_time:0.234}}}}]});
+  assert.equal(r.responses[0].status,200);
+  const q=(r.conversas[0].values!.metadados as Record<string,any>).qualidade;
+  assert.equal(q.prompt_hash,"a".repeat(64));
+  assert.equal(q.prompt_hash_fonte,"carimbo_pre_disparo");
+  assert.equal(q.provider_version_id,"historical_version_1");
+  assert.equal(q.primeiro_audio_ms,234);assert.equal(q.interrupcoes,1);
+  assert.equal(q.bargein_mal_resolvido_pct,undefined);
+});
 
 Deno.test("SON-2.11: a conversa é gravada com transcript, duração e correlação", async () => {
   const r = await scenario({
