@@ -1,5 +1,7 @@
 # SON-6.2 — artefato promovido em 29/09/2026
 
+Atualização na troca de PC: webhook agora ACTIVE v26, após a correção de JSDoc; orquestrador permanece v28. A comparação de fontes descrita abaixo foi da v25. Falta baixar/comparar v26 e integrar a PR #12, cujo CI passou. [Retomada](../../../../docs/RETOMADA-SON-6.2-2026-09-29.md).
+
 O roteiro permite um único pedido de nome **ou** horário ao intermediário. R5, R6, opt-out, abertura, voz e `end_call` permanecem no contrato anterior. Horário é texto informado, sem agendamento. `prompts/bruno/system.md` e a aprovação `bruno-son-6.2-v1` foram promovidos após autorização explícita.
 
 `data-collection.json` define os dez campos. Os dez cenários de `cases.json` foram incorporados à suíte adversarial com briefing sintético da Oficina Horizonte Ltda. Os 24 cenários passaram; os quatro controles negativos comprovaram o bloqueio das duas violações efetivamente produzidas. Nenhuma ligação telefônica foi feita. A meta de 7/10 segue para a medição real posterior.
