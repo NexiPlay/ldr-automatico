@@ -167,6 +167,25 @@ const doisTurnos = [
   { role: "user",  message: "Pois não.",                                time_in_call_secs: 3 },
 ];
 
+Deno.test('SON-6.2: webhook assinado persiste decisor ausente sem mudar validacao ou opt-out', async () => {
+  const data={metadata:{cost_fiat:0.5},transcript:[{role:'user',message:'Sou da recepção. Carlos cuida disso, mas está ausente.'}],
+    analysis:{data_collection_results:{resultado_validacao:{value:'CONFIRMADO'},redflag:{value:false},
+      son62_interlocutor:{value:'INTERMEDIARIO'},son62_interlocutor_evidencia:{value:'Sou da recepção.'},
+      son62_responsavel_ausente:{value:true},son62_ausencia_evidencia:{value:'Carlos cuida disso, mas está ausente.'},
+      son62_nome_responsavel:{value:'Carlos'},son62_nome_evidencia:{value:'Carlos cuida disso, mas está ausente.'}}}};
+  const r=await scenario(data,{repeat:true});
+  assert.ok(r.responses.every(x=>x.status===200));
+  assert.equal(r.updates[0].values!.ia_resultado,'confirmado');
+  const p=(r.conversas[0].values!.metadados as Record<string,any>).porteiro;
+  assert.equal(p.diagnostico,'decisor_ausente');assert.equal(p.nome_responsavel,'Carlos');
+  assert.equal(r.conversas[1].values!.conversation_id,r.conversas[0].values!.conversation_id);
+  const wrong=await scenario({...data,analysis:{data_collection_results:{...data.analysis.data_collection_results,resultado_validacao:{value:'NAO_CONFIRMADO'}}}});
+  const w=(wrong.conversas[0].values!.metadados as Record<string,any>).porteiro;
+  assert.equal(w.diagnostico,'numero_errado');assert.equal(w.nome_responsavel,null);
+  const failed=await scenario(data,{conversaFalha:true});assert.equal(failed.responses[0].status,503);
+  const unsigned=await scenario(data,{invalidSignature:true});assert.equal(unsigned.conversas.length,0);
+});
+
 Deno.test("SON-6.8: webhook guarda hash correlacionado, versao e medicao sem atribuir falha a interrupcao", async () => {
   const r = await scenario({status:"done",version_id:"historical_version_1",
     metadata:{cost_fiat:0.5},transcript:[{role:"agent",message:"Oi",interrupted:true,time_in_call_secs:0,

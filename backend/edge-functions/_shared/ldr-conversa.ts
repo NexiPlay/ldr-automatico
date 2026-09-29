@@ -10,6 +10,7 @@
 // Quem grava é `montarLinha` + o cliente de quem chama.
 
 import { extrairQualidade } from "./ldr-qualidade.mjs";
+import { extrairPorteiro } from "./ldr-porteiro.mjs";
 
 export type Turno = { role: "robo" | "empresa"; mensagem: string; seg: number | null };
 
@@ -120,6 +121,7 @@ export function montarLinha(
       // The normalized transcript deliberately retains its existing contract.
       // SON-6.8 telemetry keeps timing/interruptions before normalization loses them.
       qualidade: extrairQualidade(data, { promptHash: extras.promptHash }),
+      porteiro: extrairPorteiro(data, extras.resultado),
     },
     origem: extras.origem,
   };
