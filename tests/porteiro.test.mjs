@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {extrairPorteiro} from '../backend/edge-functions/_shared/ldr-porteiro.mjs';
-import {prepareSon62} from '../scripts/son62-prepare.mjs';
+import {prepareSon62, assertSon62Published} from '../scripts/son62-prepare.mjs';
 import {assertApprovedAgent} from '../backend/edge-functions/_shared/ldr-policy.mjs';
 
 const said = 'Sim, aqui é a empresa. Sou a recepcionista. O Carlos cuida de energia, mas está ausente. Ligue amanhã às 14h.';
@@ -88,15 +88,14 @@ test('SON-6.2: offline preparation preserves configuration and approval; remote 
   const oldRefs={evaluation_criteria:[],data_collection:[{source:'user',analysis_item_id:'aitem_old1',version_id:null,scope:'conversation'}]};
   const migrated={...initial,platform_settings:{...initial.platform_settings,analysis_items:oldRefs}};
   const plan=await prepareSon62(migrated);
-  assert.equal(plan.patch,null);assert.equal(plan.dataCollectionProposal.requires_item_creation,true);
+  assert.equal(plan.dataCollectionProposal.requires_readback,true);
   assert.deepEqual(plan.dataCollectionProposal.existing_references,oldRefs);
-  const refs=Object.fromEntries(Object.keys(plan.dataCollectionProposal.definitions).map((k,i)=>[k,{source:'user',analysis_item_id:'aitem_new'+i,version_id:'version-'+i}]));
-  const ready=await prepareSon62(migrated,refs);
-  assert.equal(ready.patch.platform_settings.data_collection,undefined);
-  const linked=ready.patch.platform_settings.analysis_items;
-  assert.deepEqual(linked.data_collection[0],oldRefs.data_collection[0]);assert.equal(linked.data_collection.length,11);
-  assert.deepEqual(linked.evaluation_criteria,oldRefs.evaluation_criteria);
-  const key=Object.keys(refs)[0];refs[key].analysis_item_id='aitem_old1';
-  await assert.rejects(prepareSon62(migrated,refs),/reutilizada/);
-  await assert.rejects(prepareSon62(migrated,{}),/dez referencias/);
+  assert.equal(plan.patch.platform_settings.analysis_items,undefined);
+  assert.equal(Object.keys(plan.patch.platform_settings.data_collection).length,13);
+  assert.deepEqual(plan.patch.platform_settings.data_collection.redflag,initial.platform_settings.data_collection.redflag);
+  const published={...initial,conversation_config:plan.patch.conversation_config,
+    platform_settings:{data_collection:structuredClone(plan.patch.platform_settings.data_collection)}};
+  assert.equal(await assertSon62Published(published,plan),true);
+  delete published.platform_settings.data_collection.son62_interlocutor;
+  await assert.rejects(assertSon62Published(published,plan),/nao persistido/);
 });
