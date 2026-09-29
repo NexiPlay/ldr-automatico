@@ -24,12 +24,14 @@ type Options = {
   reputationError?: boolean; pauseAfterFirst?: boolean;
   optout?: boolean; optoutError?: boolean; optoutBeforePost?: boolean;
   sonarPortao?: boolean; sonarPortaoError?: boolean; sonarPortaoBeforePost?: boolean;
+  registroFalhaErro?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
   const reads: ReturnType<typeof agent>[] = [];
   const payloads: Record<string, unknown>[] = [];
   const updates: Query[] = [];
+  const falhasGravadas: Query[] = [];
   const queries: Query[] = [];
   const order: string[] = [];
   let result!: { body: Record<string, any>; status: number; pauses: number[] };
@@ -56,6 +58,11 @@ async function scenario(options: Options, ids = ["phone-1"]) {
     if (q.table === "np_lead_telefones" && q.action === "update") {
       order.push("save"); updates.push(q);
       return { data: options.saveError ? null : { id: q.filters[0][2] }, error: options.saveError ? { message: "db offline" } : null };
+    }
+    // SON-2.6 — registro da falha de disparo
+    if (q.table === "np_ldr_disparos_falhos" && q.action === "insert") {
+      order.push("falha_registrada"); falhasGravadas.push(q);
+      return { data: null, error: options.registroFalhaErro ? { message: "tabela ausente" } : null };
     }
     throw new Error(`Unexpected query ${JSON.stringify(q)}`);
   }
@@ -99,7 +106,7 @@ async function scenario(options: Options, ids = ["phone-1"]) {
     const response = await handle(new Request("https://edge.invalid", { method: "POST", body: JSON.stringify({ telefone_ids: ids }) }));
     result = { body: await response.json(), status: response.status, pauses: [...pauses] };
   });
-  return { ...result, reads, payloads, updates, queries, order };
+  return { ...result, reads, payloads, updates, falhasGravadas, queries, order };
 }
 
 Deno.test("reputacao: pausa durante o lote impede o proximo POST e conserva pendentes", async () => {
@@ -202,6 +209,31 @@ Deno.test("runtime: erro HTTP de discagem mantém pausa e não grava carimbo de 
   const r = await scenario({ postFailure: true }, ["phone-1", "phone-2"]);
   assert.equal(r.payloads.length, 2); assert.equal(r.updates.length, 0);
   assert.deepEqual(r.pauses, [4000]); assert.equal(r.body.ok, false);
+});
+
+Deno.test("SON-2.6: recusa do provedor vira linha em np_ldr_disparos_falhos", async () => {
+  const r = await scenario({ postFailure: true });
+  // a evidência não pode existir só na resposta HTTP — é isso que trava a 2.6
+  assert.equal(r.falhasGravadas.length, 1);
+  const v = r.falhasGravadas[0].values!;
+  assert.equal(v.telefone_id, "phone-1");
+  assert.equal(v.lead_id, "lead-1");
+  assert.equal(v.http_status, 503);
+  // resposta crua guardada inteira: é nela que o padrão de número inválido
+  // deve aparecer, e ainda não sabemos qual campo importa
+  assert.deepEqual(v.resposta, { success: false });
+  // sem mensagem/sip na resposta do provedor, grava null — nunca inventa
+  assert.equal(v.provedor_mensagem, null);
+  assert.equal(v.sip_call_id, null);
+});
+
+Deno.test("SON-2.6: falhar ao REGISTRAR a falha não interrompe o lote", async () => {
+  // anotar é best-effort: o lote tem que seguir para os outros telefones,
+  // senão um problema de tabela viraria parada de operação
+  const r = await scenario({ postFailure: true, registroFalhaErro: true }, ["phone-1", "phone-2"]);
+  assert.equal(r.payloads.length, 2);
+  assert.equal(r.falhasGravadas.length, 2);
+  assert.equal(r.body.falhas.length, 2);
 });
 
 Deno.test("runtime: transporte ambíguo não repete o POST", async () => {
