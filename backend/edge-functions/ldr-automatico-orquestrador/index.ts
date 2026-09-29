@@ -35,6 +35,7 @@ import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } fr
 import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
 import { janelaDeDiscagem } from "../_shared/janela-discagem.ts";
+import { podeDiscarSonar, SonarPortaoIndisponivel } from "../_shared/sonar-portao-tentativas.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -339,6 +340,7 @@ Deno.serve(async (req: Request) => {
   let promptBloqueado = false;
   let reputacaoBloqueada = false;
   let optoutIndisponivel = false;
+  let sonarPortaoIndisponivel = false;
   let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
@@ -406,6 +408,12 @@ Deno.serve(async (req: Request) => {
         pulados.push({ telefoneId, motivo: "opt_out" });
         continue;
       }
+      // SON-1.7 — portao de 48h e teto de tentativas por CNPJ raiz (robo+humano
+      // somados). Este orquestrador so dispara o LDR (ver cabecalho do arquivo).
+      if (!await podeDiscarSonar(sb, cnpj, "ldr")) {
+        pulados.push({ telefoneId, motivo: "sonar_portao_48h_teto" });
+        continue;
+      }
       const briefing = await loadBriefing(sb, telefone.lead_id, lead?.nome_exibicao || lead?.razao_social || "");
       const empresa = normalizarNomeEmpresa(briefing.empresa);
       if (!empresa) {
@@ -434,6 +442,10 @@ Deno.serve(async (req: Request) => {
       // webhook registrou bloqueio durante a preparação deste telefone.
       if (!await podeContatar(sb, telefone.e164, cnpj)) {
         pulados.push({ telefoneId, motivo: "opt_out" });
+        continue;
+      }
+      if (!await podeDiscarSonar(sb, cnpj, "ldr")) {
+        pulados.push({ telefoneId, motivo: "sonar_portao_48h_teto" });
         continue;
       }
       tentouDisparar = true;
@@ -526,6 +538,11 @@ Deno.serve(async (req: Request) => {
         primeiroPendente = i;
         break;
       }
+      if (erro instanceof SonarPortaoIndisponivel) {
+        sonarPortaoIndisponivel = true;
+        primeiroPendente = i;
+        break;
+      }
       if (erro instanceof PromptGateError) {
         // Para o lote sem perder o carimbo/resultado das chamadas anteriores.
         promptBloqueado = true;
@@ -545,8 +562,9 @@ Deno.serve(async (req: Request) => {
     pendentes: telefoneIds.slice(primeiroPendente ?? processados),
     reputacaoBloqueada,
     optoutIndisponivel,
+    sonarPortaoIndisponivel,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel ? 503 : 200);
 });

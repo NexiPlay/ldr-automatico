@@ -23,6 +23,7 @@ type Options = {
   changeAgent?: (value: ReturnType<typeof agent>, index: number) => void;
   reputationError?: boolean; pauseAfterFirst?: boolean;
   optout?: boolean; optoutError?: boolean; optoutBeforePost?: boolean;
+  sonarPortao?: boolean; sonarPortaoError?: boolean; sonarPortaoBeforePost?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
@@ -65,6 +66,11 @@ async function scenario(options: Options, ids = ["phone-1"]) {
         assert.equal(args.p_e164, "+5500000000000");
         assert.equal(args.p_cnpj, "12345678000195");
         return { data: !(options.optout || (options.optoutBeforePost && reads.length > 0)), error: options.optoutError ? { message: "offline" } : null };
+      }
+      if (name === "np_fn_sonar_pode_discar") {
+        assert.equal(args.p_cnpj, "12345678000195");
+        assert.equal(args.p_agente, "ldr");
+        return { data: !(options.sonarPortao || (options.sonarPortaoBeforePost && reads.length > 0)), error: options.sonarPortaoError ? { message: "offline" } : null };
       }
       assert.equal(name, "np_fn_sonar_reputacao_portao");
       assert.equal(args.p_origem, "+5511000000010");
@@ -114,6 +120,20 @@ Deno.test("opt-out: bloqueio por telefone/CNPJ impede POST; falha do portão con
       assert.deepEqual(r.body.pendentes, ["phone-1"]);
     } else {
       assert.equal(r.body.pulados[0].motivo, "opt_out");
+    }
+  }
+});
+
+Deno.test("SON-1.7: portao de 48h/teto bloqueia por CNPJ; falha do portão conserva pendentes", async () => {
+  for (const options of [{ sonarPortao: true }, { sonarPortaoError: true }, { sonarPortaoBeforePost: true }]) {
+    const r = await scenario(options);
+    assert.equal(r.payloads.length, 0);
+    if (options.sonarPortaoError) {
+      assert.equal(r.status, 503);
+      assert.equal(r.body.sonarPortaoIndisponivel, true);
+      assert.deepEqual(r.body.pendentes, ["phone-1"]);
+    } else {
+      assert.equal(r.body.pulados[0].motivo, "sonar_portao_48h_teto");
     }
   }
 });
