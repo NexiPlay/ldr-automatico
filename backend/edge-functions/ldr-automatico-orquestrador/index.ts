@@ -467,6 +467,43 @@ Deno.serve(async (req: Request) => {
           status: res.status,
           resposta: resBody,
         });
+        // SON-2.6 — persistir a falha, não só devolvê-la na resposta HTTP.
+        //
+        // Até aqui este array `falhas` era o único lugar onde o motivo existia:
+        // fechou a aba do dashboard, perdeu. Isso é exatamente o que trava a
+        // SON-2.6 — "número inválido alimenta o kill-switch" pressupõe saber
+        // que o número é inválido, e medimos em 29/09 que esse sinal não chega
+        // por nenhum outro caminho: as 434 conversas de np_ldr_conversas têm
+        // transcript em 100% dos casos (360/360, 72/72, 2/2), ou seja, chamada
+        // que não conecta não vira conversa. Aqui é o único ponto onde a
+        // recusa do provedor passa.
+        //
+        // Não decide nada: só registra. Descobrir qual mensagem significa
+        // "esse número não existe" exige ver o padrão acumulado — e matar
+        // número com base em chute é caro, porque o trigger da 0399 propaga
+        // pra TODOS os leads que compartilham aquele telefone.
+        try {
+          // insert() NÃO lança em erro de banco — devolve { error }. Só um
+          // try/catch aqui engoliria a falha em silêncio e a tabela ficaria
+          // vazia pra sempre, dando a falsa impressão de que estamos coletando.
+          const { error: erroRegistro } = await sb.from("np_ldr_disparos_falhos").insert({
+            telefone_id: telefoneId,
+            lead_id: telefone.lead_id ?? null,
+            http_status: res.status,
+            provedor_mensagem: typeof resBody?.message === "string" ? resBody.message : null,
+            sip_call_id: typeof resBody?.sip_call_id === "string" ? resBody.sip_call_id : null,
+            resposta: resBody ?? null,
+          });
+          if (erroRegistro) throw new Error(erroRegistro.message);
+        } catch (erroRegistro) {
+          // Best-effort: não conseguir ANOTAR a falha não pode virar uma
+          // segunda falha que interrompe o lote. O `falhas` acima já garante
+          // que o operador vê o que aconteceu nesta rodada.
+          console.error("[ORQUESTRADOR] falha ao registrar disparo falho", {
+            telefoneId,
+            erro: erroRegistro instanceof Error ? erroRegistro.message : String(erroRegistro),
+          });
+        }
         continue;
       }
 
