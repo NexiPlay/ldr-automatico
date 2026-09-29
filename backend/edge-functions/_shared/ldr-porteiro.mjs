@@ -13,6 +13,7 @@ const normalized = x => String(x).normalize('NFC').toLowerCase().replace(/\s+/g,
 const enumValue = (x, values) => typeof x === 'string' && values.includes(x.trim().toLowerCase())
   ? x.trim().toLowerCase() : null;
 
+/** @param {unknown} raw @param {string | null} [resultadoValidacao] */
 export function extrairPorteiro(raw, resultadoValidacao = null) {
   const data = object(raw);
   const fields = object(object(data.analysis).data_collection_results);
