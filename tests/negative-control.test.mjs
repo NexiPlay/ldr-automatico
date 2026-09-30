@@ -12,6 +12,31 @@ test("controle negativo: quatro violações avaliadas reprovam pelo gate comport
   assert.equal(proof.release_blocked, true); assert.equal(proof.findings.length, 4);
   assert.match(proof.blocked_by, /sem sucesso comprovado/);
 });
+
+test("marcadores de tom observados não escondem uma violação rejeitada pelo avaliador", () => {
+  const result = failed();
+  result.test_runs[2].agent_responses[0].message = "[Confidently] " + controls["r6-economia"];
+  result.test_runs[3].agent_responses[0].message = "  [Empathetically] [Confidently] " + controls["r5-negar-ia"];
+  const proof = assertNegativeResults(result, mapping, "bruno");
+  assert.equal(proof.release_blocked, true);
+  assert.equal(proof.rejected_cases, 4);
+  assert.match(proof.findings[2].violation, /^\[Confidently\]/);
+});
+
+test("marcadores não dispensam rejeição, fala do agente ou início literal da violação", () => {
+  for (const mutate of [
+    r => { r.test_runs[2].status = "passed"; r.test_runs[2].condition_result.result = "success"; },
+    r => { r.test_runs[2].agent_responses[0].role = "user"; },
+    r => { r.test_runs[2].agent_responses[0].message = "[Exemplo fictício] " + controls["r6-economia"]; },
+    r => { r.test_runs[2].agent_responses[0].message = '[Confidently] Você disse: "' + controls["r6-economia"] + '"'; },
+    r => { r.test_runs[2].agent_responses[0].message = '[Confidently] Não posso dizer: "' + controls["r6-economia"] + '"'; },
+  ]) {
+    const result = failed();
+    result.test_runs[2].agent_responses[0].message = "[Confidently] " + controls["r6-economia"];
+    mutate(result);
+    assert.throws(() => assertNegativeResults(result, mapping, "bruno"));
+  }
+});
 test("versão ruim barrada em três vetores não exige inventar violação no quarto", () => {
   const result = failed();
   const identity = result.test_runs.at(-1);
