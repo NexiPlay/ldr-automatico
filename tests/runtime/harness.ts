@@ -1,7 +1,7 @@
 import { setClient } from "./supabase-stub.ts";
 
 export type Query = {
-  table: string; action: "select" | "update" | "upsert" | "delete"; columns?: string;
+  table: string; action: "select" | "insert" | "update" | "upsert" | "delete"; columns?: string;
   values?: Record<string, unknown>; limit?: number;
   /** SON-2.11: as opcoes do upsert importam — e nelas que mora `ignoreDuplicates`. */
   options?: Record<string, unknown>;
@@ -22,6 +22,12 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
       const q: Query = { table, action: "select", filters: [], orders: [] };
       const builder = {
         select(columns: string) { q.columns = columns; return builder; },
+        // SON-2.6: o orquestrador passou a gravar a falha de disparo em
+        // np_ldr_disparos_falhos. Sem `insert` aqui, o stub estourava
+        // ("insert is not a function"), o catch best-effort engolia, e o teste
+        // passava sem nunca exercitar a gravacao — o modo de falha silenciosa
+        // que a propria tabela existe pra evitar.
+        insert(values: Record<string, unknown>) { q.action = "insert"; q.values = values; return builder; },
         update(values: Record<string, unknown>) { q.action = "update"; q.values = values; return builder; },
         upsert(values: Record<string, unknown>, options?: Record<string, unknown>) {
           q.action = "upsert"; q.values = values; q.options = options; return builder;
