@@ -1,25 +1,47 @@
-// SON-1.6 — o portão de janela dentro da edge, não só na função pura.
+// SON-1.6 — o portão de janela dentro da edge.
 //
-// O módulo `_shared/janela-discagem.ts` tem a sua própria suíte de bordas
-// (tests/janela-discagem.test.mjs). O que se prova AQUI é outra coisa: que o
-// orquestrador consulta o portão antes de discar, que a recusa sai com motivo
-// no corpo da resposta, e — o que mais importa — que **nenhum POST de discagem
-// sai** quando está fora de hora. Um portão que recusa depois de ligar não é
-// portão.
+// O QUE ESTE ARQUIVO PROVA, E O QUE MUDOU EM 30/09/2026
+//
+// Até a SON-2.2 a R3 era calculada em TypeScript aqui dentro, e este arquivo
+// misturava duas perguntas: "a regra está certa?" e "a edge respeita a regra?".
+// A regra agora vive no banco (nexilead, migration 0406), e a correção dela é
+// provada pela suíte SQL que roda na CI daquele repo
+// (backend/tests/sql/test_0406_janela_r3.sql — os mesmos 13 casos de borda que
+// rodavam aqui).
+//
+// Aqui sobra a segunda pergunta, que é a que importa nesta camada:
+//   · o orquestrador CONSULTA o portão antes de discar;
+//   · ele obedece ao veredito, qualquer que seja — não recalcula nada;
+//   · a recusa sai com motivo no corpo da resposta;
+//   · **nenhum POST de discagem sai** quando o portão barra. Portão que recusa
+//     depois de ligar não é portão;
+//   · portão indisponível BLOQUEIA (fail-closed). Ligar fora do horário
+//     permitido é problema de conformidade, não de disponibilidade.
+//
+// Por isso os vereditos abaixo são fabricados: o teste não precisa saber que
+// horas são, precisa provar que a edge faz o que a resposta mandar.
 
 import assert from "node:assert/strict";
 import { withEdge, type Query, type Result } from "./harness.ts";
 
 const SP = "+5511988887777";
-const ACRE = "+5568988887777";
+const RPC_JANELA = "np_fn_sonar_janela_discagem";
 
-/**
- * Responde ao que a edge precisa ANTES do laço (a origem de telefonia) e
- * marca se o POST de discagem chegou a sair. O GET do agente devolve 500 de
- * propósito: tudo que vem depois do portão está fora do escopo deste arquivo,
- * e um erro ali vira `falhas`, não `pulados` — o que mantém as asserções de
- * `pulados` medindo só a janela.
- */
+/** Um veredito como o banco devolve, com os campos que a edge repassa. */
+function veredito(over: Record<string, unknown> = {}) {
+  return {
+    pode: true,
+    codigo: "dentro_da_janela",
+    motivo: "dentro da janela (9h-20h) — 2026-09-30 10:00 no fuso do DDD 11 (UTC-3)",
+    ddd: "11",
+    offset_horas: -3,
+    hora_local: "2026-09-30 10:00",
+    dia_semana: 3,
+    feriado: null,
+    ...over,
+  };
+}
+
 function stubFetch(marcar: () => void) {
   return ((input: string | URL | Request) => {
     const url = String(input);
@@ -32,6 +54,8 @@ function stubFetch(marcar: () => void) {
       marcar();
       return Promise.resolve(Response.json({ success: false, message: "não deveria" }, { status: 500 }));
     }
+    // Tudo depois do portão está fora do escopo deste arquivo: um erro aqui
+    // vira `falhas`, não `pulados`, e mantém as asserções medindo só a janela.
     return Promise.resolve(new Response("", { status: 500 }));
   }) as unknown as typeof fetch;
 }
@@ -60,21 +84,28 @@ function dbCom(e164: string, aoLerBriefing?: () => void) {
 
 type Saida = {
   corpo: Record<string, unknown>;
+  status: number;
   discou: boolean;
   leuBriefing: boolean;
   rpcs: string[];
 };
 
-async function rodar(iso: string, e164 = SP): Promise<Saida> {
+/** `respostaJanela` decide o que o banco responde — inclusive falhar. */
+async function rodar(
+  respostaJanela: { data: unknown; error: unknown },
+  e164 = SP,
+): Promise<Saida> {
   let corpo!: Record<string, unknown>;
+  let status = 0;
   let discou = false;
   let leuBriefing = false;
   const rpcs: string[] = [];
   await withEdge("ldr-automatico-orquestrador", {
     db: dbCom(e164, () => { leuBriefing = true; }),
-    agora: new Date(iso),
+    agora: new Date("2026-09-30T13:00:00.000Z"),
     rpc(name: string) {
       rpcs.push(name);
+      if (name === RPC_JANELA) return respostaJanela;
       if (name === "np_fn_sonar_reputacao_portao") return { data: { permitido: true }, error: null };
       return { data: true, error: null };
     },
@@ -84,9 +115,10 @@ async function rodar(iso: string, e164 = SP): Promise<Saida> {
       method: "POST",
       body: JSON.stringify({ telefone_ids: ["phone-1"] }),
     }));
+    status = res.status;
     corpo = await res.json();
   });
-  return { corpo, discou, leuBriefing, rpcs };
+  return { corpo, status, discou, leuBriefing, rpcs };
 }
 
 function pulado(corpo: Record<string, unknown>) {
@@ -96,64 +128,61 @@ function pulado(corpo: Record<string, unknown>) {
 }
 
 // ---------------------------------------------------------------------------
-Deno.test("fora da janela: recusa com motivo e nenhuma discagem sai", async () => {
-  // 03h da manhã de uma quarta-feira em São Paulo.
-  const r = await rodar("2026-09-30T06:00:00.000Z");
+Deno.test("a edge consulta o portão de janela no banco antes de discar", async () => {
+  const r = await rodar({ data: veredito(), error: null });
+  assert.ok(r.rpcs.includes(RPC_JANELA), "a janela tem de ser consultada no banco");
+});
+
+Deno.test("portão barra: recusa com motivo e nenhuma discagem sai", async () => {
+  const r = await rodar({
+    data: veredito({
+      pode: false,
+      codigo: "antes_da_abertura",
+      motivo: "antes das 9h — 2026-09-30 03:00 no fuso do DDD 11 (UTC-3)",
+      hora_local: "2026-09-30 03:00",
+    }),
+    error: null,
+  });
+
   assert.equal(r.discou, false, "nada pode ser discado fora de hora");
   assert.equal(r.leuBriefing, false, "nem chega a montar o briefing");
 
   const p = pulado(r.corpo);
   assert.equal(p.motivo, "fora_de_janela");
-  assert.equal(p.codigo, "antes_da_abertura");
+  assert.equal(p.codigo, "antes_da_abertura", "o código do banco chega inteiro na resposta");
   assert.equal(p.horaLocal, "2026-09-30 03:00");
   assert.equal(p.ddd, "11");
   assert.match(String(p.detalhe), /antes das 9h/);
   assert.equal((r.corpo.ligados as unknown[]).length, 0);
 });
 
-Deno.test("domingo e feriado nacional barram, cada um com o seu motivo", async () => {
-  const domingo = await rodar("2026-10-04T17:00:00.000Z"); // domingo, 14h
-  assert.equal(domingo.discou, false);
-  assert.equal(pulado(domingo.corpo).codigo, "domingo");
-
-  // Natal de 2026 cai numa sexta: dia útil, 14h, e mesmo assim não.
-  const natal = await rodar("2026-12-25T17:00:00.000Z");
-  assert.equal(natal.discou, false, "erro de calendário também é erro");
-  const p = pulado(natal.corpo);
-  assert.equal(p.codigo, "feriado_nacional");
-  assert.match(String(p.detalhe), /Natal/);
+Deno.test("a edge obedece ao veredito, não o recalcula", async () => {
+  // Veredito impossível de deduzir do relógio: o instante injetado é uma quarta
+  // às 10h de São Paulo, hora comercial. Se a edge ainda calculasse por conta
+  // própria, ela liberaria — e este teste falharia.
+  const r = await rodar({
+    data: veredito({ pode: false, codigo: "domingo", motivo: "domingo — hora qualquer" }),
+    error: null,
+  });
+  assert.equal(r.discou, false);
+  assert.equal(pulado(r.corpo).codigo, "domingo");
 });
 
-Deno.test("sábado: 14h barra, 10h passa", async () => {
-  const tarde = await rodar("2026-10-03T17:00:00.000Z"); // sábado 14h
-  assert.equal(tarde.discou, false);
-  assert.equal(pulado(tarde.corpo).codigo, "sabado_fora_da_janela_menor");
-
-  // 10h do mesmo sábado: o portão libera e o fluxo continua. Quem interrompe
-  // depois é o GET do agente (500 no stub) — e é justamente isso que prova
-  // que a janela deixou passar em vez de barrar.
-  const manha = await rodar("2026-10-03T13:00:00.000Z");
-  assert.equal(manha.leuBriefing, true, "10h de sábado está dentro da janela menor");
-  assert.equal((manha.corpo.pulados as unknown[]).length, 0, "nada foi barrado pela janela");
+Deno.test("portão libera: o fluxo segue e nada é barrado pela janela", async () => {
+  const r = await rodar({ data: veredito({ pode: true }), error: null });
+  assert.equal(r.leuBriefing, true, "liberado, o fluxo continua");
+  assert.equal((r.corpo.pulados as unknown[]).length, 0, "nada foi barrado pela janela");
 });
 
-Deno.test("o portão roda antes do opt-out: fora de hora não custa RPC", async () => {
-  const r = await rodar("2026-09-30T06:00:00.000Z"); // 03h
-  assert.equal(r.rpcs.includes("np_fn_pode_contatar"), false,
-    "a janela é computação pura; número fora de hora nem consulta o opt-out");
-});
-
-Deno.test("o fuso vem do DDD também dentro da edge", async () => {
-  // 12h30 UTC = 9h30 em São Paulo (abre) e 7h30 no Acre (fechado). Mesmo
-  // instante, telefones diferentes, vereditos diferentes.
-  const sp = await rodar("2026-09-30T12:30:00.000Z", SP);
-  assert.equal((sp.corpo.pulados as unknown[]).length, 0, "9h30 em São Paulo passa");
-  assert.equal(sp.leuBriefing, true);
-
-  const ac = await rodar("2026-09-30T12:30:00.000Z", ACRE);
-  const p = pulado(ac.corpo);
-  assert.equal(p.motivo, "fora_de_janela", "7h30 no Acre, não");
-  assert.equal(p.horaLocal, "2026-09-30 07:30");
-  assert.equal(p.ddd, "68");
-  assert.equal(ac.discou, false);
+Deno.test("portão indisponível bloqueia o lote (fail-closed)", async () => {
+  for (const resposta of [
+    { data: null, error: { message: "timeout" } },          // o RPC falhou
+    { data: null, error: null },                             // respondeu vazio
+    { data: { codigo: "dentro_da_janela" }, error: null },   // respondeu sem veredito
+  ]) {
+    const r = await rodar(resposta);
+    assert.equal(r.discou, false, "sem saber a hora de quem recebe, não se disca");
+    assert.equal(r.status, 503, "o lote para e o chamador sabe por quê");
+    assert.equal(r.corpo.janelaIndisponivel, true);
+  }
 });
