@@ -69,6 +69,16 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   await withEdge("ldr-automatico-orquestrador", {
     db,
     rpc(name, args) {
+      // SON-2.2: a janela (R3) virou consulta ao banco. A correcao da regra e
+      // provada na suite SQL do repo nexilead; aqui ela so precisa liberar,
+      // para os testes deste arquivo continuarem medindo o que medem.
+      if (name === "np_fn_sonar_janela_discagem") {
+        return { error: null, data: {
+          pode: true, codigo: "dentro_da_janela", motivo: "dentro da janela (teste)",
+          ddd: "11", offset_horas: -3, hora_local: "2026-09-30 10:00",
+          dia_semana: 3, feriado: null,
+        } };
+      }
       if (name === "np_fn_pode_contatar") {
         assert.equal(args.p_e164, "+5500000000000");
         assert.equal(args.p_cnpj, "12345678000195");

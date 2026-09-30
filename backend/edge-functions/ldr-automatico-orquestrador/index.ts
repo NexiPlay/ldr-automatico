@@ -34,7 +34,7 @@ import { OptoutIndisponivel, podeContatar } from "../_shared/ldr-optout.ts";
 import { assertApprovedAgent, loadBriefing, elevenlabsBase, PromptGateError } from "../_shared/ldr-policy.mjs";
 import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
-import { janelaDeDiscagem } from "../_shared/janela-discagem.ts";
+import { janelaDeDiscagem, JanelaIndisponivel } from "../_shared/janela-discagem.ts";
 import { podeDiscarSonar, SonarPortaoIndisponivel } from "../_shared/sonar-portao-tentativas.ts";
 
 // ============================================================
@@ -341,6 +341,7 @@ Deno.serve(async (req: Request) => {
   let reputacaoBloqueada = false;
   let optoutIndisponivel = false;
   let sonarPortaoIndisponivel = false;
+  let janelaIndisponivel = false;
   let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
@@ -375,12 +376,17 @@ Deno.serve(async (req: Request) => {
         continue;
       }
 
-      // SON-1.6 — portão de janela (R3). Vem antes do opt-out de propósito:
-      // é computação pura, sem banco nem rede, então um número fora de hora
-      // nem chega a custar uma consulta. A hora que vale é a de QUEM RECEBE,
-      // derivada do DDD — sem isso, "9h-20h" seria sempre o fuso de quem
+      // SON-1.6 — portão de janela (R3). A hora que vale é a de QUEM RECEBE,
+      // derivada do DDD: sem isso, "9h-20h" seria sempre o fuso de quem
       // programou, e um lead do Acre receberia ligação às 7h da manhã.
-      const janela = janelaDeDiscagem(telefone.e164);
+      //
+      // Desde 30/09 (SON-2.2) a regra mora no banco (np_fn_sonar_janela_discagem,
+      // migration 0406) e isto é um RPC, não mais computação pura — a prévia de
+      // exclusões precisa consultar o MESMO portão que o disparo aplica, e duas
+      // implementações da R3 divergiriam no dia em que uma mudasse.
+      // A posição no laço não mudou: trocá-la mudaria QUAL motivo um número
+      // recebe quando mais de um portão o barraria.
+      const janela = await janelaDeDiscagem(sb, telefone.e164);
       if (!janela.pode) {
         // Recusa COM motivo: é o que permite responder depois "por que esse
         // número não foi discado ontem à noite" sem abrir o código.
@@ -580,6 +586,13 @@ Deno.serve(async (req: Request) => {
         primeiroPendente = i;
         break;
       }
+      if (erro instanceof JanelaIndisponivel) {
+        // Sem saber a hora de quem recebe, não dá para afirmar que está dentro
+        // da janela. Para o lote inteiro: o próximo número teria o mesmo problema.
+        janelaIndisponivel = true;
+        primeiroPendente = i;
+        break;
+      }
       if (erro instanceof PromptGateError) {
         // Para o lote sem perder o carimbo/resultado das chamadas anteriores.
         promptBloqueado = true;
@@ -599,9 +612,10 @@ Deno.serve(async (req: Request) => {
     pendentes: telefoneIds.slice(primeiroPendente ?? processados),
     reputacaoBloqueada,
     optoutIndisponivel,
+    janelaIndisponivel,
     sonarPortaoIndisponivel,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel || janelaIndisponivel ? 503 : 200);
 });
