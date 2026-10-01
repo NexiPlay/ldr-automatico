@@ -1,0 +1,64 @@
+{
+  "verified_at": "2026-10-01T16:15:07.228Z",
+  "project_ref": "wbagoinuxgvntvbbnmab",
+  "function_name": "ldr-automatico-orquestrador",
+  "source_files": [
+    {
+      "file": "ldr-automatico-orquestrador/index.ts",
+      "sha256_normalized": "fb133639178c82f58fd8feb87b112b1e74bd513c48d109d1fa5cee1f92a7f199",
+      "matches": true
+    },
+    {
+      "file": "_shared/janela-discagem.ts",
+      "sha256_normalized": "156756bded106c175ebc9f81f67b179a9a7508190353b078d224a5bda3603cac",
+      "matches": true
+    },
+    {
+      "file": "_shared/ldr-approval.json",
+      "sha256_normalized": "069fdcd3748d581c632be4194e30fef67976adc4f4e2d55b3eff003f2f2ea616",
+      "matches": true
+    },
+    {
+      "file": "_shared/ldr-optout.ts",
+      "sha256_normalized": "3a66924525287009d0f3039e6b6e5b0807bf219f96b339b53e9fd52fcbdb2df0",
+      "matches": true
+    },
+    {
+      "file": "_shared/ldr-policy.mjs",
+      "sha256_normalized": "262e37ed49829b9193579c1d2fb6fafef67343480d358181e62ca5485af975cd",
+      "matches": true
+    },
+    {
+      "file": "_shared/sonar-portao-tentativas.ts",
+      "sha256_normalized": "dd3f7cb2085a39f2294e1503370cc5695c406418e1424185a3166f3d736c8e54",
+      "matches": true
+    },
+    {
+      "file": "_shared/sonar-reputacao.ts",
+      "sha256_normalized": "bcf6d7b08253a10619852eae58fd36e60d3c237339ad4c0fcad23dc65d676696",
+      "matches": true
+    }
+  ],
+  "bruno": {
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "version_id": "agtvrsn_8201m3w3x8fsfbx8twde52zmms9d",
+    "first_message": "Alô?",
+    "llm": "gpt-4.1",
+    "gate": "passed_using_published_policy_and_approval",
+    "prompt_sha256": "4dcac3a230532c2543e320694d651c0b889d0bb257fad64d792c0cf44422b2db"
+  },
+  "karla": {
+    "agent_id": "agent_2101m2g5f58pezvvdcpcztnv1f41",
+    "version_id": "agtvrsn_9401m3syez0cea5rzs3qsvqyd7dt",
+    "first_message": "Alô?",
+    "modified": false
+  },
+  "validation": {
+    "completed": 17,
+    "incomplete_credits": 7,
+    "remaining_tests_waived_by_user": true,
+    "full_suite_passed": false
+  },
+  "real_calls_sent": 0,
+  "paid_simulations_started": 0
+}

@@ -1,5 +1,11 @@
 # Abertura Alô e trava R5 — 01/10/2026
 
+**Publicado em 01/10/2026, 13h13–13h15 BRT.** O PO dispensou os testes restantes
+e pediu publicação. Bruno ativo: `agtvrsn_8201m3w3x8fsfbx8twde52zmms9d`,
+GPT-4.1, abertura `Alô?`. O orquestrador foi publicado e seus sete arquivos
+foram relidos e comparados; a configuração ativa passa pela política e hash
+baixados da produção. [Recibo](evidence/2026-10-01-alo-r5-publicacao.json).
+
 ## Incidente e escopo
 
 O usuário definiu `Alô?` como abertura permanente de Bruno e Karla. A leitura
@@ -59,16 +65,19 @@ passaram pela checagem determinística e revisão textual. Os sete incompletos
 não são aprovação, nem falha comportamental comprovada.
 
 O usuário autorizou explicitamente publicação (“PODE PUBLICAR”) após as
-autorizações de simulação; **não falta nova aprovação do usuário**. O bloqueio
-atual é externo: créditos para concluir a validação obrigatória. A API key
+autorizações de simulação e depois dispensou os testes restantes (“esquece os
+testes”). Essa exceção permitiu publicar sem aguardar os sete cenários. Eles
+continuam registrados como incompletos, não como aprovados. A API key
 não permite consultar assinatura/saldo (`GET /v1/user/subscription`: 401),
 portanto não se afirma saldo nem data de renovação. Não houve compra ou
 alteração de plano. Ver [evidência](evidence/2026-10-01-alo-r5.json).
 
-Nenhum agente ativo, function ou migration foi alterado. Nenhuma ligação,
-e-mail ou WhatsApp real foi disparado. A produção ainda tem o gate antigo e
-continua incompatível com o Alô até a publicação da correção. Não contornar o
-workflow nem ativar versão cuja validação ficou incompleta.
+Foram publicados somente o Bruno e `ldr-automatico-orquestrador`, incluindo
+política e aprovação compartilhadas. Nenhuma migration, configuração da Karla,
+webhook ou função de conversa mudou. Nenhuma ligação, e-mail ou WhatsApp real
+foi disparado. O gate antigo foi substituído e a releitura da produção confirmou
+compatibilidade do Alô com a versão ativa. Isso não comprova saldo disponível,
+discagem real nem áudio.
 
 O release agora também verifica transcrições por código: ausência de R5 na
 primeira resposta substantiva, pergunta em end_call, nova fala do cliente após
@@ -92,13 +101,16 @@ Após restabelecer os créditos, `retry-infrastructure` reapresenta somente os
 sete testes interrompidos na mesma execução, preservando os aprovados e o
 relatório anterior. Falha comportamental não é elegível a esse retry.
 
-Depois de restabelecidos os créditos e concluída a validação final, a publicação
-já está autorizada: incorporar a PR,
-ativar a configuração revisada do Bruno preservando Alô e executar o workflow
-`ldr-release.yml` na main com `scope=orchestrator`. O workflow revalida o agente
-ativo, repete a suíte positiva, executa controle negativo e revalida a evidência
-antes de publicar no projeto `wbagoinuxgvntvbbnmab`. Confirmar por releitura o
-prompt e os fontes publicados. Não disparar lote para comprovar deploy.
+Publicação realizada após merge da PR #17 (`d0cd3c5`), com exceção explícita do
+usuário para dispensar novas simulações: PATCH do agente a partir do candidato
+v7, releitura integral e publicação pelo CLI apenas do orquestrador no projeto
+`wbagoinuxgvntvbbnmab`. O download posterior confirmou os sete fontes e a
+validação do agente ativo com a política/hash publicados. Não se disparou lote.
+
+O workflow normal permanece inalterado quanto aos gates: exige simulações e
+controle negativo no release manual da main. Esta publicação avulsa é uma
+exceção registrada, não remoção permanente dos checks. Nenhum relatório foi
+reclassificado como aprovado para contornar a validação.
 
 Se a validação do agente falhar após ativação, a trava antiga continua fechada;
 não liberar o orquestrador. O snapshot anterior permite rollback. Nenhum outro

@@ -7,7 +7,6 @@
     "opening_policy": "greeting_then_disclosure"
   },
   "base_commit": "18d5a6012a3bef03285472d553957bdb2e5717e4",
-  "active_version_unchanged": "agtvrsn_2701m3vqsn0ner9s0w4feftb0wcm",
   "candidate": {
     "branch_id": "agtbrch_1801m3w34zdeftjrb1rxhx7hq9md",
     "version_id": "agtvrsn_7701m3w34zddehya2y4cs4kcyhsh",
@@ -201,13 +200,21 @@
   },
   "results_sha256": "2cb03b4334c60bead2d79d9d44a9cffda69062d83b5560fa4c01c79860d73718",
   "publication_authorized": true,
-  "production_deployed": false,
-  "publication_blocker": "ElevenLabs simulation credits",
+  "production_deployed": true,
+  "publication_blocker": null,
   "real_calls": 0,
   "real_messages": 0,
   "limitations": [
     "Sete cenários da versão final não concluídos",
     "Simulações textuais não comprovam áudio ou telefonia real",
     "Saldo de assinatura não acessível à API key (HTTP 401)"
-  ]
+  ],
+  "prepublication_version": "agtvrsn_2701m3vqsn0ner9s0w4feftb0wcm",
+  "publication": {
+    "verified_at": "2026-10-01T16:15:07.228Z",
+    "active_version_id": "agtvrsn_8201m3w3x8fsfbx8twde52zmms9d",
+    "remaining_tests_waived_by_user": true,
+    "release_path": "explicit user-authorized one-off CLI publication",
+    "receipt": "2026-10-01-alo-r5-publicacao.json"
+  }
 }
