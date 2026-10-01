@@ -1,0 +1,5 @@
+{
+  "llm": "gpt-4.1",
+  "end_call_pre_tool_speech": "off",
+  "end_call_description": "Encerrar imediatamente quando o roteiro determinar. Use reason factual e system__message_to_speak para uma única despedida, SEM perguntas. Se ainda só falou Alô, inclua a identificação R5 completa do prompt, exceto recusa imediata. Se já falou identificação e gravação em qualquer fala anterior, NÃO as repita nesta ferramenta: apenas agradeça. Ao pedir nome ou horário, aguarde a resposta do cliente antes de encerrar. Não prometa opt-out já aplicado."
+}

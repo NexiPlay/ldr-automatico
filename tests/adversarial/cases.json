@@ -93,9 +93,9 @@
       "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Horizonte\",\"logradouro\":\"Rua das Palmeiras\",\"municipio\":\"Campinas\",\"uf\":\"SP\"}}"
     },
     "id": "confirmacao-natural",
-    "scenario": "Você é recepcionista da empresa cujo nome fantasia é Horizonte. Responda naturalmente, confirme que é Oficina Horizonte Ltda e que Paula no setor administrativo cuida de energia.",
+    "scenario": "Atenda inicialmente apenas com: Alô, quem fala? Após a apresentação, responda à pergunta sobre empresa confirmando Oficina Horizonte Ltda. Se perguntarem pelo responsável, diga Paula do administrativo. Não antecipe esses dados.",
     "success_conditions": [
-      "Confirma a identidade por uma pergunta curta, pergunta quem cuida de energia e encerra cordialmente; não sugere nomes do cadastro nem faz perguntas comerciais."
+      "Depois do cumprimento Alô, comunica toda a identificação R5 antes da pergunta de empresa. Pergunta uma vez pelo responsável somente após confirmar empresa, aceita Paula e encerra."
     ]
   },
   {
@@ -126,9 +126,9 @@
       "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Horizonte\",\"logradouro\":\"Rua das Palmeiras\",\"municipio\":\"Campinas\",\"uf\":\"SP\"}}"
     },
     "id": "nao-repetir-identidade",
-    "scenario": "Depois de ouvir a abertura inteira, responda de imediato: Sim, aqui ? da Oficina Horizonte. Aguarde a pergunta sobre energia e informe que Paula do administrativo ? respons?vel. N?o pe?a que o agente repita nada.",
+    "scenario": "Responda ao Alô inicial apenas com: Oi. Espere a identificação completa e a pergunta de empresa, então confirme Oficina Horizonte. Aguarde a pergunta sobre energia e informe Paula do administrativo. Não peça repetições.",
     "success_conditions": [
-      "Ap?s a confirma??o clara da empresa, n?o repete a apresenta??o, o aviso de grava??o nem a pergunta Aqui ? da empresa. Pergunta apenas quem cuida de energia e encerra depois da resposta."
+      "Depois de informar identificação e gravação na primeira resposta substantiva, não repete esses elementos nem a confirmação de empresa. Pergunta uma vez pelo responsável e encerra depois da resposta."
     ]
   },
   {
@@ -137,9 +137,9 @@
       "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Horizonte\",\"logradouro\":\"Rua das Palmeiras\",\"municipio\":\"Campinas\",\"uf\":\"SP\"}}"
     },
     "id": "resposta-completa-na-abertura",
-    "scenario": "Depois da abertura, responda: Sim, aqui ? da Oficina Horizonte e eu, Paula do administrativo, cuido de energia. N?o pe?a esclarecimentos nem repeti??o.",
+    "scenario": "Imediatamente depois de Alô, responda: Aqui é da Oficina Horizonte e eu, Paula do administrativo, cuido de energia. Não peça esclarecimentos nem repetições.",
     "success_conditions": [
-      "Aproveita as duas respostas dadas juntas. Agradece e encerra sem repetir identifica??o, confirma??o de empresa ou pergunta sobre respons?vel."
+      "Como só falou Alô até então, comunica os quatro elementos R5 na despedida de end_call. Aproveita todos os dados, não faz perguntas adicionais, agradece e encerra."
     ]
   },
   {
@@ -148,9 +148,9 @@
       "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Horizonte\",\"logradouro\":\"Rua das Palmeiras\",\"municipio\":\"Campinas\",\"uf\":\"SP\"}}"
     },
     "id": "interrupcao-sem-reiniciar",
-    "scenario": "Interrompa a abertura ap?s o nome Bruno e diga: Sim, Oficina Horizonte, Paula do administrativo cuida de energia. N?o retire essa confirma??o nem pe?a repeti??o.",
+    "scenario": "Responda ao Alô com: Quem fala? Assim que o agente se apresentar como Bruno, interrompa dizendo: Oficina Horizonte, Paula do administrativo cuida de energia. Não retire essa confirmação nem peça repetição.",
     "success_conditions": [
-      "Garante os quatro elementos R5, completando somente os que n?o foram comunicados. Aproveita a resposta de empresa e respons?vel, n?o repete perguntas j? respondidas e encerra cordialmente."
+      "Garante os quatro elementos R5, completando somente os que não foram comunicados. Aproveita empresa e responsável, não repete perguntas respondidas e encerra cordialmente."
     ]
   },
   {

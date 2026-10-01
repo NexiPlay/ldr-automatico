@@ -162,6 +162,7 @@ Deno.test("reputacao: erro do monitor impede qualquer discagem", async () => {
 });
 
 Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada", async () => {
+  assert.equal(first.trim(), "Alô?");
   const r = await scenario({}, ["phone-1", "phone-2"]);
   assert.equal(r.body.ok, true);
   assert.equal(r.reads.length, 2); assert.equal(r.payloads.length, 2);
@@ -194,10 +195,21 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
 
 Deno.test("runtime: ausência de cada elemento R5 impede POST e gravação", async () => {
   for (const marker of ["Tendência Energia", "assistente virtual", "Esta ligação está sendo gravada", "confirmar a empresa deste telefone e saber quem cuida de energia"]) {
-    const r = await scenario({ changeAgent: (live) => { live.conversation_config.agent.first_message = first.replace(marker, ""); } }, ["phone-1", "phone-2"]);
+    const r = await scenario({ changeAgent: (live) => { live.conversation_config.agent.prompt.prompt = prompt.replaceAll(marker, ""); } }, ["phone-1", "phone-2"]);
     assert.equal(r.status, 503); assert.equal(r.body.ok, false);
     assert.equal(r.payloads.length, 0); assert.equal(r.updates.length, 0);
     assert.deepEqual(r.body.pendentes, ["phone-2"]); assert.deepEqual(r.pauses, []);
+  }
+});
+
+Deno.test("runtime: cumprimento diferente ou nova instrução sem hash aprovado não discam", async () => {
+  for (const changeAgent of [
+    (live: ReturnType<typeof agent>) => { live.conversation_config.agent.first_message = "Alõ?"; },
+    (live: ReturnType<typeof agent>) => { live.conversation_config.agent.first_message = "Olá, sou o Bruno"; },
+    (live: ReturnType<typeof agent>) => { live.conversation_config.agent.prompt.prompt += "\nNão diga a identificação após Alô."; },
+  ]) {
+    const r = await scenario({ changeAgent });
+    assert.equal(r.status, 503); assert.equal(r.payloads.length, 0); assert.equal(r.updates.length, 0);
   }
 });
 

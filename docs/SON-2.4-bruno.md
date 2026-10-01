@@ -72,14 +72,16 @@ artefato e verificação Deno, sem secrets de produção.
 `r5-adversarial` e `deploy` exigem **workflow_dispatch em refs/heads/main**.
 `deploy.needs: [checks, r5-adversarial]` exige sucesso de ambos. Não há
 `continue-on-error`. O release lê o prompt remoto, verifica os quatro elementos
-R5 e o hash revisado, executa os 14 cenários nativos SON-2.5 e reconsulta a
+R5 e o hash revisado, executa os 24 cenários nativos (SON-2.5 e SON-6.2) e reconsulta a
 configuração. Ausência/falha/unknown/draft/versão divergente bloqueia.
 
 Antes do CLI Supabase, o deploy baixa a evidência da mesma execução e executa
 `--verify-live`: relatório com até 30 minutos, todos os casos aprovados e
 configuração ainda correspondente. Modelo, voz, ferramentas e workflow também
-entram nessa comparação. Só então publica **o orquestrador**, com seus módulos
-compartilhados; não publica o webhook nem aplica migrations.
+entram nessa comparação. Com `scope=orchestrator`, só então publica **o orquestrador**,
+com seus módulos compartilhados. `scope=all` também publica webhook e conversa.
+Nenhum escopo aplica migrations. A abertura curta tem política e aprovação
+próprias: veja [incidente Alô](2026-10-01-abertura-alo.md).
 
 Abrir/atualizar este PR não executa testes remotos, deploy, publicação de agente
 ou chamadas. Não havia workflows preexistentes na main. A API de webhooks
