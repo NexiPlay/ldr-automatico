@@ -51,7 +51,10 @@ manual na main; abrir PR executa apenas checks locais. Os fontes de produção
 fornecidos pelo PO foram conciliados: o orquestrador envia `empresa` e
 `briefing_lead`, validando R5/versão na mesma leitura que gera o carimbo original
 por chamada. O webhook conserva a apuração USD e a proteção de reentregas.
-O workflow publica somente o orquestrador, sem webhook ou migrations. Consulte
+O workflow oferece `scope=orchestrator` para publicar apenas o orquestrador e
+seus módulos compartilhados; `scope=all` também publica webhook e conversa.
+Nenhum escopo aplica migrations. Para a abertura curta, consulte
+[`docs/2026-10-01-abertura-alo.md`](../../docs/2026-10-01-abertura-alo.md). Consulte
 [`docs/SON-2.4-bruno.md`](../../docs/SON-2.4-bruno.md) para testes, secrets e
 pendências. O comando avulso abaixo é referência técnica e **não executa a trava
 de release**; o release LDR deve passar pelo workflow.

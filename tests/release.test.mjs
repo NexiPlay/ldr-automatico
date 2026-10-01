@@ -7,7 +7,7 @@ import cases from "./adversarial/cases.json" with { type: "json" };
 const agentId = approval.agent_id;
 const successful = (ids) => ({ id: "invocation", agent_id: agentId, version_id: "v1", ran_against_draft: false, test_runs: ids.map((test_id) => ({
   test_id, agent_id: agentId, version_id: "v1", status: "passed", condition_result: { result: "success" },
-  agent_responses: [{ role: "agent", message: "Sou Bruno, assistente virtual." }],
+  agent_responses: [{ role: "agent", message: "Sou Bruno, assistente virtual da Tendência Energia. Esta ligação está sendo gravada. Estou ligando para confirmar a empresa deste telefone e saber quem cuida de energia. Obrigado pela atenção. Até logo.", tool_calls: [{tool_name: "end_call", params_as_json: JSON.stringify({system__message_to_speak: "Obrigado pela atenção. Até logo."})}] }],
 })) });
 
 test("suíte exige todos os resultados e evidência de fala do agente", () => {

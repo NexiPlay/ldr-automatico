@@ -23,6 +23,19 @@ export function assertR5(text, source = "prompt") {
   if (missing.length) throw new Error(`R5: ${source} sem ${missing.join(", ")}`);
 }
 
+// The greeting is not the substantive introduction. Only an explicitly reviewed
+// policy may move disclosure to the next agent turn; the full prompt+greeting
+// digest below still has to match. This never approves an arbitrary new prompt.
+export function assertOpening(prompt, firstMessage, policy = "full_disclosure") {
+  assertR5(prompt);
+  if (policy === "greeting_then_disclosure") {
+    if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("R5: first_message vazio");
+    if (normalize(firstMessage) !== "alo?") throw new Error("R5: first_message deve ser somente Alô?");
+  } else if (policy === "full_disclosure") {
+    assertR5(firstMessage, "first_message");
+  } else throw new Error("R5: política de abertura desconhecida");
+}
+
 // CRLF and a trailing newline are transport differences, not prompt changes.
 export function canonicalText(text) {
   return text.replace(/\r\n/g, "\n").trim();
@@ -41,8 +54,7 @@ export async function assertApprovedAgent(agent, approval) {
   const config = agent?.conversation_config?.agent;
   const prompt = config?.prompt?.prompt;
   const firstMessage = config?.first_message;
-  assertR5(prompt);
-  assertR5(firstMessage, "first_message");
+  assertOpening(prompt, firstMessage, approval.opening_policy);
   if (agent.agent_id !== approval.agent_id) throw new Error("Agente diferente do LDR aprovado");
   if (await promptDigest(prompt, firstMessage) !== approval.prompt_sha256) {
     throw new Error("Prompt remoto diverge da versão Bruno revisada; discagem/deploy bloqueado");
