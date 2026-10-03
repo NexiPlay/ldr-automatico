@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SON-2.9 · Revisão de 50 chamadas</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1018;--panel:#131c29;--line:#29374b;--ink:#eaf0f8;--muted:#a7b5c8;--green:#46ddb1;--amber:#ffce7a;--red:#ff9a9a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}header{padding:28px max(24px,calc((100vw - 1400px)/2));border-bottom:1px solid var(--line);background:#101925}h1{font-size:27px;margin:4px 0 8px;letter-spacing:-.6px}h2{font-size:21px;margin:0}p{margin:8px 0}.eyebrow{color:var(--green);font-size:12px;font-weight:700;letter-spacing:2px}.muted,small{color:var(--muted)}.topline,.toolbar,.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.topline{justify-content:space-between}.toolbar{margin-top:18px}button,.button,select,input,textarea{font:inherit;border:1px solid var(--line);border-radius:8px;color:var(--ink);background:#192537;padding:10px 13px}button,.button{cursor:pointer;text-decoration:none;display:inline-block}button:hover,.button:hover{border-color:var(--green)}button:disabled{opacity:.4;cursor:default}.primary{background:var(--green);color:#082a22;font-weight:750;border-color:transparent}input,textarea,select{width:100%}input[type=checkbox]{width:18px;height:18px;accent-color:var(--green)}label{display:block;font-weight:650;margin:16px 0 6px}input[type=file]{display:none}.check{display:flex;align-items:flex-start;gap:10px;font-weight:500}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0}.stat{background:var(--panel);padding:14px 18px;border:1px solid var(--line);border-radius:10px}.stat strong{display:block;font-size:26px;letter-spacing:-.6px}.stat small{font-size:12px}.layout{max-width:1400px;margin:auto;padding:0 24px 40px}.workspace{display:grid;grid-template-columns:240px 1fr;gap:22px}.rail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;align-self:start;position:sticky;top:18px}.call-list{max-height:650px;overflow:auto;margin-top:12px}.call-item{display:block;text-align:left;width:100%;margin:5px 0;padding:9px;font-size:13px;border-color:transparent}.call-item.active{border-color:var(--green);background:#17372f}.call-item small{display:block;margin-top:3px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.review{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:25px;min-width:0}.badge{background:#233a48;border:1px solid #385468;color:#c7e9fb;padding:4px 9px;font-size:12px;border-radius:20px}.context{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:10px 0 20px}.audio{padding:18px;background:#0f1824;border:1px solid var(--line);border-radius:10px}audio{width:100%;margin-top:8px}.warning{color:var(--amber)}.good{color:var(--green)}.bad{color:var(--red)}.divider{height:1px;background:var(--line);margin:22px 0}.columns{display:grid;grid-template-columns:1fr 1fr;gap:18px}details{border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:16px}summary{cursor:pointer;color:var(--muted)}.transcript{max-height:350px;overflow:auto}.turn{padding:10px 0;border-bottom:1px solid var(--line);white-space:pre-wrap}.turn strong{color:var(--green);font-size:12px}.turn.empresa strong{color:#bcb4ff}.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-all}.controls{justify-content:space-between;margin-top:22px}#notice{min-height:24px;margin:10px 0;color:var(--green)}progress{width:100%;height:6px;accent-color:var(--green)}#sample-info{margin-bottom:20px}#reviewer{max-width:270px}.compact-label{margin:0;font-size:12px}.saved{font-size:12px;color:var(--muted)}.empty{padding:20px;color:var(--muted)}@media(max-width:800px){.workspace{grid-template-columns:1fr}.rail{position:static}.call-list{max-height:180px}.stats{grid-template-columns:repeat(2,1fr)}.columns{grid-template-columns:1fr}.review{padding:18px}header,.layout{padding-left:16px;padding-right:16px}}
+.rail{min-width:0}.columns>div{min-width:0}select{min-width:0}audio{max-width:100%}
+</style>
+</head>
+<body>
+<header><div class="topline"><div><div class="eyebrow">SONAR · GATE A</div><h1>Ouvir, conferir, registrar.</h1><p class="muted">50 chamadas sorteadas. A aprovação exige pelo menos 45 acertos após a revisão humana de todas elas.</p></div><span class="badge" id="sample-label"></span></div>
+<div class="toolbar"><div><label class="compact-label" for="reviewer">Seu nome</label><input id="reviewer" autocomplete="name" placeholder="Nome de quem está revisando"></div><button id="export-json">Baixar revisões (.json)</button><button id="export-csv">Baixar comparação (.csv)</button><label class="button" for="import-json">Retomar revisões</label><input id="import-json" type="file" accept="application/json"><label class="button" for="audio-files">Carregar áudios locais</label><input id="audio-files" type="file" accept="audio/*" multiple></div></header>
+<main class="layout"><div class="stats"><div class="stat"><small>REVISADAS</small><strong id="reviewed">0 / 50</strong></div><div class="stat"><small>CONCORDÂNCIAS</small><strong id="correct">0</strong></div><div class="stat"><small>ACERTO FINAL</small><strong id="rate">—</strong></div><div class="stat"><small>GATE A</small><strong id="gate">Pendente</strong></div></div>
+<progress id="progress" value="0" max="50"></progress><div id="notice" role="status" aria-live="polite"></div>
+<details id="sample-info"><summary>Como esta amostra foi formada</summary><p id="scope"></p><p id="sample-method" class="muted"></p><p id="sample-hash" class="mono"></p><p class="muted">A amostra não muda se uma gravação estiver indisponível. Esse caso permanece pendente. A transcrição ajuda a localizar trechos, mas a referência do Gate A é o áudio.</p></details>
+<div class="workspace"><aside class="rail"><div class="topline"><strong>Chamadas</strong><span id="pending" class="badge">50 pendentes</span></div><button id="next-pending" style="width:100%;margin-top:12px">Próxima pendente</button><nav class="call-list" id="call-list" aria-label="Chamadas da amostra"></nav></aside>
+<section class="review" aria-label="Revisão da chamada"><div class="topline"><span class="eyebrow" id="call-position"></span><span class="saved" id="save-status"></span></div><h2 id="company"></h2><div class="context" id="context"></div>
+<div class="audio"><strong>1. Ouça a gravação</strong><p id="audio-status" class="muted"></p><audio id="player" controls preload="none"></audio><div class="toolbar"><button id="copy-id">Copiar ID da conversa</button><a class="button" href="https://elevenlabs.io/app" target="_blank" rel="noopener noreferrer">Abrir ElevenLabs</a></div><p class="mono muted" id="conversation-id"></p></div>
+<details id="transcript-details"><summary>Transcrição de apoio</summary><div id="transcript" class="transcript"></div></details>
+<div class="divider"></div><strong>2. Registre o que a gravação mostra</strong><p class="muted">Preencha seu veredito antes de abrir a conclusão do robô.</p>
+<div class="columns"><div><label for="human-result">Seu veredito</label><select id="human-result"><option value="">Selecione após ouvir</option><option value="confirmado">Confirmado — é a empresa certa</option><option value="nao_confirmado">Não confirmado — é outra empresa/linha</option><option value="inconclusivo">Inconclusivo — houve interação, sem confirmação</option><option value="sem_atendimento">Sem atendimento — não houve conversa humana</option><option value="nao_auditavel">Não auditável — falta áudio ou evidência</option></select></div><div><label for="evidence">Trecho ou motivo que sustenta a decisão</label><textarea id="evidence" rows="3" placeholder="Ex.: 00:18 — a pessoa confirma o nome da empresa."></textarea></div></div>
+<label class="check"><input id="listened" type="checkbox"><span>Ouvi a gravação e comparei o conteúdo com a empresa desta chamada.</span></label>
+<details id="robot-details"><summary>3. Comparar com o veredito registrado pelo robô</summary><p id="robot-result"></p><p id="comparison"></p></details>
+<div class="controls"><button id="previous">← Anterior</button><button id="save-next" class="primary">Salvar e próxima →</button><button id="next">Próxima →</button></div>
+<p class="muted" style="margin-top:24px;font-size:12px">Este pacote pode trazer revisões já salvas. Novas alterações ficam neste navegador: baixe o JSON ao terminar ou trocar de computador e guarde-o com o pacote. Não há sincronização automática com o GitHub. Este arquivo não altera o banco nem libera o SDR automaticamente.</p></section></div></main>
+<script>
+/*__GATE_LOGIC__*/
+const PACKET = /*__PACKET__*/null;
+const $ = id => document.getElementById(id);
+const labels = {confirmado:'Confirmado',nao_confirmado:'Não confirmado',inconclusivo:'Inconclusivo',sem_atendimento:'Sem atendimento',nao_auditavel:'Não auditável'};
+const storageKey = 'son29:' + PACKET.sample_id;
+let state = mergeGateAReviews(PACKET, PACKET.checkpoint), position = 0;
+const attachedAudio = new Map();
+try { const saved=JSON.parse(localStorage.getItem(storageKey)); state=mergeGateAReviews(PACKET, PACKET.checkpoint, saved); } catch {}
+$('reviewer').value = state.revisor || '';
+$('sample-label').textContent = PACKET.lote;
+$('scope').textContent = PACKET.scope + ' População congelada: ' + PACKET.population_size + ' chamadas.';
+$('sample-method').textContent = PACKET.method;
+$('sample-hash').textContent = 'Amostra: ' + PACKET.sample_id + ' · Captura: ' + new Date(PACKET.frozen_at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}) + ' BRT · Prompt: ' + PACKET.prompt_hash;
+const notice = text => { $('notice').textContent=text; };
+function persist() { try { localStorage.setItem(storageKey,JSON.stringify(state)); $('save-status').textContent='Salvo neste navegador'; } catch { notice('O navegador não permitiu salvar. Baixe o JSON para preservar suas revisões.'); } }
+function complete(call) { const r=state.reviews[call.conversation_id];return !!r&&GATE_A_RESULTS.includes(r.resultado_humano)&&r.audio_ouvido===true&&!!r.revisor?.trim()&&!!r.evidencia?.trim()&&Number.isFinite(Date.parse(r.revisado_em)); }
+function summary() {
+ const result=gateADecision(PACKET.calls,state.reviews);
+ $('reviewed').textContent=result.revisadas+' / 50';$('correct').textContent=result.acertos;
+ $('rate').textContent=result.percentual===null?'—':result.percentual+'%';
+ $('gate').textContent={pendente:'Pendente',aprovado:'Aprovado',reprovado:'Reprovado'}[result.decisao];
+ $('gate').className=result.decisao==='aprovado'?'good':result.decisao==='reprovado'?'bad':'warning';
+ $('pending').textContent=result.pendentes+' pendentes';$('progress').value=result.revisadas;
+ $('call-list').replaceChildren(...PACKET.calls.map((call,i)=>{const b=document.createElement('button');b.className='call-item'+(i===position?' active':'');b.dataset.position=i;b.textContent=(complete(call)?'✓ ':'')+String(i+1).padStart(2,'0')+' · '+new Date(call.iniciada_em).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});const s=document.createElement('small');s.textContent=call.empresa||'Empresa sem nome';b.append(s);b.onclick=()=>{saveDraft();position=i;render();};return b;}));
+ return result;
+}
+function saveDraft() {
+ const call=PACKET.calls[position];
+ state.revisor=$('reviewer').value.trim();
+ const old=state.reviews[call.conversation_id],result=$('human-result').value,listened=$('listened').checked,evidence=$('evidence').value.trim();
+ const changed=!old?!!(result||listened||evidence):old.resultado_humano!==result||old.audio_ouvido!==listened||old.evidencia!==evidence||(!old.revisor&&!!state.revisor);
+ if(changed)state.reviews[call.conversation_id]={resultado_humano:result,audio_ouvido:listened,
+ revisor:state.revisor,evidencia:evidence,revisado_em:new Date().toISOString()};
+ persist();summary();showComparison();
+}
+function showComparison(){const c=PACKET.calls[position],r=state.reviews[c.conversation_id];$('robot-result').textContent='Robô: '+(labels[c.resultado]||'Sem veredito registrado');$('comparison').textContent=!complete(c)?'Aguardando sua revisão completa.':c.resultado===r.resultado_humano?'Concordância: o veredito do robô bate com sua revisão.':'Divergência: conta como erro no Gate A.';}
+function render(){
+ const c=PACKET.calls[position],r=state.reviews[c.conversation_id]||{};
+ $('call-position').textContent='CHAMADA '+String(position+1).padStart(2,'0')+' / 50';$('company').textContent=c.empresa||'Empresa sem nome';
+ $('context').textContent=new Date(c.iniciada_em).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})+' BRT · '+(c.duracao_seg??'—')+' s · CNPJ '+(c.cnpj||'não informado')+' · '+(c.telefone||'');
+ $('conversation-id').textContent=c.conversation_id;$('human-result').value=r.resultado_humano||'';$('evidence').value=r.evidencia||'';$('listened').checked=r.audio_ouvido===true;
+ $('save-status').textContent=r.revisado_em?'Última edição: '+new Date(r.revisado_em).toLocaleTimeString('pt-BR'):'';
+ $('robot-details').open=false;$('transcript-details').open=false;
+ const player=$('player');player.pause();const src=attachedAudio.get(c.conversation_id)||c.audio_local;player.hidden=!src;
+ if(src){player.src=src;$('audio-status').textContent='Ouça o áudio completo. Você pode alterar a velocidade no player.';}else{player.removeAttribute('src');player.load();$('audio-status').textContent='Áudio ainda não incluído. Use o ID no histórico da ElevenLabs ou carregue o MP3 com esse ID no nome. Sem ouvir, mantenha a revisão pendente.';}
+ $('transcript').replaceChildren(...(c.transcript||[]).map(t=>{const p=document.createElement('div');p.className='turn '+(t.role==='empresa'?'empresa':'');const who=document.createElement('strong');who.textContent=(t.role==='empresa'?'EMPRESA':'BRUNO')+' · '+(t.seg??'?')+'s';p.append(who,document.createTextNode('\n'+(t.mensagem||'')));return p;}));
+ if(!c.transcript?.length)$('transcript').textContent='Sem transcrição arquivada.';
+ $('previous').disabled=position===0;$('next').disabled=position===49;$('save-next').textContent=position===49?'Salvar revisão':'Salvar e próxima →';summary();showComparison();
+}
+for(const id of ['human-result','listened','evidence'])$(id).addEventListener('change',saveDraft);
+$('reviewer').addEventListener('change',()=>{state.revisor=$('reviewer').value.trim();persist();});
+$('player').addEventListener('error',()=>{$('audio-status').textContent='Não foi possível abrir este áudio. Mantenha a chamada na amostra e registre a pendência.';});
+$('previous').onclick=()=>{saveDraft();position=Math.max(0,position-1);render();};$('next').onclick=()=>{saveDraft();position=Math.min(49,position+1);render();};
+$('next-pending').onclick=()=>{saveDraft();const next=PACKET.calls.findIndex((c,i)=>i>position&&!complete(c));position=next>=0?next:Math.max(0,PACKET.calls.findIndex(c=>!complete(c)));render();};
+$('save-next').onclick=()=>{saveDraft();if(!complete(PACKET.calls[position])){notice('Para concluir: informe seu nome, um veredito, a evidência e confirme a escuta. O rascunho foi salvo.');return;}position=Math.min(49,position+1);render();notice('Revisão salva.');};
+function download(name,text,type){const url=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);}
+$('export-json').onclick=()=>{saveDraft();download('son29-revisoes-'+PACKET.sample_id+'.json',JSON.stringify({schema:1,sample_id:PACKET.sample_id,population_sha256:PACKET.population_sha256,prompt_hash:PACKET.prompt_hash,exported_at:new Date().toISOString(),revisor:state.revisor,reviews:state.reviews,gate:summary()},null,2),'application/json');notice('JSON exportado. Ele permite retomar a revisão.');};
+function cell(v){let s=String(v??'');if(/^[=+@\-\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+$('export-csv').onclick=()=>{saveDraft();const rows=[['ordem','conversation_id','empresa','resultado_robo','resultado_humano','audio_ouvido','revisor','evidencia','revisado_em','concorda']];for(const c of PACKET.calls){const r=state.reviews[c.conversation_id]||{};rows.push([c.ordem,c.conversation_id,c.empresa,c.resultado,r.resultado_humano,r.audio_ouvido,r.revisor,r.evidencia,r.revisado_em,complete(c)?c.resultado===r.resultado_humano:'']);}download('son29-comparacao.csv','\uFEFF'+rows.map(row=>row.map(cell).join(';')).join('\n'),'text/csv;charset=utf-8');};
+$('import-json').onchange=async event=>{try{const d=JSON.parse(await event.target.files[0].text());if(d.sample_id!==PACKET.sample_id||!d.reviews||typeof d.reviews!=='object'||Array.isArray(d.reviews))throw new Error('O arquivo pertence a outra amostra ou está inválido.');const ids=new Set(PACKET.calls.map(c=>c.conversation_id));for(const [id,r]of Object.entries(d.reviews)){if(!ids.has(id)||!r||typeof r!=='object'||!['',...GATE_A_RESULTS,'nao_auditavel'].includes(r.resultado_humano)||typeof r.evidencia!=='string'||typeof r.revisor!=='string')throw new Error('Revisão inválida ou chamada fora da amostra.');}if(Object.keys(state.reviews).length&&!confirm('Importar este arquivo substituirá as revisões salvas neste navegador. Continuar?'))return;state={sample_id:PACKET.sample_id,revisor:d.revisor||'',reviews:d.reviews};$('reviewer').value=state.revisor;persist();render();notice('Revisões importadas.');}catch(error){notice(error.message);}event.target.value='';};
+$('audio-files').onchange=event=>{let n=0;for(const file of event.target.files){const id=file.name.replace(/\.(mp3|wav|m4a|ogg)$/i,'');if(PACKET.calls.some(c=>c.conversation_id===id)){if(attachedAudio.has(id))URL.revokeObjectURL(attachedAudio.get(id));attachedAudio.set(id,URL.createObjectURL(file));n++;}}render();notice(n+' áudios associados pelo ID. A associação precisa ser refeita se você fechar a página.');};
+$('copy-id').onclick=async()=>{const id=PACKET.calls[position].conversation_id;try{await navigator.clipboard.writeText(id);notice('ID copiado.');}catch{prompt('Copie o ID da conversa:',id);}};
+position=Math.max(0,PACKET.calls.findIndex(c=>!complete(c)));
+render();
+if(PACKET.checkpoint){const n=Object.keys(PACKET.checkpoint.reviews).length;notice(n+' registros recuperados do pacote. Confira o nome do revisor nas avaliações pendentes.');}
+</script>
+</body>
+</html>
