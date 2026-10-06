@@ -36,6 +36,7 @@ import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
 import { janelaDeDiscagem, JanelaIndisponivel } from "../_shared/janela-discagem.ts";
 import { podeDiscarSonar, SonarPortaoIndisponivel } from "../_shared/sonar-portao-tentativas.ts";
+import { degrauAtual, DegrauIndisponivel } from "../_shared/sonar-degrau.ts";
 
 // ============================================================
 // CONFIGURAÇÃO / SECRETS
@@ -342,6 +343,10 @@ Deno.serve(async (req: Request) => {
   let optoutIndisponivel = false;
   let sonarPortaoIndisponivel = false;
   let janelaIndisponivel = false;
+  // SON-4.4: esgotar o degrau nao e erro, e o freio funcionando. Fica
+  // separado de degrauIndisponivel, que e o RPC caindo e vale 503.
+  let degrauEsgotado = false;
+  let degrauIndisponivel = false;
   let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
@@ -444,6 +449,24 @@ Deno.serve(async (req: Request) => {
       // Ultima verificacao antes do efeito externo: um clique durante o lote
       // impede o proximo POST. Nao cancela ligacoes ja aceitas pelo provedor.
       await conferirReputacao(sb, origem);
+      // SON-4.4 — teto de vazao diaria. Aqui, e nao no inicio do lote,
+      // porque o degrau e consumido pelas nossas proprias ligacoes: ler uma
+      // vez no comeco deixaria o lote inteiro passar com o saldo da primeira.
+      //
+      // break e nao continue: esgotado o dia, o proximo numero esbarra no
+      // mesmo limite. Os restantes voltam em `pendentes`, como no caso da
+      // janela — nada se perde, so nao sai hoje.
+      const degrau = await degrauAtual(sb);
+      if (degrau.resta <= 0) {
+        pulados.push({
+          telefoneId,
+          motivo: "degrau_esgotado",
+          detalhe: `teto de ${degrau.valorDia}/dia atingido (${degrau.usadoHoje} ja discados)`,
+        });
+        degrauEsgotado = true;
+        primeiroPendente = i;
+        break;
+      }
       // Revalidar imediatamente antes do efeito externo, inclusive se outro
       // webhook registrou bloqueio durante a preparação deste telefone.
       if (!await podeContatar(sb, telefone.e164, cnpj)) {
@@ -586,6 +609,13 @@ Deno.serve(async (req: Request) => {
         primeiroPendente = i;
         break;
       }
+      if (erro instanceof DegrauIndisponivel) {
+        // Sem saber quanto resta do teto, nao da para afirmar que cabe mais
+        // uma. Fail-closed, igual aos vizinhos.
+        degrauIndisponivel = true;
+        primeiroPendente = i;
+        break;
+      }
       if (erro instanceof JanelaIndisponivel) {
         // Sem saber a hora de quem recebe, não dá para afirmar que está dentro
         // da janela. Para o lote inteiro: o próximo número teria o mesmo problema.
@@ -614,8 +644,10 @@ Deno.serve(async (req: Request) => {
     optoutIndisponivel,
     janelaIndisponivel,
     sonarPortaoIndisponivel,
+    degrauEsgotado,
+    degrauIndisponivel,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel || janelaIndisponivel ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel || janelaIndisponivel || degrauIndisponivel ? 503 : 200);
 });
