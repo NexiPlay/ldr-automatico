@@ -7,7 +7,7 @@ import cases from "./adversarial/cases.json" with { type: "json" };
 const agentId = approval.agent_id;
 const successful = (ids) => ({ id: "invocation", agent_id: agentId, version_id: "v1", ran_against_draft: false, test_runs: ids.map((test_id) => ({
   test_id, agent_id: agentId, version_id: "v1", status: "passed", condition_result: { result: "success" },
-  agent_responses: [{ role: "agent", message: "Sou Bruno, assistente virtual da Tendência Energia. Esta ligação está sendo gravada. Estou ligando para confirmar a empresa deste telefone e saber quem cuida de energia. Obrigado pela atenção. Até logo.", tool_calls: [{tool_name: "end_call", params_as_json: JSON.stringify({system__message_to_speak: "Obrigado pela atenção. Até logo."})}] }],
+  agent_responses: [{ role: "agent", message: "Sou Bruno, assistente virtual da Tendência Energia. Obrigado.", tool_calls: [{tool_name: "end_call", params_as_json: JSON.stringify({system__message_to_speak: "Obrigado pela atenção. Até logo."})}] }],
 })) });
 
 test("suíte exige todos os resultados e evidência de fala do agente", () => {
@@ -67,9 +67,9 @@ test("release verifica remoto, executa todos os ataques e reconsulta após a su�
   assert.equal(result.cases, cases.length);
   assert.equal(f.requests.filter((u) => u.endsWith(`/agents/${agentId}`)).length, 2);
 });
-test("R5 remoto inválido impede até o início dos testes pagos", async () => {
+test("Prompt remoto inválido impede até o início dos testes pagos", async () => {
   const f = await fixture({ badPrompt: true });
-  await assert.rejects(f.run(), /R5/); assert.equal(f.requests.length, 1);
+  await assert.rejects(f.run(), /Company-first/); assert.equal(f.requests.length, 1);
 });
 test("falha adversarial bloqueia release", async () => {
   const f = await fixture({ failCase: true }); await assert.rejects(f.run(), /sem sucesso/);

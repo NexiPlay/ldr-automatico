@@ -1,10 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { R5, assertR5, assertOpening, promptDigest, assertApprovedAgent, fetchApprovedAgent, buildBriefing, loadBriefing, BRIEFING_FIELDS } from "../backend/edge-functions/_shared/ldr-policy.mjs";
+import { R5, COMPANY_FIRST, assertR5, assertOpening, promptDigest, assertApprovedAgent, fetchApprovedAgent, buildBriefing, loadBriefing, BRIEFING_FIELDS } from "../backend/edge-functions/_shared/ldr-policy.mjs";
 import approval from "../backend/edge-functions/_shared/ldr-approval.json" with { type: "json" };
 
 const prompt = await readFile(new URL("../prompts/bruno/system.md", import.meta.url), "utf8");
+const legacyPrompt = Object.values(R5).join(". ");
 const first = await readFile(new URL("../prompts/bruno/first-message.txt", import.meta.url), "utf8");
 const agent = () => ({ agent_id: approval.agent_id, conversation_config: { agent: { prompt: { prompt }, first_message: first } } });
 
@@ -15,10 +16,10 @@ test("prompt e abertura Bruno aprovados", async () => {
 });
 test("Alô exige política explícita e hash exato; a política antiga continua restritiva", async () => {
   assert.equal(first.trim(), "Alô?");
-  assert.throws(() => assertOpening(prompt, first), /first_message sem/);
+  assert.throws(() => assertOpening(legacyPrompt, first), /first_message sem/);
   assert.throws(() => assertOpening(prompt, first, "unknown"), /desconhecida/);
-  assertOpening(prompt, Object.values(R5).join(". "));
-  await assert.rejects(assertApprovedAgent(agent(), { ...approval, opening_policy: undefined }), /first_message sem/);
+  assertOpening(legacyPrompt, Object.values(R5).join(". "));
+  await assert.rejects(assertApprovedAgent(agent(), { ...approval, opening_policy: undefined }), /R5/);
   const live = agent();
   live.conversation_config.agent.first_message = "Alõ?";
   await assert.rejects(assertApprovedAgent(live, approval), /diverge/);
@@ -26,10 +27,12 @@ test("Alô exige política explícita e hash exato; a política antiga continua 
   await assert.rejects(assertApprovedAgent(live, approval), /somente/);
 });
 for (const [key, phrase] of Object.entries(R5)) {
-  test(`R5 bloqueia ausência isolada de ${key} no prompt`, () => {
-    assert.throws(() => assertR5(prompt.replaceAll(phrase, "")), new RegExp(key));
+  test(`política legada R5 ainda exige ${key}`, () => {
+    assert.throws(() => assertR5(legacyPrompt.replaceAll(phrase, "")), new RegExp(key));
   });
-  test(`prompt incompleto bloqueia ${key} mesmo com cumprimento aprovado`, async () => {
+}
+for (const [key, phrase] of Object.entries(COMPANY_FIRST)) {
+  test(`empresa primeiro bloqueia ausência de ${key}`, async () => {
     const live = agent(); live.conversation_config.agent.prompt.prompt = prompt.replaceAll(phrase, "");
     await assert.rejects(assertApprovedAgent(live, approval), new RegExp(key));
   });
@@ -42,7 +45,7 @@ test("marcadores sozinhos e instrução contraditória não satisfazem versão a
   await assert.rejects(assertApprovedAgent(live, approval), /diverge/);
 });
 test("agente errado, payload vazio e primeira mensagem vazia bloqueiam", async () => {
-  await assert.rejects(assertApprovedAgent({}, approval), /R5/);
+  await assert.rejects(assertApprovedAgent({}, approval), /vazio/);
   await assert.rejects(assertApprovedAgent({ ...agent(), agent_id: "karla" }, approval), /diferente/);
   const live = agent(); live.conversation_config.agent.first_message = "";
   await assert.rejects(assertApprovedAgent(live, approval), /vazio/);
@@ -70,7 +73,7 @@ test("reconsulta remoto em cada validação e detecta edição no painel", async
   };
   const args = { apiKey: "fake", agentId: approval.agent_id, approval, fetchImpl };
   await fetchApprovedAgent(args);
-  await assert.rejects(fetchApprovedAgent(args), /R5/);
+  await assert.rejects(fetchApprovedAgent(args), /somente/);
   assert.equal(count, 2);
 });
 test("briefing usa allowlist; sócios, IA, preço, carteira e PDF não chegam ao modelo", () => {

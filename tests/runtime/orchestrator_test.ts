@@ -193,8 +193,8 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
   assert.notEqual(r.updates[0].values!.ia_prompt_hash, r.updates[1].values!.ia_prompt_hash);
 });
 
-Deno.test("runtime: ausência de cada elemento R5 impede POST e gravação", async () => {
-  for (const marker of ["Tendência Energia", "assistente virtual", "Esta ligação está sendo gravada", "confirmar a empresa deste telefone e saber quem cuida de energia"]) {
+Deno.test("runtime: ausência de cada elemento da política ativa impede POST e gravação", async () => {
+  for (const marker of ["Tendência Energia", "assistente virtual", "confirmar se este telefone pertence à empresa de referência", "Falo com a {{empresa}}?", "Responsável por energia é informação OPCIONAL, somente depois da identidade confirmada"]) {
     const r = await scenario({ changeAgent: (live) => { live.conversation_config.agent.prompt.prompt = prompt.replaceAll(marker, ""); } }, ["phone-1", "phone-2"]);
     assert.equal(r.status, 503); assert.equal(r.body.ok, false);
     assert.equal(r.payloads.length, 0); assert.equal(r.updates.length, 0);

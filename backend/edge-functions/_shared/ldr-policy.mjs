@@ -6,6 +6,19 @@ export const R5 = Object.freeze({
   gravacao: "Esta ligação está sendo gravada",
 });
 
+export const COMPANY_FIRST = Object.freeze({
+  razao_social: "Tendência Energia",
+  assistente_virtual: "assistente virtual",
+  finalidade: "confirmar se este telefone pertence à empresa de referência",
+  pergunta_empresa: "Falo com a {{empresa}}?",
+  prioridade: "Responsável por energia é informação OPCIONAL, somente depois da identidade confirmada",
+});
+export function assertCompanyFirst(text, source = "prompt") {
+  if (typeof text !== "string" || !text.trim()) throw new Error(`Company-first: ${source} vazio`);
+  const missing = Object.entries(COMPANY_FIRST).filter(([, marker]) => !normalize(text).includes(normalize(marker))).map(([key]) => key);
+  if (missing.length) throw new Error(`Company-first: ${source} sem ${missing.join(", ")}`);
+}
+
 export const BRIEFING_FIELDS = Object.freeze([
   "razao_social", "nome_fantasia", "cnae_principal", "situacao_cadastral",
   "logradouro", "municipio", "uf", "places_nome", "places_endereco",
@@ -27,6 +40,13 @@ export function assertR5(text, source = "prompt") {
 // policy may move disclosure to the next agent turn; the full prompt+greeting
 // digest below still has to match. This never approves an arbitrary new prompt.
 export function assertOpening(prompt, firstMessage, policy = "full_disclosure") {
+  if (policy === "greeting_then_company_check") {
+    assertCompanyFirst(prompt);
+    if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("Company-first: first_message vazio");
+    if (normalize(firstMessage) !== "alo?") throw new Error("Company-first: first_message deve ser somente Alô?");
+    return;
+  }
+  if (!["full_disclosure", "greeting_then_disclosure"].includes(policy)) throw new Error("Política de abertura desconhecida");
   assertR5(prompt);
   if (policy === "greeting_then_disclosure") {
     if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("R5: first_message vazio");

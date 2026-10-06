@@ -1,5 +1,5 @@
 {
   "llm": "gpt-4.1",
   "end_call_pre_tool_speech": "off",
-  "end_call_description": "Encerrar imediatamente quando o roteiro determinar. Use reason factual e system__message_to_speak para uma única despedida, SEM perguntas. Se ainda só falou Alô, inclua a identificação R5 completa do prompt, exceto recusa imediata. Se já falou identificação e gravação em qualquer fala anterior, NÃO as repita nesta ferramenta: apenas agradeça. Ao pedir nome ou horário, aguarde a resposta do cliente antes de encerrar. Não prometa opt-out já aplicado."
+  "end_call_description": "Encerre diretamente quando a identidade estiver resolvida, houver recusa, opt-out, aviso técnico ou gravação. Use reason factual e system__message_to_speak para uma despedida de poucas palavras; em aviso automático/técnico use vazio. Nunca faça apresentação longa, anúncio de gravação, pergunta ou fala adicional antes da ferramenta. Identifique-se brevemente como Bruno, assistente virtual da Tendência Energia, somente se estiver falando com uma pessoa e ainda não o fez. Pergunta de responsável é opcional: só após confirmar empresa e haver convite para continuar; aguarde sua resposta antes de encerrar. Não prometa bloqueio já aplicado."
 }

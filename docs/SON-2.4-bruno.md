@@ -1,6 +1,8 @@
 # SON-2.4: Bruno, briefing e trava de release
 
-## Implementação
+> Atualização de 06/10/2026: a política de abertura vigente está em [SON-2.9 — empresa primeiro](SON-2.9-empresa-primeiro.md). As versões R5 descritas abaixo são históricas.
+
+## Implementação histórica
 
 Bruno confirma somente atendimento, identidade da empresa e responsável por
 energia. A abertura termina em `Aqui é da {{empresa}}?`, contém os quatro
