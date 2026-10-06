@@ -1,0 +1,47 @@
+{
+  "function_version": 35,
+  "function_previous_version": 34,
+  "verify_jwt": true,
+  "status": "PRODUCTION_VERIFIED",
+  "checked_at": "2026-10-06T13:05:54.126Z",
+  "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+  "previous_version_id": "agtvrsn_8201m3w3x8fsfbx8twde52zmms9d",
+  "version_id": "agtvrsn_3301m48n4pw4f6stcms388wvj54h",
+  "approval": {
+    "version": "bruno-son-2.9-identidade-v1",
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "prompt_sha256": "a82a32129b14343966f3763fed13d129a612674447cda109a9651521bf4b9a2e",
+    "opening_policy": "greeting_then_disclosure"
+  },
+  "analysis_sha256": "7e0fb66ed1926b85eb0511b2cab6a28ea6fb05604db86d958913296a904327ba",
+  "function": "ldr-automatico-orquestrador",
+  "project": "wbagoinuxgvntvbbnmab",
+  "readback_files": [
+    "ldr-automatico-orquestrador/index.ts",
+    "_shared/janela-discagem.ts",
+    "_shared/ldr-approval.json",
+    "_shared/ldr-optout.ts",
+    "_shared/ldr-policy.mjs",
+    "_shared/sonar-portao-tentativas.ts",
+    "_shared/sonar-reputacao.ts"
+  ],
+  "only_function_change": "_shared/ldr-approval.json",
+  "validation": {
+    "identity_passed": 32,
+    "identity_total": 33,
+    "known_disagreements": [
+      {
+        "case": "somente_nome_no_agente",
+        "expected": "SEM_ATENDIMENTO",
+        "actual": "INCONCLUSIVO",
+        "type": "AUTOMATICO",
+        "errors": [
+          "resultado_validacao: INCONCLUSIVO != SEM_ATENDIMENTO"
+        ]
+      }
+    ],
+    "adversarial": 24,
+    "negative": 4
+  },
+  "historical_calls_unchanged": true
+}
