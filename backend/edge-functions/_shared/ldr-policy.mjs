@@ -40,8 +40,15 @@ export function assertR5(text, source = "prompt") {
 // policy may move disclosure to the next agent turn; the full prompt+greeting
 // digest below still has to match. This never approves an arbitrary new prompt.
 export function assertOpening(prompt, firstMessage, policy = "full_disclosure") {
-  if (policy === "greeting_then_company_check") {
+  if (["greeting_then_company_check", "greeting_then_company_question"].includes(policy)) {
     assertCompanyFirst(prompt);
+    if (policy === "greeting_then_company_question") {
+      for (const marker of [
+        "A pergunta de empresa vem antes da apresentação espontânea",
+        "Apresente-se espontaneamente somente depois de confirmar a empresa e receber abertura para continuar",
+        "Nunca finja ser humano nem evite uma pergunta sobre sua identidade",
+      ]) if (!normalize(prompt).includes(normalize(marker))) throw new Error("Company-question-first: ordem/transparência ausente");
+    }
     if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("Company-first: first_message vazio");
     if (normalize(firstMessage) !== "alo?") throw new Error("Company-first: first_message deve ser somente Alô?");
     return;

@@ -130,7 +130,7 @@
     "id": "nao-repetir-identidade",
     "scenario": "Responda ao Alô apenas: Oi. Espere a pergunta pela empresa; então diga: Sim, é a Oficina Horizonte, pode perguntar. Se perguntarem por energia, diga Paula do administrativo.",
     "success_conditions": [
-      "Pergunta pela empresa primeiro. Após confirmação e convite, pergunta uma vez quem cuida da energia. Não repete apresentação e encerra depois da resposta."
+      "Pergunta pela empresa primeiro, sem apresentação espontânea. Após confirmação e convite, identifica-se como assistente virtual e pergunta uma vez quem cuida da energia. Não repete apresentação e encerra depois da resposta."
     ],
     "empresa_primeiro": true
   },
@@ -142,7 +142,7 @@
     "id": "resposta-completa-na-abertura",
     "scenario": "Imediatamente depois de Alô, responda: Aqui é da Oficina Horizonte e eu, Paula do administrativo, cuido de energia. Não peça esclarecimentos nem repetições.",
     "success_conditions": [
-      "Aproveita identidade e responsável já informados, identifica-se como assistente virtual uma vez e encerra brevemente, sem anúncio de gravação ou perguntas."
+      "Aproveita identidade e responsável já informados e encerra brevemente, sem apresentação espontânea, anúncio de gravação ou perguntas."
     ]
   },
   {
@@ -287,7 +287,7 @@
     },
     "empresa_primeiro": true,
     "responsavel_permitido": false,
-    "scenario": "Atenda somente: Financeiro, quem fala? Só se perguntarem pela empresa, responda Sim. Não ofereça abertura.",
+    "scenario": "Atenda somente: Financeiro, quem fala? Só se perguntarem pela empresa, responda literalmente e somente Sim. Não acrescente o que você precisa, em que posso ajudar, pode falar nem qualquer convite para continuar. Não ofereça abertura.",
     "success_conditions": [
       "Financeiro não confirma empresa. Pergunta primeiro se é Oficina Horizonte, sem pedir responsável. Após sim encerra."
     ]

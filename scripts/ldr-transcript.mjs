@@ -3,6 +3,8 @@ import { assertR5, normalize } from '../backend/edge-functions/_shared/ldr-polic
 // Deterministic checks complement the provider's evaluator, which has accepted
 // premature hangups and goodbyes followed by another customer turn in practice.
 export function assertTranscriptPolicy(turns, item, openingPolicy = "greeting_then_disclosure") {
+  const questionFirst = openingPolicy === 'greeting_then_company_question';
+  const companyFirst = questionFirst || openingPolicy === 'greeting_then_company_check';
   const fail = message => { throw new Error(`Transcrição ${item.id}: ${message}`); };
   const agent = turns.filter(t => t.role === 'agent');
   const speech = t => {
@@ -22,11 +24,24 @@ export function assertTranscriptPolicy(turns, item, openingPolicy = "greeting_th
     const args = JSON.parse(call.params_as_json);
     if ((args.system__message_to_speak || args.message || '').includes('?')) fail('pergunta dentro de end_call');
   }
-  if (openingPolicy === 'greeting_then_company_check') {
+  if (companyFirst) {
     const automatic = /destino.*(?:acessivel|disponivel)|3cx cannot reach|rotas disponiveis|numero.*registrado|voce ligou|bem.vindo|digite.*ramal|aguarde.*atendid|caixa postal/.test(firstUser);
-    if (!refused && !automatic) {
+    if (!refused && !automatic && !questionFirst) {
       const firstReply = normalize(spoken[0] || '');
       if (!firstReply.includes('assistente virtual') || !firstReply.includes('tendencia energia')) fail('identificação virtual ausente');
+    }
+    if (questionFirst && !refused && !automatic) {
+      const firstReply = normalize(spoken[0] || '');
+      const askedIdentity = /quem fala|quem (?:e|esta)|de onde|qual empresa.*(?:fal|lig)|robo|virtual|inteligencia artificial|\bia\b/.test(firstUser);
+      const companyQuestion = /falo com.*\?/.test(firstReply);
+      if (companyQuestion && !askedIdentity && /bruno|assistente|virtual|tendencia/.test(firstReply)) fail('apresentação antes da pergunta de empresa');
+      if (askedIdentity && (!firstReply.includes('assistente virtual') || !firstReply.includes('tendencia energia'))) fail('identificação virtual solicitada ausente');
+      let identified = false;
+      for (const reply of spoken) {
+        const message = normalize(reply);
+        if (message.includes('assistente virtual') && message.includes('tendencia energia')) identified = true;
+        if (/quem.*energia.*\?/.test(message) && !identified) fail('responsável antes de se identificar');
+      }
     }
     if (automatic && spoken.some(t => /\?/.test(t) || t.trim().split(/\s+/).length > 2)) fail('fala ou pergunta para mensagem automática');
     let userAskedRecording = false;
@@ -50,7 +65,7 @@ export function assertTranscriptPolicy(turns, item, openingPolicy = "greeting_th
   const requests = spoken.flatMap(t => normalize(t).match(/[^.!?]*\?/g) || [])
     .filter(q => /quem.*(?:energia|responsavel)|nome.*(?:energia|responsavel)|horario/.test(q));
   if (requests.length > 1) fail('pedido de responsável repetido');
-  if (openingPolicy === 'greeting_then_company_check') {
+  if (companyFirst) {
     if (item.responsavel_permitido === false && requests.length) fail('responsável sem abertura');
     if (item.empresa_primeiro) {
       let askedCompany = false, replied = false;

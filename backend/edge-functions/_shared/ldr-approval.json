@@ -1,6 +1,6 @@
 {
-  "version": "bruno-son-2.9-empresa-primeiro-v2",
+  "version": "bruno-son-2.9-pergunta-primeiro-v3",
   "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
-  "prompt_sha256": "fd9cc94ab41fb411fc71c497a1963be200f35da49d487fe27ae05f092d5a5e8a",
-  "opening_policy": "greeting_then_company_check"
+  "prompt_sha256": "b45483fc0990dae8b3c237835a9b5fa54a7db2dde892b07b02b0aa4912b4da37",
+  "opening_policy": "greeting_then_company_question"
 }

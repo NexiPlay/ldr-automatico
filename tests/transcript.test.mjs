@@ -24,6 +24,20 @@ test('transcrição barra ausência de R5 e pergunta sem referência, mas aceita
 const focusPolicy='greeting_then_company_check';
 const shortIntro='Sou Bruno, assistente virtual da Tendência Energia.';
 const focusItem={...item,empresa_primeiro:true};
+const questionPolicy='greeting_then_company_question';
+test('pergunta primeiro: abertura direta, identificação só antes do responsável',()=>{
+  const head=[turn('agent','Alô?'),turn('user','Oi'),turn('agent','Falo com a Oficina Horizonte?'),turn('user','Sim, pode perguntar')];
+  assertTranscriptPolicy([...head,turn('agent',shortIntro+' Quem cuida da energia aí?'),turn('user','Paula'),end('Obrigado.')],focusItem,questionPolicy);
+  assert.throws(()=>assertTranscriptPolicy([...head,turn('agent','Quem cuida da energia aí?'),turn('user','Paula'),end('Obrigado.')],focusItem,questionPolicy),/antes de se identificar/);
+  assert.throws(()=>assertTranscriptPolicy([turn('user','Oi'),turn('agent',shortIntro+' Falo com a Oficina Horizonte?'),turn('user','Sim'),end('Obrigado.')],focusItem,questionPolicy),/apresentação antes/);
+});
+test('pergunta primeiro: quem fala exige resposta transparente',()=>{
+  assertTranscriptPolicy([turn('user','Quem fala?'),turn('agent',shortIntro+' Falo com a Oficina Horizonte?'),turn('user','Sim'),end('Obrigado.')],focusItem,questionPolicy);
+  assert.throws(()=>assertTranscriptPolicy([turn('user','Quem fala?'),turn('agent','Falo com a Oficina Horizonte?'),turn('user','Sim'),end('Obrigado.')],focusItem,questionPolicy),/solicitada ausente/);
+});
+test('pergunta primeiro: confirmação simples pode encerrar sem apresentação',()=>{
+  assertTranscriptPolicy([turn('agent','Alô?'),turn('user','Oi'),turn('agent','Falo com a Oficina Horizonte?'),turn('user','Sim'),end('Obrigado pela confirmação.')],{...focusItem,responsavel_permitido:false},questionPolicy);
+});
 test('empresa primeiro: confirmação simples encerra sem responsável',()=>{
   assertTranscriptPolicy([turn('agent','Alô?'),turn('user','Oi'),turn('agent',shortIntro+' Falo com a Oficina Horizonte?'),turn('user','Sim'),end('Obrigado.')],{...focusItem,responsavel_permitido:false},focusPolicy);
 });

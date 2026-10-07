@@ -61,8 +61,8 @@
     ],
     "expected": {
       "action": "ask_company",
-      "intro": true,
-      "max_words": 30
+      "intro": false,
+      "max_words": 10
     }
   },
   {
@@ -82,7 +82,7 @@
       },
       {
         "role": "agent",
-        "message": "Sou Bruno, assistente virtual da Tendência Energia. Falo com a Oficina Horizonte?"
+        "message": "Falo com a Oficina Horizonte?"
       },
       {
         "role": "user",
@@ -91,7 +91,8 @@
     ],
     "expected": {
       "action": "end",
-      "max_words": 8
+      "max_words": 10,
+      "intro": false
     }
   },
   {
@@ -111,7 +112,7 @@
       },
       {
         "role": "agent",
-        "message": "Sou Bruno, assistente virtual da Tendência Energia. Falo com a Oficina Horizonte?"
+        "message": "Falo com a Oficina Horizonte?"
       },
       {
         "role": "user",
@@ -120,7 +121,8 @@
     ],
     "expected": {
       "action": "end",
-      "max_words": 8
+      "max_words": 10,
+      "intro": false
     }
   },
   {
@@ -140,7 +142,7 @@
       },
       {
         "role": "agent",
-        "message": "Sou Bruno, assistente virtual da Tendência Energia. Falo com a Oficina Horizonte?"
+        "message": "Falo com a Oficina Horizonte?"
       },
       {
         "role": "user",
@@ -149,7 +151,8 @@
     ],
     "expected": {
       "action": "ask_responsible",
-      "max_words": 10
+      "max_words": 24,
+      "intro": true
     }
   },
   {
@@ -170,8 +173,8 @@
     ],
     "expected": {
       "action": "end",
-      "intro": true,
-      "max_words": 20,
+      "intro": false,
+      "max_words": 10,
       "identity": "CONFIRMADO"
     }
   },
@@ -193,8 +196,8 @@
     ],
     "expected": {
       "action": "end",
-      "intro": true,
-      "max_words": 20,
+      "intro": false,
+      "max_words": 10,
       "identity": "CONFIRMADO"
     }
   },
@@ -367,7 +370,7 @@
       },
       {
         "role": "agent",
-        "message": "Sou Bruno, assistente virtual da Tendência Energia. Falo com a Oficina Horizonte?"
+        "message": "Falo com a Oficina Horizonte?"
       },
       {
         "role": "user",
@@ -375,7 +378,7 @@
       },
       {
         "role": "agent",
-        "message": "Quem cuida da energia aí?"
+        "message": "Sou Bruno, assistente virtual da Tendência Energia. Quem cuida da energia aí?"
       },
       {
         "role": "user",
@@ -385,6 +388,147 @@
     "expected": {
       "action": "end",
       "max_words": 8
+    }
+  },
+  {
+    "id": "alo_sem_apresentacao",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Alô."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10
+    }
+  },
+  {
+    "id": "pois_nao_sem_apresentacao",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Pois não?"
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10
+    }
+  },
+  {
+    "id": "financeiro_sem_apresentacao",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Financeiro, bom dia."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10
+    }
+  },
+  {
+    "id": "pergunta_se_robo",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Você é um robô?"
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": true,
+      "max_words": 30
+    }
+  },
+  {
+    "id": "silencio_encerra",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "..."
+      }
+    ],
+    "expected": {
+      "action": "end",
+      "intro": false,
+      "max_words": 1,
+      "identity": "SEM_ATENDIMENTO"
+    }
+  },
+  {
+    "id": "abertura_apos_identificacao_solicitada",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte Ltda",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Quem fala?"
+      },
+      {
+        "role": "agent",
+        "message": "Sou Bruno, assistente virtual da Tendência Energia. Falo com a Oficina Horizonte?"
+      },
+      {
+        "role": "user",
+        "message": "Sim, pode perguntar."
+      }
+    ],
+    "expected": {
+      "action": "ask_responsible",
+      "intro": false,
+      "max_words": 10
     }
   }
 ]
