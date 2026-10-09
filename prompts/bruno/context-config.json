@@ -1,0 +1,21 @@
+{
+  "version": "son29-start-context-v1",
+  "status": "PRODUCTION_VERIFIED",
+  "published_version_id": "agtvrsn_9901m4gxycc5fg5r70gggzcmsbp8",
+  "behavior_sha256": "d3f22941e2069e062851648355acd47bb3f456deecd66dd4e588c1887283bf9c",
+  "additional_prompt_sha256": "c6c302a974d0c6893cc8fa88a3b95d24abf6939170baee6ffb4f61382e4856a8",
+  "orchestrator_version": 47,
+  "context_function_version": 1,
+  "conversation_llm": "gpt-4.1",
+  "analysis_llm": "gemini-3.1-pro-preview",
+  "native_behavior_cases": 30,
+  "real_transcript_replay": {
+    "sample": 50,
+    "agreement": 45,
+    "human_confirmed": 20,
+    "confirmed": 16,
+    "false_confirmations": 0
+  },
+  "new_phone_calls": 0,
+  "audio_reprocessing": "deferred_by_user"
+}

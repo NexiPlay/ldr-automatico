@@ -1,5 +1,7 @@
 # Bruno: retomada em 09/10/2026
 
+**Atualização posterior à retomada:** o [contexto inicial foi publicado e verificado](SON-2.9-contexto-inicial.md), versão `agtvrsn_9901m4gxycc5fg5r70gggzcmsbp8`, orquestrador v47. Pedro autorizou a publicação e depois deixou a retranscrição dos oito áudios pendente por falta de permissão na chave. O texto abaixo registra a pausa anterior; não é o estado ativo mais recente.
+
 Trabalho pausado a pedido de Pedro. Continue na branch fix/son-2.9-interpretacao. O pacote de áudios, revisões, experimentos e instruções de instalação fica no repositório privado NexiPlay/nexilead, em documentacao/RETOMADA-SONAR-2026-10-09.md. Este repositório público contém apenas código, configurações sem credenciais e casos sintéticos.
 
 ## Estado publicado

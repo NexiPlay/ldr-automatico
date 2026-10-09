@@ -218,6 +218,8 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
     assert.ok(!JSON.stringify(snapshot).includes("NEVER_SNAPSHOT"));
     assert.ok(!Object.keys(saved).some((key) => key.startsWith("ia_custo")));
     const vars = (r.payloads[i].conversation_initiation_client_data as any).dynamic_variables;
+    assert.deepEqual(snapshot.analysis_context, vars);
+    assert.ok(!JSON.stringify(snapshot.analysis_context).includes('PRIVATE'));
     assert.equal(vars.empresa, "Comércio de Peças");
     assert.equal(JSON.parse(vars.briefing_lead).empresa.razao_social, "COMERCIO DE PECAS LTDA");
     assert.ok(!JSON.stringify(vars).includes("PRIVATE"));

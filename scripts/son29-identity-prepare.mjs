@@ -26,7 +26,8 @@ export async function prepareSon29(snapshot) {
   const overrides=await readJson(new URL('data-collection.json',candidate));
   const firstMessage=agent.conversation_config.agent.first_message;
   assertOpening(prompt,firstMessage,approval.opening_policy);
-  if(!prompt.includes(policy.trim()) || !overrides.resultado_validacao.description.includes(policy.trim())) throw new Error('Politica de identidade diverge entre agente e analise');
+  const lf = value => value.replace(/\r\n?/g, '\n');
+  if(!lf(prompt).includes(lf(policy).trim()) || !lf(overrides.resultado_validacao.description).includes(lf(policy).trim())) throw new Error('Politica de identidade diverge entre agente e analise');
   const fields=writable(current);
   for(const [key,definition] of Object.entries(overrides)) fields[key]={...fields[key],...definition,...(!fields[key]?{name:key}:{})};
   const humanOnly='Considere somente falas HUMANAS para informacoes de pessoa, responsabilidade, ausencia, disponibilidade e recusa. URA/gravacao/assistente virtual nao identifica interlocutor humano nem decisor; nao copie nome da assistente virtual, setores do menu ou horario de funcionamento como dados do responsavel. Sem fala humana, use NAO_IDENTIFICADO para interlocutor, texto vazio para nomes/horarios/evidencias e false para booleanos. ';

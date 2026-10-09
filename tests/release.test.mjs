@@ -27,7 +27,7 @@ test("suíte exige todos os resultados e evidência de fala do agente", () => {
   }
 });
 
-async function fixture({ badPrompt = false, failCase = false, drift = false } = {}) {
+async function fixture({ badPrompt = false, failCase = false, drift = false, context = false } = {}) {
   const { prompt, firstMessage } = await checkLocal();
   const requests = []; const ids = []; let reads = 0;
   const fetchImpl = async (url, options) => {
@@ -36,7 +36,7 @@ async function fixture({ badPrompt = false, failCase = false, drift = false } = 
       reads++;
       return Response.json({ agent_id: agentId, version_id: "v1", conversation_config: { agent: {
         prompt: { prompt: badPrompt ? "Sem identificação" : prompt, llm: drift && reads > 1 ? "changed" : "model" }, first_message: firstMessage,
-      } } });
+      } }, ...(context ? {workflow:{nodes:{context_node:{type:'tool',tools:[{tool_id:'context-tool'}]}}}} : {}) });
     }
     if (url.endsWith("agent-testing/create")) {
       const body = JSON.parse(options.body);
@@ -44,6 +44,12 @@ async function fixture({ badPrompt = false, failCase = false, drift = false } = 
       assert.equal(body.tool_mock_config.fallback_strategy, "raise_error");
       assert.ok(body.success_conditions.length >= 5);
       assert.ok(body.dynamic_variables.briefing_lead);
+      if (context) {
+        const mock = body.tool_mock_overrides['context-tool'][0];
+        assert.equal(mock.is_error, !body.dynamic_variables.empresa);
+        if (!mock.is_error) assert.equal(JSON.parse(mock.mock_result).REFERENCIA_EMPRESA, body.dynamic_variables.empresa);
+        assert.ok(!mock.mock_result.includes('Canario'), 'Dados privados não podem reaparecer no retorno do contexto');
+      }
       ids.push(`test-${ids.length}`); return Response.json({ id: ids.at(-1) });
     }
     if (url.endsWith("/run-tests")) {
@@ -66,6 +72,12 @@ test("release verifica remoto, executa todos os ataques e reconsulta após a su�
   const f = await fixture(); const result = await f.run();
   assert.equal(result.cases, cases.length);
   assert.equal(f.requests.filter((u) => u.endsWith(`/agents/${agentId}`)).length, 2);
+});
+
+test("release com workflow simula contexto público e falha de referência sem chamar função real", async () => {
+  const f = await fixture({context:true});
+  assert.equal((await f.run()).cases, cases.length);
+  assert.ok(f.requests.every(url => url.startsWith('https://api.elevenlabs.io/')));
 });
 test("Prompt remoto inválido impede até o início dos testes pagos", async () => {
   const f = await fixture({ badPrompt: true });

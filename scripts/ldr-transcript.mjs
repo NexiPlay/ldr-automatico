@@ -32,7 +32,7 @@ export function assertTranscriptPolicy(turns, item, openingPolicy = "greeting_th
     }
     if (questionFirst && !refused && !automatic) {
       const firstReply = normalize(spoken[0] || '');
-      const askedIdentity = /quem fala|quem (?:e|esta)|de onde|qual empresa.*(?:fal|lig)|robo|virtual|inteligencia artificial|\bia\b/.test(firstUser);
+      const askedIdentity = /quem fala|com quem (?:eu )?(?:falo|(?:estou|to|ta) falando)|(?:^|[,.!?]\s*)quem (?:ta|esta) falando|quem (?:e voce|esta (?:ai|ligando))|\bquem e\s*\?|de onde|qual empresa.*(?:fal|lig)|voce e (?:a|o|da|do) [^?]*\?|(?:^|[,.!?]\s*)e d[ao] [^?]*\?|robo|virtual|inteligencia artificial|\bia\b/.test(firstUser);
       const companyQuestion = /falo com.*\?/.test(firstReply);
       if (companyQuestion && !askedIdentity && /bruno|assistente|virtual|tendencia/.test(firstReply)) fail('apresentação antes da pergunta de empresa');
       if (askedIdentity && (!firstReply.includes('assistente virtual') || !firstReply.includes('tendencia energia'))) fail('identificação virtual solicitada ausente');
