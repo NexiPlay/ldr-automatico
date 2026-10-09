@@ -110,10 +110,29 @@ function clean(value) {
   return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 240) : "";
 }
 
+// Usa apenas o nome fantasia do mesmo cadastro ou uma abreviação conservadora.
+// A razão social integral permanece no briefing; nomes de Places sem vínculo
+// cadastral não substituem a referência por mera semelhança.
+export function spokenCompanyName(row = {}, fallbackName = "") {
+  const trade = clean(row.nome_fantasia);
+  const legal = clean(row.razao_social) || clean(fallbackName);
+  const usableTrade = trade && !/^(?:nao informado|não informado|sem nome|n\/?a|[-.]+)$/i.test(trade);
+  let name = (usableTrade ? trade : legal) || clean(row.places_nome);
+  name = name.replace(/\s*[-–]?\s*em recupera[cç][aã]o judicial\s*$/iu, "").trim();
+  name = name.replace(/(?:[ ,.-]+(?:ltda\.?|limitada|s\.?\s*\/?\s*a\.?|eireli|epp|mei|me))+\s*$/iu, "").trim();
+  // Só corta atividade DEPOIS de uma marca já escrita. Nunca escolhe uma
+  // palavra interna para adivinhar marca nem remove especificação de unidade.
+  if (!/\b(?:unidade|filial|loja)\b/iu.test(name)) {
+    const match = name.match(/^(.+?)\s+(?:ind[uú]stria(?:l)?|com[eé]rcio|comercializa[cç][aã]o|distribui[cç][aã]o|importa[cç][aã]o)\b/iu);
+    if (match && match[1].replace(/[^\p{L}\p{N}]/gu, "").length >= 3 && !/^(?:companhia|empresa|ind[uú]stria|com[eé]rcio|grupo)$/iu.test(match[1])) name = match[1].trim();
+  }
+  return name || legal || clean(fallbackName);
+}
+
 export function buildBriefing(row, fallbackName = "") {
   const data = Object.fromEntries(BRIEFING_FIELDS.map((key) => [key, clean(row?.[key])]).filter(([, v]) => v));
   return {
-    empresa: data.razao_social || data.nome_fantasia || data.places_nome || clean(fallbackName),
+    empresa: spokenCompanyName(data, fallbackName),
     briefing_lead: JSON.stringify({ disponivel: Object.keys(data).length > 0, empresa: data }),
   };
 }

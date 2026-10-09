@@ -25,6 +25,7 @@ type Options = {
   optout?: boolean; optoutError?: boolean; optoutBeforePost?: boolean;
   sonarPortao?: boolean; sonarPortaoError?: boolean; sonarPortaoBeforePost?: boolean;
   registroFalhaErro?: boolean;
+  degrauEsgotado?: boolean; degrauError?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
@@ -88,6 +89,19 @@ async function scenario(options: Options, ids = ["phone-1"]) {
         assert.equal(args.p_cnpj, "12345678000195");
         assert.equal(args.p_agente, "ldr");
         return { data: !(options.sonarPortao || (options.sonarPortaoBeforePost && reads.length > 0)), error: options.sonarPortaoError ? { message: "offline" } : null };
+      }
+      // SON-4.4: teto de vazao diaria. O orquestrador le o degrau antes de cada
+      // POST; sem este stub a leitura cai no catch-all abaixo, estoura, e o
+      // portao (fail-closed) impede toda discagem — foi o que quebrou 11 testes
+      // deste arquivo quando o portao entrou.
+      if (name === "np_fn_sonar_degrau_atual") {
+        if (options.degrauError) return { data: null, error: { message: "offline" } };
+        // RETURNS TABLE chega como array pelo PostgREST.
+        return { error: null, data: [{
+          valor_dia: 50, desde: "2026-10-06T00:00:00Z", dias_no_degrau: 3,
+          usado_hoje: options.degrauEsgotado ? 50 : 0,
+          resta: options.degrauEsgotado ? 0 : 50,
+        }] };
       }
       assert.equal(name, "np_fn_sonar_reputacao_portao");
       assert.equal(args.p_origem, "+5511000000010");
@@ -155,6 +169,25 @@ Deno.test("SON-1.7: portao de 48h/teto bloqueia por CNPJ; falha do portão conse
   }
 });
 
+Deno.test("SON-4.4: degrau esgotado para o lote e conserva pendentes", async () => {
+  const r = await scenario({ degrauEsgotado: true });
+  assert.equal(r.payloads.length, 0);
+  assert.equal(r.body.degrauEsgotado, true);
+  assert.equal(r.body.pulados[0].motivo, "degrau_esgotado");
+  // Esgotar o teto nao e erro: e o freio funcionando. 503 faria o painel
+  // tratar como incidente, e o lote voltaria como falha em vez de pendente.
+  assert.equal(r.status, 200);
+  assert.deepEqual(r.body.pendentes, ["phone-1"]);
+});
+
+Deno.test("SON-4.4: teto indisponivel nao disca (fail-closed)", async () => {
+  const r = await scenario({ degrauError: true });
+  assert.equal(r.payloads.length, 0);
+  assert.equal(r.body.degrauIndisponivel, true);
+  assert.equal(r.status, 503);
+  assert.deepEqual(r.body.pendentes, ["phone-1"]);
+});
+
 Deno.test("reputacao: erro do monitor impede qualquer discagem", async () => {
   const r = await scenario({ reputationError: true });
   assert.equal(r.payloads.length, 0);
@@ -185,7 +218,7 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
     assert.ok(!JSON.stringify(snapshot).includes("NEVER_SNAPSHOT"));
     assert.ok(!Object.keys(saved).some((key) => key.startsWith("ia_custo")));
     const vars = (r.payloads[i].conversation_initiation_client_data as any).dynamic_variables;
-    assert.equal(vars.empresa, "Comércio de Peças LTDA");
+    assert.equal(vars.empresa, "Comércio de Peças");
     assert.equal(JSON.parse(vars.briefing_lead).empresa.razao_social, "COMERCIO DE PECAS LTDA");
     assert.ok(!JSON.stringify(vars).includes("PRIVATE"));
     assert.equal(r.body.ligados[i].promptHash, expectedHash);
@@ -276,7 +309,7 @@ Deno.test("runtime: schema/carimbo/briefing inválidos falham antes de qualquer 
 Deno.test("runtime: sem enriquecimento usa referência normalizada; sem referência não disca", async () => {
   const r = await scenario({ noEnrichment: true });
   const vars = (r.payloads[0].conversation_initiation_client_data as any).dynamic_variables;
-  assert.equal(vars.empresa, "Comércio de Peças LTDA");
+  assert.equal(vars.empresa, "Comércio de Peças");
   assert.equal(JSON.parse(vars.briefing_lead).disponivel, false);
   const missing = await scenario({ noCompany: true });
   assert.equal(missing.payloads.length, 0); assert.equal(missing.reads.length, 0);

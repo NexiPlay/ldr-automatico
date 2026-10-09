@@ -1,0 +1,231 @@
+[
+  {
+    "id": "saudacao_nome_diferente",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Mercado de São Guido, bom dia."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "saudacao_marca_mal_transcrita",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Orizonte, bom dia."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "saudacao_nome_incompleto",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "...zontes, bom dia."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "saudacao_atividade_generica",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Oficina, bom dia."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "pode_falar_nao_confirma",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Em que posso ajudar?"
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "negacao_explicita",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Oi"
+      },
+      {
+        "role": "agent",
+        "message": "Falo com a Oficina Horizonte?"
+      },
+      {
+        "role": "user",
+        "message": "Não, número errado, aqui é outra empresa."
+      }
+    ],
+    "expected": {
+      "action": "end",
+      "max_words": 10,
+      "identity": "NAO_CONFIRMADO"
+    }
+  },
+  {
+    "id": "codigo_operadora",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Para completar a ligação, disque o código de operadora."
+      }
+    ],
+    "expected": {
+      "action": "end",
+      "max_words": 1,
+      "identity": "SEM_ATENDIMENTO"
+    }
+  },
+  {
+    "id": "sim_energia_nao_confirma_empresa",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Pois não?"
+      },
+      {
+        "role": "agent",
+        "message": "Quem cuida de energia aí?"
+      },
+      {
+        "role": "user",
+        "message": "Sou eu, sim."
+      }
+    ],
+    "expected": {
+      "action": "ask_company",
+      "intro": false,
+      "max_words": 10,
+      "identity": "INCONCLUSIVO"
+    }
+  },
+  {
+    "id": "nao_repetir_energia_por_alo",
+    "dynamic_variables": {
+      "empresa": "Oficina Horizonte",
+      "briefing_lead": "{\"disponivel\":true,\"empresa\":{\"razao_social\":\"Oficina Horizonte Ltda\",\"nome_fantasia\":\"Oficina Horizonte\"}}"
+    },
+    "history": [
+      {
+        "role": "agent",
+        "message": "Alô?"
+      },
+      {
+        "role": "user",
+        "message": "Oficina Horizonte, em que posso ajudar?"
+      },
+      {
+        "role": "agent",
+        "message": "Sou Bruno, assistente virtual da Tendência Energia. Quem cuida da energia aí?"
+      },
+      {
+        "role": "user",
+        "message": "Alô?"
+      }
+    ],
+    "expected": {
+      "action": "end",
+      "intro": false,
+      "max_words": 10,
+      "identity": "CONFIRMADO"
+    }
+  }
+]

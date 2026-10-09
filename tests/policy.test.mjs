@@ -87,7 +87,7 @@ test("briefing usa allowlist; sócios, IA, preço, carteira e PDF não chegam ao
     ia_decisores: [{ nome: "SEGREDO" }], decisores: "SEGREDO", carteira: "SEGREDO",
     margem: "SEGREDO", preco: "SEGREDO", briefing_file: "SEGREDO", ia_pitch_note: "SEGREDO",
   });
-  assert.equal(data.empresa, "Empresa Pública Ltda");
+  assert.equal(data.empresa, "Empresa Pública");
   assert.ok(!JSON.stringify(data).includes("SEGREDO"));
   assert.deepEqual(JSON.parse(data.briefing_lead).empresa, { razao_social: "Empresa Pública Ltda", logradouro: "Rua Um" });
 });

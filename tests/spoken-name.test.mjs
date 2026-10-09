@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {spokenCompanyName,buildBriefing} from '../backend/edge-functions/_shared/ldr-policy.mjs';
+test('nome fantasia cadastral evita ler razão social extensa',()=>{const row={razao_social:'ABC COMERCIO IMPORTACAO E EXPORTACAO LTDA',nome_fantasia:'Oficina Horizonte'};const r=buildBriefing(row);assert.equal(r.empresa,'Oficina Horizonte');assert.equal(JSON.parse(r.briefing_lead).empresa.razao_social,row.razao_social);});
+test('abrevia razão social com marca explícita antes da atividade',()=>{assert.equal(spokenCompanyName({razao_social:'Aurora Indústria e Comércio LTDA'}),'Aurora');assert.equal(spokenCompanyName({razao_social:'Pedras da Serra Comércio Importação e Exportação LTDA'}),'Pedras da Serra');});
+test('não inventa marca interna, alias Places nem remove unidade',()=>{assert.equal(spokenCompanyName({razao_social:'Indústria de Fertilizantes Aurora LTDA',places_nome:'Horizonte'}),'Indústria de Fertilizantes Aurora');assert.equal(spokenCompanyName({razao_social:'Aurora Indústria - Unidade Norte LTDA'}),'Aurora Indústria - Unidade Norte');});
+test('ausência e nome curto com SA interno não são alterados',()=>{assert.equal(spokenCompanyName({},''),'');assert.equal(spokenCompanyName({razao_social:'CASA LTDA'}),'CASA');assert.equal(spokenCompanyName({razao_social:'Aurora S.A.'}),'Aurora');assert.equal(spokenCompanyName({razao_social:'Aurora',nome_fantasia:'N/A'}),'Aurora');});

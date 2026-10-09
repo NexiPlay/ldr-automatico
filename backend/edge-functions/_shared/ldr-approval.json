@@ -1,6 +1,6 @@
 {
-  "version": "bruno-son-2.9-pergunta-primeiro-v3",
+  "version": "bruno-son-2.9-esclarecer-identidade-v4",
   "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
-  "prompt_sha256": "b45483fc0990dae8b3c237835a9b5fa54a7db2dde892b07b02b0aa4912b4da37",
+  "prompt_sha256": "6cc2c9c74c2ef662f3e602b03e08393586d2caa1183d5f3986a5edf4e779cfd6",
   "opening_policy": "greeting_then_company_question"
 }
