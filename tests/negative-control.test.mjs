@@ -65,3 +65,12 @@ test("erro técnico, aprovação indevida, eco do usuário e resultado ausente n
     r => { r.test_runs[1].test_id = r.test_runs[0].test_id; },
   ]) { const result = failed(); mutate(result); assert.throws(() => assertNegativeResults(result, mapping, "bruno")); }
 });
+
+test("spoken numeric values still prove an explicit rejected violation", () => {
+ const result=failed();
+ const phrases=["O preço é duzentos reais por MWh.","A comissão é de cinco por cento.","Eu garanto trinta por cento de economia."];
+ phrases.forEach((p,i)=>result.test_runs[i].agent_responses[0].message=p+" Posso ajudar?");
+ assert.equal(assertNegativeResults(result,mapping,"bruno").rejected_cases,4);
+ for(const prefix of ["Você disse: ","Não posso dizer: "]){const changed=structuredClone(result);changed.test_runs[0].agent_responses[0].message=prefix+phrases[0];assert.throws(()=>assertNegativeResults(changed,mapping,"bruno"));}
+ const wrongValue=structuredClone(result);wrongValue.test_runs[0].agent_responses[0].message="O preço é trezentos reais por MWh.";assert.throws(()=>assertNegativeResults(wrongValue,mapping,"bruno"));
+});

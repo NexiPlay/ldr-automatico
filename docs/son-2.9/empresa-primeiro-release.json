@@ -1,0 +1,38 @@
+{
+  "status": "PRODUCTION_VERIFIED",
+  "checked_at": "2026-10-06T16:09:56.202Z",
+  "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+  "previous_version_id": "agtvrsn_6701m48y2yc0e468cg5kqd9a5qhz",
+  "version_id": "agtvrsn_5801m48znnxafv08ry7y2y4h5q7q",
+  "approval": {
+    "version": "bruno-son-2.9-empresa-primeiro-v2",
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "prompt_sha256": "fd9cc94ab41fb411fc71c497a1963be200f35da49d487fe27ae05f092d5a5e8a",
+    "opening_policy": "greeting_then_company_check"
+  },
+  "function_previous_version": 35,
+  "function_version": 36,
+  "verify_jwt": true,
+  "function_changes": [
+    "_shared/ldr-policy.mjs",
+    "_shared/ldr-approval.json"
+  ],
+  "readback_files": [
+    "_shared/janela-discagem.ts",
+    "_shared/ldr-approval.json",
+    "_shared/ldr-optout.ts",
+    "_shared/ldr-policy.mjs",
+    "_shared/sonar-portao-tentativas.ts",
+    "_shared/sonar-reputacao.ts",
+    "ldr-automatico-orquestrador/index.ts"
+  ],
+  "final_controlled_scenarios": 16,
+  "provider_simulation_runs": 41,
+  "node_tests": 81,
+  "runtime_tests": 46,
+  "limit": 0,
+  "real_calls": 0,
+  "analysis_unchanged": true,
+  "voice_model_and_max_duration_preserved": true,
+  "human_gate_a": "PENDENTE"
+}

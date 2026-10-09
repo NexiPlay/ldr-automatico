@@ -47,7 +47,7 @@ export async function prepareSon62(agent) {
   // A reference-only PATCH did not persist these fields; readback is mandatory.
   const existingRefs = agent.platform_settings.analysis_items;
   const patch = {...promptPatch,platform_settings:{data_collection:{...fields,...additions}}};
-  const proposedApproval = {...approval,version:'bruno-son-6.2-v1',
+  const proposedApproval = {...approval,version:'bruno-son-6.2-v1',opening_policy:'greeting_then_disclosure',
     prompt_sha256:await promptDigest(prompt,agent.conversation_config.agent.first_message)};
   return {patch,promptPatch,dataCollectionProposal:{mode:'definitions',
     definitions:additions,existing_references:existingRefs ?? null,requires_readback:true},

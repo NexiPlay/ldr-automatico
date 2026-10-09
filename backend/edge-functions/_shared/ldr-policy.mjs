@@ -6,6 +6,19 @@ export const R5 = Object.freeze({
   gravacao: "Esta ligação está sendo gravada",
 });
 
+export const COMPANY_FIRST = Object.freeze({
+  razao_social: "Tendência Energia",
+  assistente_virtual: "assistente virtual",
+  finalidade: "confirmar se este telefone pertence à empresa de referência",
+  pergunta_empresa: "Falo com a {{empresa}}?",
+  prioridade: "Responsável por energia é informação OPCIONAL, somente depois da identidade confirmada",
+});
+export function assertCompanyFirst(text, source = "prompt") {
+  if (typeof text !== "string" || !text.trim()) throw new Error(`Company-first: ${source} vazio`);
+  const missing = Object.entries(COMPANY_FIRST).filter(([, marker]) => !normalize(text).includes(normalize(marker))).map(([key]) => key);
+  if (missing.length) throw new Error(`Company-first: ${source} sem ${missing.join(", ")}`);
+}
+
 export const BRIEFING_FIELDS = Object.freeze([
   "razao_social", "nome_fantasia", "cnae_principal", "situacao_cadastral",
   "logradouro", "municipio", "uf", "places_nome", "places_endereco",
@@ -27,6 +40,20 @@ export function assertR5(text, source = "prompt") {
 // policy may move disclosure to the next agent turn; the full prompt+greeting
 // digest below still has to match. This never approves an arbitrary new prompt.
 export function assertOpening(prompt, firstMessage, policy = "full_disclosure") {
+  if (["greeting_then_company_check", "greeting_then_company_question"].includes(policy)) {
+    assertCompanyFirst(prompt);
+    if (policy === "greeting_then_company_question") {
+      for (const marker of [
+        "A pergunta de empresa vem antes da apresentação espontânea",
+        "Apresente-se espontaneamente somente depois de confirmar a empresa e receber abertura para continuar",
+        "Nunca finja ser humano nem evite uma pergunta sobre sua identidade",
+      ]) if (!normalize(prompt).includes(normalize(marker))) throw new Error("Company-question-first: ordem/transparência ausente");
+    }
+    if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("Company-first: first_message vazio");
+    if (normalize(firstMessage) !== "alo?") throw new Error("Company-first: first_message deve ser somente Alô?");
+    return;
+  }
+  if (!["full_disclosure", "greeting_then_disclosure"].includes(policy)) throw new Error("Política de abertura desconhecida");
   assertR5(prompt);
   if (policy === "greeting_then_disclosure") {
     if (typeof firstMessage !== "string" || !firstMessage.trim()) throw new Error("R5: first_message vazio");
@@ -83,10 +110,29 @@ function clean(value) {
   return typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 240) : "";
 }
 
+// Usa apenas o nome fantasia do mesmo cadastro ou uma abreviação conservadora.
+// A razão social integral permanece no briefing; nomes de Places sem vínculo
+// cadastral não substituem a referência por mera semelhança.
+export function spokenCompanyName(row = {}, fallbackName = "") {
+  const trade = clean(row.nome_fantasia);
+  const legal = clean(row.razao_social) || clean(fallbackName);
+  const usableTrade = trade && !/^(?:nao informado|não informado|sem nome|n\/?a|[-.]+)$/i.test(trade);
+  let name = (usableTrade ? trade : legal) || clean(row.places_nome);
+  name = name.replace(/\s*[-–]?\s*em recupera[cç][aã]o judicial\s*$/iu, "").trim();
+  name = name.replace(/(?:[ ,.-]+(?:ltda\.?|limitada|s\.?\s*\/?\s*a\.?|eireli|epp|mei|me))+\s*$/iu, "").trim();
+  // Só corta atividade DEPOIS de uma marca já escrita. Nunca escolhe uma
+  // palavra interna para adivinhar marca nem remove especificação de unidade.
+  if (!/\b(?:unidade|filial|loja)\b/iu.test(name)) {
+    const match = name.match(/^(.+?)\s+(?:ind[uú]stria(?:l)?|com[eé]rcio|comercializa[cç][aã]o|distribui[cç][aã]o|importa[cç][aã]o)\b/iu);
+    if (match && match[1].replace(/[^\p{L}\p{N}]/gu, "").length >= 3 && !/^(?:companhia|empresa|ind[uú]stria|com[eé]rcio|grupo)$/iu.test(match[1])) name = match[1].trim();
+  }
+  return name || legal || clean(fallbackName);
+}
+
 export function buildBriefing(row, fallbackName = "") {
   const data = Object.fromEntries(BRIEFING_FIELDS.map((key) => [key, clean(row?.[key])]).filter(([, v]) => v));
   return {
-    empresa: data.razao_social || data.nome_fantasia || data.places_nome || clean(fallbackName),
+    empresa: spokenCompanyName(data, fallbackName),
     briefing_lead: JSON.stringify({ disponivel: Object.keys(data).length > 0, empresa: data }),
   };
 }

@@ -443,7 +443,16 @@ Deno.serve(async (req: Request) => {
 
       // Sem cache entre telefones/lotes. Se GET/validação falhar, cai no catch
       // antes do POST: nenhuma ligação sai com carimbo ausente/inventado.
-      const carimbo = await lerCarimboAgente();
+      const carimboAgente = await lerCarimboAgente();
+      const carimbo = {
+        ...carimboAgente,
+        ia_config_snapshot: {
+          ...carimboAgente.ia_config_snapshot,
+          // Dados efetivamente enviados, ligados à conversa que o POST devolver.
+          // Não dependem de end_call, de resumo do modelo nem do cadastro futuro.
+          analysis_context: { empresa, briefing_lead: briefing.briefing_lead },
+        },
+      };
       const disparadoEm = new Date().toISOString();
 
       // Ultima verificacao antes do efeito externo: um clique durante o lote

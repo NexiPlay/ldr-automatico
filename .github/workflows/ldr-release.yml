@@ -39,7 +39,7 @@ jobs:
       - name: Regressão do carimbo, briefing e custos (sem rede)
         run: deno test --config tests/runtime/deno.json --allow-read --allow-env --deny-net tests/runtime/
       - name: Verificar edge functions
-        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts backend/edge-functions/ldr-automatico-conversa/index.ts
+        run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts backend/edge-functions/ldr-automatico-conversa/index.ts backend/edge-functions/ldr-contexto-analise/index.ts
 
   r5-adversarial:
     name: R5 remoto e suíte adversarial obrigatórios
@@ -94,13 +94,14 @@ jobs:
         with:
           name: ldr-adversarial-${{ github.sha }}
           path: artifacts
-      - name: Preparar orquestrador, webhook e módulos compartilhados
+      - name: Preparar funções LDR e módulos compartilhados
         run: |
           mkdir -p .release/supabase/functions
           cp supabase/config.toml .release/supabase/config.toml
           cp -R backend/edge-functions/ldr-automatico-orquestrador .release/supabase/functions/
           cp -R backend/edge-functions/ldr-automatico-webhook .release/supabase/functions/
           cp -R backend/edge-functions/ldr-automatico-conversa .release/supabase/functions/
+          cp -R backend/edge-functions/ldr-contexto-analise .release/supabase/functions/
           cp -R backend/edge-functions/_shared .release/supabase/functions/
       - name: Revalidar agente e publicar (nunca executar se a trava falhar)
         env:
@@ -111,6 +112,7 @@ jobs:
           node scripts/ldr-release.mjs --verify-live
           supabase db query --linked --project-ref wbagoinuxgvntvbbnmab --file scripts/sonar-reputacao-preflight.sql
           if [ "$LDR_RELEASE_SCOPE" = "all" ]; then
+            supabase functions deploy ldr-contexto-analise --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
             supabase functions deploy ldr-automatico-webhook --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
           elif [ "$LDR_RELEASE_SCOPE" != "orchestrator" ]; then
             echo "Escopo de release inválido" >&2

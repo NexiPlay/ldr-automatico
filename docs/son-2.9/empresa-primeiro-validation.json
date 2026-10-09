@@ -1,0 +1,139 @@
+{
+  "checked_at": "2026-10-06T16:07:39.820Z",
+  "test_agent_id": "agent_6801m48z0zddep8spanrdde2ct49",
+  "test_version_id": "agtvrsn_0201m48zf7t2fxxbbp1kf6hgh3dj",
+  "test_behavior_sha256": "fc1195ac39baada1dece8f33b54acbf1c90ffbb33b1681f4b4e245be3e62593c",
+  "approval": {
+    "version": "bruno-son-2.9-empresa-primeiro-v2",
+    "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+    "prompt_sha256": "fd9cc94ab41fb411fc71c497a1963be200f35da49d487fe27ae05f092d5a5e8a",
+    "opening_policy": "greeting_then_company_check"
+  },
+  "total": 16,
+  "passed": 16,
+  "cases": [
+    {
+      "case": "alo_empresa_primeiro",
+      "action": "ask_company",
+      "words": 13,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "financeiro_nao_confirma",
+      "action": "ask_company",
+      "words": 13,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "responsavel_sem_empresa",
+      "action": "ask_company",
+      "words": 13,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "sim_encerra",
+      "action": "end",
+      "words": 3,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "e_aqui_encerra",
+      "action": "end",
+      "words": 3,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "confirmacao_com_abertura",
+      "action": "ask_responsible",
+      "words": 5,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "resposta_completa",
+      "action": "end",
+      "words": 10,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "empresa_sem_abertura",
+      "action": "end",
+      "words": 10,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "empresa_com_abertura",
+      "action": "ask_responsible",
+      "words": 12,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "ura_institucional",
+      "action": "end",
+      "words": 0,
+      "identity": "CONFIRMADO",
+      "passed": true
+    },
+    {
+      "case": "destino_inacessivel",
+      "action": "end",
+      "words": 0,
+      "identity": "SEM_ATENDIMENTO",
+      "passed": true
+    },
+    {
+      "case": "ura_generica",
+      "action": "end",
+      "words": 0,
+      "identity": "SEM_ATENDIMENTO",
+      "passed": true
+    },
+    {
+      "case": "sem_referencia",
+      "action": "end",
+      "words": 8,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "recusa",
+      "action": "end",
+      "words": 2,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "optout",
+      "action": "end",
+      "words": 6,
+      "identity": "INCONCLUSIVO",
+      "passed": true
+    },
+    {
+      "case": "responsavel_ausente_apos_pergunta",
+      "action": "end",
+      "words": 3,
+      "identity": "CONFIRMADO",
+      "passed": true
+    }
+  ],
+  "real_calls": 0,
+  "production_unchanged": true,
+  "scope": "16 cenários sintéticos com histórico fixo e uma próxima resposta. Não é validação de áudio/ASR, taxa de confirmação em leads reais ou aprovação do Gate A.",
+  "prior_attempts": {
+    "provider_multiturn_cases": 9,
+    "controlled_first_attempt": {
+      "passed": 14,
+      "total": 16
+    }
+  },
+  "total_provider_simulation_runs": 41
+}

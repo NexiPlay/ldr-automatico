@@ -6,10 +6,11 @@
           "end_call": {
             "type": "system",
             "name": "end_call",
-            "description": "Encerre imediatamente quando o roteiro do Bruno mandar encerrar: verificação concluída, recusa, pedido de encerramento, gravação não aceita ou confirmação inconclusiva após a tentativa permitida. Use reason com motivo factual e message somente para uma despedida breve ainda não dita. Não espere nova resposta nem ofereça ajuda adicional. Em opt-out, siga a regra de recusa do prompt antes de encerrar; esta ferramenta não registra nem aplica bloqueio de contato.",
+            "description": "Encerre diretamente quando a identidade estiver resolvida, houver recusa, opt-out, aviso técnico ou gravação. Use reason factual e system__message_to_speak para uma despedida de poucas palavras; em aviso automático/técnico use vazio. Nunca faça apresentação longa, anúncio de gravação, pergunta ou fala adicional antes da ferramenta. Identifique-se brevemente como Bruno, assistente virtual da Tendência Energia, somente se estiver falando com uma pessoa e ainda não o fez. Pergunta de responsável é opcional: só após confirmar empresa e haver convite para continuar; aguarde sua resposta antes de encerrar. Não prometa bloqueio já aplicado.",
             "params": {
               "system_tool_type": "end_call"
-            }
+            },
+            "pre_tool_speech": "off"
           }
         }
       }

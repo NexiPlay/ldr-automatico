@@ -218,7 +218,9 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
     assert.ok(!JSON.stringify(snapshot).includes("NEVER_SNAPSHOT"));
     assert.ok(!Object.keys(saved).some((key) => key.startsWith("ia_custo")));
     const vars = (r.payloads[i].conversation_initiation_client_data as any).dynamic_variables;
-    assert.equal(vars.empresa, "Comércio de Peças LTDA");
+    assert.deepEqual(snapshot.analysis_context, vars);
+    assert.ok(!JSON.stringify(snapshot.analysis_context).includes('PRIVATE'));
+    assert.equal(vars.empresa, "Comércio de Peças");
     assert.equal(JSON.parse(vars.briefing_lead).empresa.razao_social, "COMERCIO DE PECAS LTDA");
     assert.ok(!JSON.stringify(vars).includes("PRIVATE"));
     assert.equal(r.body.ligados[i].promptHash, expectedHash);
@@ -226,8 +228,8 @@ Deno.test("runtime: mesma leitura valida R5 e grava carimbo original por chamada
   assert.notEqual(r.updates[0].values!.ia_prompt_hash, r.updates[1].values!.ia_prompt_hash);
 });
 
-Deno.test("runtime: ausência de cada elemento R5 impede POST e gravação", async () => {
-  for (const marker of ["Tendência Energia", "assistente virtual", "Esta ligação está sendo gravada", "confirmar a empresa deste telefone e saber quem cuida de energia"]) {
+Deno.test("runtime: ausência de cada elemento da política ativa impede POST e gravação", async () => {
+  for (const marker of ["Tendência Energia", "assistente virtual", "confirmar se este telefone pertence à empresa de referência", "Falo com a {{empresa}}?", "Responsável por energia é informação OPCIONAL, somente depois da identidade confirmada"]) {
     const r = await scenario({ changeAgent: (live) => { live.conversation_config.agent.prompt.prompt = prompt.replaceAll(marker, ""); } }, ["phone-1", "phone-2"]);
     assert.equal(r.status, 503); assert.equal(r.body.ok, false);
     assert.equal(r.payloads.length, 0); assert.equal(r.updates.length, 0);
@@ -309,7 +311,7 @@ Deno.test("runtime: schema/carimbo/briefing inválidos falham antes de qualquer 
 Deno.test("runtime: sem enriquecimento usa referência normalizada; sem referência não disca", async () => {
   const r = await scenario({ noEnrichment: true });
   const vars = (r.payloads[0].conversation_initiation_client_data as any).dynamic_variables;
-  assert.equal(vars.empresa, "Comércio de Peças LTDA");
+  assert.equal(vars.empresa, "Comércio de Peças");
   assert.equal(JSON.parse(vars.briefing_lead).disponivel, false);
   const missing = await scenario({ noCompany: true });
   assert.equal(missing.payloads.length, 0); assert.equal(missing.reads.length, 0);

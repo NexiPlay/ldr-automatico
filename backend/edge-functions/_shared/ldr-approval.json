@@ -1,6 +1,6 @@
 {
-  "version": "bruno-alo-r5-v7",
+  "version": "bruno-son-2.9-esclarecer-identidade-v4",
   "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
-  "prompt_sha256": "4dcac3a230532c2543e320694d651c0b889d0bb257fad64d792c0cf44422b2db",
-  "opening_policy": "greeting_then_disclosure"
+  "prompt_sha256": "6cc2c9c74c2ef662f3e602b03e08393586d2caa1183d5f3986a5edf4e779cfd6",
+  "opening_policy": "greeting_then_company_question"
 }

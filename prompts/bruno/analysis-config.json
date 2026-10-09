@@ -1,0 +1,8 @@
+{
+  "analysis_llm": "gemini-3.1-pro-preview",
+  "version": "son29-contextual-analysis-v1",
+  "published_version_id": "agtvrsn_8801m4gjnayremqrnhsxcwd4m03h",
+  "validated_real_transcripts": 50,
+  "validated_controls": 24,
+  "voice_llm": "gpt-4.1"
+}
