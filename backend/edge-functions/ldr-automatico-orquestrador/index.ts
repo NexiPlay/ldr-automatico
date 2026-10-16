@@ -36,6 +36,7 @@ import approval from "../_shared/ldr-approval.json" with { type: "json" };
 import { buscarOrigem, conferirReputacao, ReputacaoBloqueada } from "../_shared/sonar-reputacao.ts";
 import { janelaDeDiscagem, JanelaIndisponivel } from "../_shared/janela-discagem.ts";
 import { podeDiscarSonar, SonarPortaoIndisponivel } from "../_shared/sonar-portao-tentativas.ts";
+import { dispararComOrcamento, GastoDigitalBloqueado, maxSegundosAgente } from "../_shared/digital-gasto.ts";
 import { degrauAtual, DegrauIndisponivel } from "../_shared/sonar-degrau.ts";
 
 // ============================================================
@@ -177,6 +178,7 @@ async function lerCarimboAgente() {
       tts_model: ttsModel,
       language: typeof fala.language === "string" ? fala.language : null,
       source: "elevenlabs_agent_get_pre_dispatch",
+      max_duration_seconds: maxSegundosAgente(config),
     },
   };
 }
@@ -347,6 +349,7 @@ Deno.serve(async (req: Request) => {
   // separado de degrauIndisponivel, que e o RPC caindo e vale 503.
   let degrauEsgotado = false;
   let degrauIndisponivel = false;
+  let gastoDigitalBloqueado = false;
   let primeiroPendente: number | undefined;
   for (let i = 0; i < telefoneIds.length; i++) {
     processados++;
@@ -487,14 +490,17 @@ Deno.serve(async (req: Request) => {
         continue;
       }
       tentouDisparar = true;
-      const res = await fetch(ELEVENLABS_OUTBOUND_CALL_URL, {
+      const res = await dispararComOrcamento(sb, {
+        leadId: telefone.lead_id, e164: telefone.e164, engine: "ldr",
+        maxSegundos: carimbo.ia_config_snapshot.max_duration_seconds,
+      }, payload, (payloadReservado) => fetch(ELEVENLABS_OUTBOUND_CALL_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "xi-api-key": ELEVENLABS_API_KEY,
         },
-        body: JSON.stringify(payload),
-      });
+        body: JSON.stringify(payloadReservado),
+      }));
 
       const resBody = await res.json().catch(() => null);
 
@@ -618,6 +624,12 @@ Deno.serve(async (req: Request) => {
         primeiroPendente = i;
         break;
       }
+      if (erro instanceof GastoDigitalBloqueado) {
+        gastoDigitalBloqueado = true;
+        primeiroPendente = i;
+        pulados.push({ telefoneId, motivo: "gasto_digital_bloqueado", detalhe: erro.message });
+        break;
+      }
       if (erro instanceof DegrauIndisponivel) {
         // Sem saber quanto resta do teto, nao da para afirmar que cabe mais
         // uma. Fail-closed, igual aos vizinhos.
@@ -655,8 +667,9 @@ Deno.serve(async (req: Request) => {
     sonarPortaoIndisponivel,
     degrauEsgotado,
     degrauIndisponivel,
+    gastoDigitalBloqueado,
     ligados,
     pulados,
     falhas,
-  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel || janelaIndisponivel || degrauIndisponivel ? 503 : 200);
+  }, promptBloqueado || reputacaoBloqueada || optoutIndisponivel || sonarPortaoIndisponivel || janelaIndisponivel || degrauIndisponivel || gastoDigitalBloqueado ? 503 : 200);
 });

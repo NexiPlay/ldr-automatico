@@ -11,6 +11,7 @@ function agent(voice = "voice-test") {
     conversation_config: {
       agent: { language: "pt", first_message: first, prompt: { prompt, llm: "llm-test", tools: [{ secret: "NEVER_SNAPSHOT" }] } },
       tts: { voice_id: voice, model_id: "tts-test" },
+      conversation: { max_duration_seconds: 120 },
     },
     private_config: "NEVER_SNAPSHOT",
   };
@@ -26,6 +27,7 @@ type Options = {
   sonarPortao?: boolean; sonarPortaoError?: boolean; sonarPortaoBeforePost?: boolean;
   registroFalhaErro?: boolean;
   degrauEsgotado?: boolean; degrauError?: boolean;
+  budgetStop?: boolean; budgetError?: boolean;
 };
 
 async function scenario(options: Options, ids = ["phone-1"]) {
@@ -70,6 +72,7 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   await withEdge("ldr-automatico-orquestrador", {
     db,
     rpc(name, args) {
+      if (name === "np_fn_digital_gasto_reservar") return {data: options.budgetStop ? {digital:true,permitido:false,motivo:"teto_dia"} : {digital:false,permitido:true}, error:options.budgetError ? {message:"offline"} : null};
       // SON-2.2: a janela (R3) virou consulta ao banco. A correcao da regra e
       // provada na suite SQL do repo nexilead; aqui ela so precisa liberar,
       // para os testes deste arquivo continuarem medindo o que medem.
@@ -322,4 +325,13 @@ Deno.test("runtime: telefone já discado não é lido do ElevenLabs nem recebe n
   const r = await scenario({ alreadyCalled: true });
   assert.equal(r.reads.length, 0); assert.equal(r.payloads.length, 0); assert.equal(r.updates.length, 0);
   assert.equal(r.body.pulados[0].motivo, "ja_tinha_conversation_id");
+});
+
+Deno.test("DIG-2.5: or?amento bloqueado/indispon?vel impede POST e preserva pendentes", async () => {
+  for(const option of [{budgetStop:true},{budgetError:true}]) {
+    const r = await scenario(option, ["phone-1","phone-2"]);
+    assert.equal(r.status,503); assert.equal(r.payloads.length,0);
+    assert.equal(r.body.gastoDigitalBloqueado,true);
+    assert.deepEqual(r.body.pendentes,["phone-1","phone-2"]);
+  }
 });

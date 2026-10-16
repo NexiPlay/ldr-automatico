@@ -29,6 +29,7 @@ async function run(values: unknown[], options: { failure?: string; missingPhone?
   await withEdge("ldr-automatico-webhook", {
     fetch: unexpectedFetch,
     rpc(name, args) {
+      if(name === "np_fn_digital_gasto_registrar") return {data:{digital:false},error:null};
       calls.push({ name, args });
       if (name === "np_fn_opt_out_registrar") {
         assert.ok(!(args.p_e164 && args.p_cnpj), "Uma chave por chamada do serviço SON-1.4");
