@@ -1,6 +1,12 @@
 -- Read-only preflight. Does not create budgets, enable campaigns or change stops.
 do $$
 begin
+  if to_regprocedure('public.np_fn_digital_gasto_reservar(uuid,uuid,text,text,integer,boolean,text)') is null
+     or to_regclass('public.np_digital_degraus') is null
+     or not exists(select 1 from pg_trigger where tgrelid='public.np_digital_gastos'::regclass
+       and tgname='np_digital_degrau_reserva' and tgenabled='O') then
+    raise exception 'DIG-2.4 migration is missing; dialers require the real origin and volume gate';
+  end if;
   if to_regprocedure('public.np_fn_digital_gasto_reservar(uuid,uuid,text,text,integer,boolean)') is null
      or to_regprocedure('public.np_fn_digital_gasto_registrar(uuid,text,boolean,numeric,numeric,text)') is null
      or to_regclass('public.np_digital_orcamentos') is null then

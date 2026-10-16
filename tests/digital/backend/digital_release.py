@@ -68,6 +68,12 @@ def source_hashes():
     paths.extend(ROOT / p for p in (
         'scripts/digital-release.py', 'scripts/publish-digital.py',
         'backend/migrations/0458_dig32_contexto_servidor.sql',
+        'backend/migrations/0450_dig25_teto_financeiro.sql',
+        'backend/migrations/0452_dig25_instante_apos_lock.sql',
+        'backend/migrations/20261016180000_dig25_fonte_cdr.sql',
+        'backend/migrations/20261016200000_dig24_degraus.sql',
+        'backend/tests/digital/degrau-fixture.mjs', 'backend/tests/digital/degrau.test.mjs',
+        'backend/tests/digital/degrau-concorrencia.test.mjs',
         'backend/edge-functions/karla-dialer/index.ts', 'backend/edge-functions/karla-dialer/digital.ts',
         'backend/edge-functions/karla-dialer/digital-approval.json', 'backend/edge-functions/karla-dialer/digital-gasto.ts',
         'backend/edge-functions/karla-dialer/digital.test.mjs', 'backend/edge-functions/karla-sdr-webhook/index.ts',

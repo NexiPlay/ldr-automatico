@@ -13,7 +13,7 @@ export function maxSegundosAgente(config: unknown): number | null {
 
 export async function dispararComOrcamento(
   sb: Rpc,
-  contexto: { leadId: string | null; e164: string; engine: 'ldr' | 'sdr'; maxSegundos: number | null; exigirDigital?: boolean },
+  contexto: { leadId: string | null; e164: string; engine: 'ldr' | 'sdr'; maxSegundos: number | null; exigirDigital?: boolean; origem?: string },
   payload: Objeto,
   enviar: (payload: Objeto) => Promise<Response>,
 ): Promise<Response> {
@@ -24,6 +24,7 @@ export async function dispararComOrcamento(
       p_tentativa: tentativa, p_lead: contexto.leadId, p_e164: contexto.e164,
       p_engine: contexto.engine, p_max_segundos: contexto.maxSegundos,
       p_exigir_digital: contexto.exigirDigital === true,
+      ...(contexto.origem !== undefined ? { p_origem: contexto.origem } : {}),
     });
     reserva = objeto(data);
     if (error || typeof reserva.digital !== 'boolean' || typeof reserva.permitido !== 'boolean') {

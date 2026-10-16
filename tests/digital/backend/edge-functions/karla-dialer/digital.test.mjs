@@ -96,6 +96,7 @@ async function dispatch(body, options = {}) {
     auth: { getUser: async () => ({ data: { user: { email: 'test@example.invalid' } }, error: null }) },
     rpc: async (name, args) => {
       events.push({ name, args });
+      if (name === 'np_fn_digital_gasto_reservar') assert.equal(args.p_origem, '+5511999990000');
       if (name === 'np_fn_digital_gasto_reservar' && !(name in (options.rpc ?? {})) && options.errorRpc !== name) return {data: options.budgetMember || body.projeto === 'digital' ? {digital:true,permitido:true,tentativa_id:args.p_tentativa} : {digital:false,permitido:true},error:null};
       if (name === 'np_fn_digital_gasto_registrar') return {data:{digital:true,tentativa_id:args.p_tentativa},error:null};
       return { data: name in (options.rpc ?? {}) ? options.rpc[name] : defaults[name], error: options.errorRpc === name ? { message: 'simulated failure' } : null };

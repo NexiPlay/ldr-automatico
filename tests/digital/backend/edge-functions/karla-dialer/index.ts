@@ -514,8 +514,9 @@ Deno.serve(async (req) => {
   // a própria causa do disparo duplicado (ver comentário da trava acima). Em timeout, a mensagem
   // deixa de ser um erro genérico — avisa explicitamente que a ligação PROVAVELMENTE já saiu.
   let resp: Response;
+  let origem: string;
   try {
-    const origem = await buscarOrigem(apiKey, AGENT_PHONE_NUMBER_ID);
+    origem = await buscarOrigem(apiKey, AGENT_PHONE_NUMBER_ID);
     await conferirReputacao(sb, origem);
   } catch (e) {
     const erro = e instanceof Error ? e.message : "Monitor de reputacao indisponivel";
@@ -539,7 +540,7 @@ Deno.serve(async (req) => {
       conversation_initiation_client_data: digital ?? { dynamic_variables: { empresa } },
     };
     resp = await dispararComOrcamento(sb, {
-      leadId: leadIdResolvido, e164: toNumber, engine: "sdr", maxSegundos, exigirDigital: ehDigital,
+      leadId: leadIdResolvido, e164: toNumber, engine: "sdr", maxSegundos, exigirDigital: ehDigital, origem,
     }, payload, (payloadReservado) => fetch(ELEVENLABS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json", "xi-api-key": apiKey },
