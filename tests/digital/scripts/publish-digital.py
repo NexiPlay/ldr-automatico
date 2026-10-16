@@ -90,12 +90,16 @@ def main():
         after = json.loads(run(cli + ["functions", "list", "--project-ref", PROJECT, "--output", "json"]))
         receipt["after"] = {f["name"]: {k:f.get(k) for k in ("version", "verify_jwt", "ezbr_sha256")} for f in after if f["name"] in BASE}
         readback = stage / "readback"
-        readback.mkdir()
+        (readback / "supabase").mkdir(parents=True)
+        # Sem config local, a CLI procura a pasta Supabase ancestral e pode
+        # baixar sobre o staging. Isolar explicitamente o destino da releitura.
+        (readback / "supabase/config.toml").write_text(f'project_id = "{PROJECT}"\n', encoding="utf-8")
         for name, expected in BASE.items():
             live = receipt["after"][name]
             release.require(live["version"] > expected["version"] and live["verify_jwt"] == expected["verify_jwt"],
                             "Versão/autenticação publicada diverge: " + name)
-            run(cli + ["functions", "download", name, "--project-ref", PROJECT, "--use-api"], cwd=readback)
+            run(cli + ["functions", "download", name, "--project-ref", PROJECT, "--use-api",
+                       "--workdir", readback], cwd=readback)
         for name, expected in receipt["source_sha256_lf"].items():
             release.require(release.file_sha(readback / "supabase/functions" / name) == expected,
                             "Fonte publicada difere: " + name)

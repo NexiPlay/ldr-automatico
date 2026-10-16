@@ -40,6 +40,7 @@ jobs:
           node --test tests/digital/backend/edge-functions/karla-dialer/digital.test.mjs
           npm ci --ignore-scripts --prefix tests/digital/backend/tests/digital
           node --test tests/digital/backend/tests/digital/contexto.test.mjs
+          node --test tests/digital/backend/tests/digital/degrau.test.mjs
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x

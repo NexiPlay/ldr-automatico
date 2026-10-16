@@ -74,7 +74,10 @@ async function scenario(options: Options, ids = ["phone-1"]) {
   await withEdge("ldr-automatico-orquestrador", {
     db,
     rpc(name, args) {
-      if (name === "np_fn_digital_gasto_reservar") return {data: options.budgetStop ? {digital:true,permitido:false,motivo:"teto_dia"} : {digital:false,permitido:true}, error:options.budgetError ? {message:"offline"} : null};
+      if (name === "np_fn_digital_gasto_reservar") {
+        assert.equal(args.p_origem, "+5511000000010");
+        return {data: options.budgetStop ? {digital:true,permitido:false,motivo:"teto_dia"} : {digital:false,permitido:true}, error:options.budgetError ? {message:"offline"} : null};
+      }
       // SON-2.2: a janela (R3) virou consulta ao banco. A correcao da regra e
       // provada na suite SQL do repo nexilead; aqui ela so precisa liberar,
       // para os testes deste arquivo continuarem medindo o que medem.

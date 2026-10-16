@@ -494,7 +494,7 @@ Deno.serve(async (req: Request) => {
       }
       tentouDisparar = true;
       const res = await dispararComOrcamento(sb, {
-        leadId: telefone.lead_id, e164: telefone.e164, engine: "ldr",
+        leadId: telefone.lead_id, e164: telefone.e164, engine: "ldr", origem,
         maxSegundos: carimbo.ia_config_snapshot.max_duration_seconds,
       }, payload, (payloadReservado) => fetch(ELEVENLABS_OUTBOUND_CALL_URL, {
         method: "POST",

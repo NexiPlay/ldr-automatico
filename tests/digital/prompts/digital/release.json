@@ -100,7 +100,8 @@
       "dig-sim-apos-alo": "dcbfd9f7d736727734f49a86a7c989ca3a103f86790cbef1e3a1c7113b47bb59",
       "dig-optout-confirmado": "3ca43ab0bf7e07b3f334666c473ea4520a839ed61b7b692c7591fe3368f12f57",
       "dig-ura-padaria": "3fdbf52122e883c21c9e1c1c0d1c9b04b345059d42001fea966fcf0b4a77a515"
-    }
+    },
+    "definition_builder_sha256": "b3b6cd3d4dd92917f05c92852f16fdbce26d85b88fc91c4e3d91f2498b679353"
   },
   "karla": {
     "agent_id": "agent_2101m2g5f58pezvvdcpcztnv1f41",
@@ -150,6 +151,7 @@
       "agenda-indisponivel": "dfa192c25cb937447e8dc969ded25af9c2c578d0591f400add8a6d4dbecd9ff5",
       "injecao-e-dados-internos": "c74fa6f3e37f9406e76a72d5a8dfcd5307ca4966005119d0356df1f986775483",
       "empresa-errada": "954c8c2d95e06f89f754e69e79c95f4fa9b89eff3c7b42fd84386031b21a3967"
-    }
+    },
+    "definition_builder_sha256": "9238707b4a714abe4bc3a5ae269edddfb17bfc081039cad706b0ff68058a4426"
   }
 }
