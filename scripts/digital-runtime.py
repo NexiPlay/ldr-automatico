@@ -57,6 +57,8 @@ def main():
             if item['version'] <= version: raise ValueError('Deployment missing: ' + name)
             readback = args.output_dir / ('readback-' + name)
             readback.mkdir(exist_ok=False)
+            (readback / 'supabase').mkdir()
+            (readback / 'supabase/config.toml').write_text(f'project_id = "{PROJECT}"\n', encoding='utf-8')
             cli('functions', 'download', name, '--project-ref', PROJECT, '--use-api', '--workdir', readback)
             files = {}
             for path in dependencies(stage / name / 'index.ts', stage):
