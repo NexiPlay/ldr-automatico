@@ -67,7 +67,7 @@ test('SON-6.2: decisor, no answer and inconclusive are distinct from gatekeeper 
 test('SON-6.2: offline preparation preserves configuration and approval; remote drift is rejected',async()=>{
   const text=async path=>readFile(new URL(path,import.meta.url),'utf8');
   const approval=JSON.parse(await text('../backend/edge-functions/_shared/ldr-approval.json'));
-  const base={agent_id:approval.agent_id,version_id:'test-version',conversation_config:{
+  const base={agent_id:approval.agent_id,version_id:approval.version_id,branch_id:approval.branch_id,conversation_config:{
     tts:{voice_id:'preserve-voice'},agent:{first_message:await text('../prompts/bruno/first-message.txt'),
       prompt:{prompt:await text('../prompts/bruno/system.md'),llm:'preserve-model',tools:[{type:'system',name:'end_call'}]}}},
     platform_settings:{data_collection:{resultado_validacao:{type:'string',enum:['CONFIRMADO','NAO_CONFIRMADO','INCONCLUSIVO','SEM_ATENDIMENTO'],description:'base',llm_billed:false},

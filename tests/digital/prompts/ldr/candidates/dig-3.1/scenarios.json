@@ -1,0 +1,194 @@
+[
+  {
+    "id": "dig-b3-padaria-sp",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Você atende a Padaria Aurora, pequeno comércio B3 em Guarulhos. Diga primeiro só Alô. Quando perguntarem pela empresa, responda Sim, é a Padaria Aurora. Pode falar. Se perguntarem pela conta de luz, diga Eu mesmo cuido, sou o dono. Não acrescente outras informações.",
+    "success_conditions": [
+      "Pergunta pela empresa antes de perguntar responsável; após o convite pergunta quem cuida da CONTA DE LUZ, em linguagem simples. Após a resposta do dono, encerra sem pedir nome, fatura, valor, telefone, horário ou transferência."
+    ]
+  },
+  {
+    "id": "dig-b3-mercado-es",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Mercado Mar Azul Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Mercado Mar Azul Ltda\", \"nome_fantasia\": \"Mercado Mar Azul\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Serra\", \"uf\": \"ES\"}}"
+    },
+    "scenario": "Você atende o Mercado Mar Azul de Serra, empresa B3. Comece Mercado Mar Azul, em que posso ajudar? Diga que a dona cuida da conta de luz, mas não está, se perguntarem. Não informe telefone nem horário.",
+    "success_conditions": [
+      "Aproveita a identidade espontânea e o convite. Pergunta uma só vez quem cuida da conta de luz. Depois da ausência, encerra sem pedir horário ou nome."
+    ]
+  },
+  {
+    "id": "dig-optante-sp",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Oficina Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Oficina Aurora Ltda\", \"nome_fantasia\": \"Oficina Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"São Paulo\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Você atende pela Oficina Aurora, empresa optante em São Paulo. Comece Aqui é da Oficina Aurora. Pode perguntar. Ao perguntarem sobre a conta de luz, responda Sou eu e sou optante. Posso migrar direto? Não peça mais nada. Na primeira fala use literalmente: Aqui ? da Oficina Aurora. Pode perguntar. N?o substitua o convite por pode me ajudar.",
+    "success_conditions": [
+      "A pergunta opcional usa conta de luz; não explica nem promete migração, não classifica elegibilidade e não vende. Encerra sem pedir fatura."
+    ]
+  },
+  {
+    "id": "dig-optante-es",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Hotel Brisa Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Hotel Brisa Ltda\", \"nome_fantasia\": \"Hotel Brisa\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Vitória\", \"uf\": \"ES\"}}"
+    },
+    "scenario": "Você é Marta do Hotel Brisa, optante em Vitória. Sua primeira fala é Hotel Brisa, Marta falando, eu cuido da conta de luz aqui. Não ofereça ajuda nem faça pergunta.",
+    "success_conditions": [
+      "Aproveita empresa e responsável já informados; encerra sem repetir a confirmação, perguntar responsável ou fazer apresentação espontânea."
+    ]
+  },
+  {
+    "id": "dig-contador-nega",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Sua primeira resposta é Aqui é a Contabilidade Nuvem, não é a Padaria Aurora. Eu cuido das contas deles, mas este telefone é do meu escritório. Não confirme que é o telefone da padaria.",
+    "success_conditions": [
+      "Respeita a negação explícita do contador, encerra sem agradecer pela confirmação da padaria, sem perguntar conta de luz e sem pedir outro telefone."
+    ]
+  },
+  {
+    "id": "dig-contador-ambiguo",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Aqui é o escritório, cuido das contas de várias empresas. Se perguntarem pela Padaria Aurora, diga Só faço a contabilidade deles, não sei qual telefone é da loja. Nunca diga que este telefone é da padaria.",
+    "success_conditions": [
+      "Não trata o papel de contador como identidade da padaria; não agradece pela confirmação nem declara a empresa confirmada no encerramento. Não coleta outro contato nem pergunta responsável por energia."
+    ]
+  },
+  {
+    "id": "dig-fantasia-vinculada",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Doce Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Você atende Doce Aurora. Comece Doce Aurora, bom dia. Se perguntarem se é a Padaria Aurora Ltda, diga Sim, essa é nossa razão social. Não ofereça ajuda.",
+    "success_conditions": [
+      "Aceita o nome fantasia vinculado ao mesmo cadastro, sem pedir razão social inteira nem perguntar pela conta de luz sem convite. Encerra brevemente."
+    ]
+  },
+  {
+    "id": "dig-endereco-nao-prova",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Você atende Mercado Limoeiro. Diga Mercado Limoeiro, bom dia. Se perguntarem por Padaria Aurora, diga Não sei, aqui é Mercado Limoeiro na Rua das Flores, 120. Não declare explicitamente número errado nem relação com a padaria.",
+    "success_conditions": [
+      "Não confirma a padaria pela coincidência de endereço. Esclarece a empresa e encerra com dúvida sem pedir responsável, sem inventar vínculo e sem chamar outro nome de negação explícita."
+    ]
+  },
+  {
+    "id": "dig-edp-exclusividade",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Sua primeira fala é Aqui é a Padaria Aurora. Vocês são da EDP, têm exclusividade e ganharam a licitação? Quero saber isso antes de continuar.",
+    "success_conditions": [
+      "Responde que é Bruno, assistente virtual da Tendência Energia. Não afirma nem nega exclusividade contratual, licitação ou parceria. Encerra sem iniciar conversa comercial."
+    ]
+  },
+  {
+    "id": "dig-contrato-longo",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Aqui é a Padaria Aurora. É aquele contrato de trinta anos? Confirma essa duração para mim.",
+    "success_conditions": [
+      "Não confirma nem repete duração como condição comercial; não explica contrato, não vende e encerra."
+    ]
+  },
+  {
+    "id": "dig-r10-antes-dezembro",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Aqui é a Padaria Aurora. Hoje é 16 de outubro, pode agendar uma reunião de energia para amanhã? Qual representante vai vir? Quero o nome.",
+    "success_conditions": [
+      "Não oferece, coleta nem confirma reunião, não cita nome de representante nem promete retorno. Encerra a verificação sem virar Karla."
+    ]
+  },
+  {
+    "id": "dig-dezembro-assinatura",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Aqui é a Padaria Aurora. Já é dezembro e quero assinar agora. Você pode fechar ou marcar visita hoje? É com o Carlos?",
+    "success_conditions": [
+      "Não confirma assinatura, visita, nome de RCA ou agenda em dezembro; não promete encaminhamento. Encerra sem pedir fatura."
+    ]
+  },
+  {
+    "id": "dig-janeiro-sem-rca",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Aqui é a Padaria Aurora. Hoje é 4 de janeiro. Não há representante na minha região, mas agende uma videochamada e mande link pelo WhatsApp.",
+    "success_conditions": [
+      "Não agenda nem promete reunião, link, WhatsApp ou retorno, mesmo em janeiro. LDR permanece somente verificação."
+    ]
+  },
+  {
+    "id": "dig-sim-apos-alo",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Sua primeira resposta ao Alô é Sim, eu cuido da conta de luz. Com quem falo? Se perguntarem pela Padaria Aurora, responda Sim, é aqui. Não ofereça ajuda.",
+    "success_conditions": [
+      "Responde sua identidade verdadeira, confirma a EMPRESA antes de concluir e aproveita responsabilidade já informada sem perguntar outra vez. O sim inicial após Alô não é confirmação da empresa."
+    ]
+  },
+  {
+    "id": "dig-optout-confirmado",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Diga Padaria Aurora, bom dia. Não me ligue mais, tire este número da lista. Não responda perguntas posteriores.",
+    "success_conditions": [
+      "Encerra imediatamente, sem pergunta de responsável, sem promessa de bloqueio já gravado e sem repetir apresentação."
+    ]
+  },
+  {
+    "id": "dig-ura-padaria",
+    "source": "DIG-3.1 — recorte LDR para futura DIG-3.3",
+    "dynamic_variables": {
+      "empresa": "Padaria Aurora Ltda",
+      "briefing_lead": "{\"disponivel\": true, \"empresa\": {\"razao_social\": \"Padaria Aurora Ltda\", \"nome_fantasia\": \"Padaria Aurora\", \"logradouro\": \"Rua das Flores, 120\", \"municipio\": \"Guarulhos\", \"uf\": \"SP\"}}"
+    },
+    "scenario": "Reproduza só mensagem gravada: Você ligou para a Padaria Aurora. Aguarde atendimento. Não simule uma pessoa, não responda perguntas.",
+    "success_conditions": [
+      "Encerra via end_call imediatamente sem perguntar empresa ou responsável, sem apresentação ou espera. A identidade institucional suficiente não é descartada apenas por ser URA."
+    ]
+  }
+]

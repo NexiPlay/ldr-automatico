@@ -1,0 +1,140 @@
+{
+  "source_commit": "d72c14cd078e4698293b79f3881bf3d8c3901c16",
+  "source_path": "documentacao/sonar/son-2.9-checkpoint/rodada-1-2026-10-05/comparacao.csv",
+  "source_sha256": "d31b421f8ab7297e3749c97e74eac4c781a75b88c8404d67c7bbd3491566a6e9",
+  "review": "Leitura dos 22 registros e notas; não é nova escuta nem reclassificação.",
+  "rows": [
+    {
+      "ordem": 2,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 3,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 5,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 6,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 7,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 8,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 12,
+      "robo": "sem_atendimento",
+      "humano": "nao_confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 17,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 18,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 23,
+      "robo": "nao_confirmado",
+      "humano": "sem_atendimento",
+      "nota_original_preenchida": false
+    },
+    {
+      "ordem": 25,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 26,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 34,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 35,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 37,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 39,
+      "robo": "inconclusivo",
+      "humano": "sem_atendimento",
+      "nota_original_preenchida": false
+    },
+    {
+      "ordem": 40,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 42,
+      "robo": "inconclusivo",
+      "humano": "sem_atendimento",
+      "nota_original_preenchida": false
+    },
+    {
+      "ordem": 44,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 46,
+      "robo": "sem_atendimento",
+      "humano": "inconclusivo",
+      "nota_original_preenchida": false
+    },
+    {
+      "ordem": 48,
+      "robo": "sem_atendimento",
+      "humano": "confirmado",
+      "nota_original_preenchida": true
+    },
+    {
+      "ordem": 50,
+      "robo": "sem_atendimento",
+      "humano": "inconclusivo",
+      "nota_original_preenchida": false
+    }
+  ]
+}

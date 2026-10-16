@@ -107,7 +107,7 @@ export async function releaseGate({ env = process.env, fetchImpl = fetch, sleep 
     ids.push(result.id);
   }
   let invocation = await request(`agents/${encodeURIComponent(agentId)}/run-tests`, {
-    tests: ids.map((test_id) => ({ test_id })), repeat_count: 1,
+    branch_id: approval.branch_id, tests: ids.map((test_id) => ({ test_id })), repeat_count: 1,
   });
   if (typeof invocation.id !== "string" || !invocation.id) throw new Error("ID da execução ausente");
   const invocationId = invocation.id;

@@ -105,7 +105,7 @@ function textoApi(valor: unknown, campo: string): string {
 }
 
 async function lerCarimboAgente() {
-  const url = `${ELEVENLABS_BASE_URL}/v1/convai/agents/${encodeURIComponent(ELEVENLABS_AGENT_ID)}`;
+  const url = `${ELEVENLABS_BASE_URL}/v1/convai/agents/${encodeURIComponent(ELEVENLABS_AGENT_ID)}?branch_id=${encodeURIComponent(approval.branch_id)}`;
   let res: Response;
   try {
     res = await fetch(url, {
@@ -178,6 +178,8 @@ async function lerCarimboAgente() {
       tts_model: ttsModel,
       language: typeof fala.language === "string" ? fala.language : null,
       source: "elevenlabs_agent_get_pre_dispatch",
+      branch_id: approval.branch_id,
+      version_id: approval.version_id,
       max_duration_seconds: maxSegundosAgente(config),
     },
   };
@@ -440,6 +442,7 @@ Deno.serve(async (req: Request) => {
         agent_phone_number_id: ELEVENLABS_AGENT_PHONE_NUMBER_ID,
         to_number: telefone.e164,
         conversation_initiation_client_data: {
+          branch_id: approval.branch_id,
           dynamic_variables: { ...briefing, empresa },
         },
       };

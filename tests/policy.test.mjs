@@ -7,7 +7,18 @@ import approval from "../backend/edge-functions/_shared/ldr-approval.json" with 
 const prompt = await readFile(new URL("../prompts/bruno/system.md", import.meta.url), "utf8");
 const legacyPrompt = Object.values(R5).join(". ");
 const first = await readFile(new URL("../prompts/bruno/first-message.txt", import.meta.url), "utf8");
-const agent = () => ({ agent_id: approval.agent_id, conversation_config: { agent: { prompt: { prompt }, first_message: first } } });
+const agent = () => ({ agent_id: approval.agent_id, version_id: approval.version_id, branch_id: approval.branch_id,
+  conversation_config: { agent: { prompt: { prompt }, first_message: first } } });
+
+test("branch que avançou ou versão principal não substitui candidata testada", async () => {
+  for (const change of [{version_id:'new-version'}, {branch_id:'main'}, {version_id:undefined}]) {
+    await assert.rejects(assertApprovedAgent({...agent(), ...change}, approval), /versão remota diverge/);
+  }
+  let requested;
+  await fetchApprovedAgent({apiKey:'fake', agentId:approval.agent_id, approval,
+    fetchImpl: async url => {requested = new URL(url); return Response.json(agent());}});
+  assert.equal(requested.searchParams.get('branch_id'), approval.branch_id);
+});
 
 test("prompt e abertura Bruno aprovados", async () => {
   assertOpening(prompt, first, approval.opening_policy);

@@ -1,0 +1,7 @@
+{
+  "name": "digital-budget-tests",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test *.test.mjs" },
+  "devDependencies": { "@electric-sql/pglite": "0.5.8", "pg": "8.16.3" }
+}

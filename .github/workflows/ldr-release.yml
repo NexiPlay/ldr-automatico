@@ -12,6 +12,7 @@ on:
         options:
           - all
           - orchestrator
+          - digital
 
 permissions:
   contents: read
@@ -29,6 +30,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: DIG-3.3 - integridade da suíte conjunta e vínculo do discador
+        run: |
+          python scripts/digital-suite.py
+          python -m unittest discover -s tests/digital/backend/tests -v
+          node --test tests/digital/backend/edge-functions/karla-dialer/digital.test.mjs
+          npm ci --ignore-scripts --prefix tests/digital/backend/tests/digital
+          node --test tests/digital/backend/tests/digital/contexto.test.mjs
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
@@ -40,9 +51,11 @@ jobs:
         run: deno test --config tests/runtime/deno.json --allow-read --allow-env --deny-net tests/runtime/
       - name: Verificar edge functions
         run: deno check backend/edge-functions/ldr-automatico-orquestrador/index.ts backend/edge-functions/ldr-automatico-webhook/index.ts backend/edge-functions/ldr-automatico-conversa/index.ts backend/edge-functions/ldr-contexto-analise/index.ts
+      - name: Verificar Karla Digital do mesmo pacote testado
+        run: deno check tests/digital/backend/edge-functions/karla-dialer/index.ts
 
   r5-adversarial:
-    name: R5 remoto e suíte adversarial obrigatórios
+    name: DIG-3.3 - ambos os agentes e controles negativos obrigatórios
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     needs: checks
     runs-on: ubuntu-latest
@@ -56,18 +69,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: R5 remoto, versão revisada e suíte SON-2.5 obrigatórios
-        run: node scripts/ldr-release.mjs --live
-      - name: SON-2.5 - provar que uma versão ruim reprova (somente simulação)
-        run: node scripts/son25-negative-control.mjs
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: 45 LDR e 20 Karla na versão exata (inclui regressões SON-2.5)
+        run: |
+          python tests/digital/backend/digital_release.py run --output-dir artifacts/digital-joint
+          python tests/digital/backend/digital_wait.py --output-dir artifacts/digital-joint
+      - name: Provar rejeição comportamental em ambos, sem editar agentes
+        run: python tests/digital/backend/digital_negative.py --output-dir artifacts/digital-joint
       - name: Guardar evidência da suíte
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ldr-adversarial-${{ github.sha }}
           path: |
-            artifacts/ldr-adversarial.json
-            artifacts/son25-negative-control.json
+            artifacts/digital-joint/
           if-no-files-found: ignore
           retention-days: 30
 
@@ -89,11 +106,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
       - name: Obter evidência obrigatória desta execução
         uses: actions/download-artifact@v4
         with:
           name: ldr-adversarial-${{ github.sha }}
-          path: artifacts
+          path: artifacts/digital-joint
       - name: Preparar funções LDR e módulos compartilhados
         run: |
           mkdir -p .release/supabase/functions
@@ -103,22 +123,45 @@ jobs:
           cp -R backend/edge-functions/ldr-automatico-conversa .release/supabase/functions/
           cp -R backend/edge-functions/ldr-contexto-analise .release/supabase/functions/
           cp -R backend/edge-functions/_shared .release/supabase/functions/
+          cp -R tests/digital/backend/edge-functions/karla-dialer .release/supabase/functions/
+          cp tests/digital/backend/edge-functions/_shared/sonar-followup.ts .release/supabase/functions/_shared/
       - name: Revalidar agente e publicar (nunca executar se a trava falhar)
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           LDR_RELEASE_SCOPE: ${{ inputs.scope || 'all' }}
         run: |
           set -euo pipefail
-          node scripts/ldr-release.mjs --verify-live
+          python scripts/digital-suite.py
+          python tests/digital/backend/digital_release.py verify --output-dir artifacts/digital-joint
           supabase db query --linked --project-ref wbagoinuxgvntvbbnmab --file scripts/sonar-reputacao-preflight.sql
+          supabase db query --linked --project-ref wbagoinuxgvntvbbnmab --file scripts/digital-preflight.sql
+          if [ "$LDR_RELEASE_SCOPE" = "digital" ]; then
+            python scripts/digital-runtime.py before
+          fi
           if [ "$LDR_RELEASE_SCOPE" = "all" ]; then
             supabase functions deploy ldr-contexto-analise --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
-            supabase functions deploy ldr-automatico-webhook --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
-          elif [ "$LDR_RELEASE_SCOPE" != "orchestrator" ]; then
+          elif [ "$LDR_RELEASE_SCOPE" != "orchestrator" ] && [ "$LDR_RELEASE_SCOPE" != "digital" ]; then
             echo "Escopo de release inválido" >&2
             exit 1
           fi
+          if [ "$LDR_RELEASE_SCOPE" = "all" ] || [ "$LDR_RELEASE_SCOPE" = "digital" ]; then
+            supabase functions deploy ldr-automatico-webhook --project-ref wbagoinuxgvntvbbnmab --use-api --no-verify-jwt --workdir .release
+          fi
           supabase functions deploy ldr-automatico-orquestrador --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release
+          if [ "$LDR_RELEASE_SCOPE" = "digital" ]; then
+            supabase functions deploy karla-dialer --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release
+          fi
           if [ "$LDR_RELEASE_SCOPE" = "all" ]; then
             supabase functions deploy ldr-automatico-conversa --project-ref wbagoinuxgvntvbbnmab --use-api --workdir .release
           fi
+          if [ "$LDR_RELEASE_SCOPE" = "digital" ]; then
+            python scripts/digital-runtime.py after
+          fi
+      - name: Guardar recibo de publicação e leitura posterior
+        if: always() && inputs.scope == 'digital'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digital-runtime-${{ github.sha }}
+          path: artifacts/digital-runtime/
+          if-no-files-found: ignore
+          retention-days: 30

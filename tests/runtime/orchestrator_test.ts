@@ -8,6 +8,8 @@ const first = await Deno.readTextFile(new URL("../../prompts/bruno/first-message
 function agent(voice = "voice-test") {
   return {
     agent_id: approval.agent_id,
+    version_id: approval.version_id,
+    branch_id: approval.branch_id,
     conversation_config: {
       agent: { language: "pt", first_message: first, prompt: { prompt, llm: "llm-test", tools: [{ secret: "NEVER_SNAPSHOT" }] } },
       tts: { voice_id: voice, model_id: "tts-test" },
@@ -116,6 +118,7 @@ async function scenario(options: Options, ids = ["phone-1"]) {
         return Response.json({ phone_number_id: "test-phone", phone_number: "+5511000000010" });
       }
       if (String(input).includes("/agents/")) {
+        assert.equal(new URL(String(input)).searchParams.get("branch_id"), approval.branch_id);
         order.push("get");
         const live = agent(`voice-${reads.length + 1}`);
         options.changeAgent?.(live, reads.length);
@@ -125,6 +128,7 @@ async function scenario(options: Options, ids = ["phone-1"]) {
       assert.ok(String(input).endsWith("/sip-trunk/outbound-call"));
       assert.equal(init?.method, "POST");
       order.push("post"); payloads.push(JSON.parse(String(init?.body)));
+      assert.equal((payloads.at(-1) as any).conversation_initiation_client_data.branch_id, approval.branch_id);
       if (options.postThrow) throw new Error("ambiguous transport failure");
       if (options.postFailure) return Response.json({ success: false }, { status: 503 });
       return Response.json({ success: true, conversation_id: `conversation-${payloads.length}` });
