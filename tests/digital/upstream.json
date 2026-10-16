@@ -1,6 +1,6 @@
 {
   "repository": "NexiPlay/nexilead",
-  "commit": "b0a3207d3ce84fec01cb4f250973c1a50b7e0f46",
+  "commit": "aa16c3736546a3a3b6d489b456ddba5e6a7dc427",
   "files": {
     "backend/digital_candidates.py": "0e449fed5abf67561ea8746eeb9b3e0df58a4f8642fc4e24dee6492239a42a74",
     "backend/digital_negative.py": "9fc6e4447111b45a323edc3c85f800bd747803b6f7cfd538d112a942e9596264",
@@ -21,7 +21,7 @@
     "backend/migrations/20261016180000_dig25_fonte_cdr.sql": "7f72da64669effd48b5dc7ad84e18f04eb3e3ebdc55a37aef0d7cdea43c34b4f",
     "backend/migrations/20261016200000_dig24_degraus.sql": "f63353a6034f2c12a04fc5c4fea953959acf02f585215b1da2a03efe4629e1a7",
     "backend/tests/digital/contexto.test.mjs": "20cad53ad95018e360dc1aa5f866fd2b5b15123aa9dbdb6330cc4605a7897346",
-    "backend/tests/digital/degrau-concorrencia.test.mjs": "29d18e4d3dec5dc9d6e5b220337d0c8a916f9cb9c2d19b1d809b14428ccd3b1a",
+    "backend/tests/digital/degrau-concorrencia.test.mjs": "6185a41707d4a711a8f7d2681135e5ffdbe65d2a671b1ca8bfa82c54cf5afeed",
     "backend/tests/digital/degrau-fixture.mjs": "a31a43b99960bf14baaa3b6174f22c7e21555644b500a7daefb145a7e1c03d9d",
     "backend/tests/digital/degrau.test.mjs": "b7724ece06dc0aebf1930332480be97bc7a68562ed2abe5310b8fad90bd9d097",
     "backend/tests/digital/package-lock.json": "8aa6223a0b0e78220c375667c3bb38a31f33390a998a14ed7afb1c06f62b2ece",

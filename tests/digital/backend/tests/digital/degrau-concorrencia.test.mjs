@@ -7,27 +7,30 @@ test('DIG-2.4 PostgreSQL: teto compartilhado e validade após lock',
   {skip:!process.env.DIGITAL_TEST_POSTGRES_URL},async t=>{
     const admin=new pg.Pool({connectionString:process.env.DIGITAL_TEST_POSTGRES_URL,max:1});
     const name='dig24_test_'+crypto.randomUUID().replaceAll('-','');let pool;
-    const closed=[];
+    const closed=[],connectionIds=new Set();
     try {
       await admin.query(`create database ${name}`);
       const url=new URL(process.env.DIGITAL_TEST_POSTGRES_URL);url.pathname='/'+name;
       pool=new pg.Pool({connectionString:url.toString(),max:40});
       // Queries recusadas removem clientes do pool antes de terminar o socket.
       // Aguarda também esses clientes antes de remover o banco descartável.
-      pool.on('connect',client=>closed.push(new Promise(resolve=>client.once('end',resolve))));
+      pool.on('connect',client=>{
+        connectionIds.add(client.processID);
+        closed.push(new Promise(resolve=>client.once('end',resolve)));
+      });
       const f=await setup({exec:s=>pool.query(s),query:(s,a)=>pool.query(s,a)});
       await t.test('40 conexões, dois orçamentos e duas origens: só cinco reservas',async()=>{
         await f.define(5,capacity([3,3]));
         const results=await Promise.all(Array.from({length:40},async(_,i)=>{
           try{return await f.reserve(i+1);}catch(e){return {error:e.message};}
         }));
-        assert.ok(pool.totalCount>1);
+        assert.equal(connectionIds.size,40);
         assert.equal(results.filter(r=>r.permitido).length,5);
         assert.ok(results.filter(r=>r.error).every(r=>/teto diário|limite diário/.test(r.error)));
         assert.equal(+(await f.current()).usado_hoje,5);
         const perOrigin=await f.query('select origem,count(*) n from np_digital_gastos group by origem');
         assert.ok(perOrigin.every(r=>+r.n<=3));
-        console.log(JSON.stringify({independent_connections:pool.totalCount,attempts:40,accepted:5,
+        console.log(JSON.stringify({independent_connections:connectionIds.size,attempts:40,accepted:5,
           rejected:35,per_origin:perOrigin.map(r=>+r.n)}));
       });
       await t.test('aprovação vencida durante espera bloqueia sem gravar reserva',async()=>{
