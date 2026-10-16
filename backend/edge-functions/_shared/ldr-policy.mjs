@@ -86,6 +86,9 @@ export async function assertApprovedAgent(agent, approval) {
   if (await promptDigest(prompt, firstMessage) !== approval.prompt_sha256) {
     throw new Error("Prompt remoto diverge da versão Bruno revisada; discagem/deploy bloqueado");
   }
+  if (approval.version_id && (agent.version_id !== approval.version_id || agent.branch_id !== approval.branch_id)) {
+    throw new Error("Branch/versão remota diverge da suíte conjunta aprovada; discagem/deploy bloqueado");
+  }
   return agent;
 }
 
@@ -97,7 +100,8 @@ export function elevenlabsBase(value = "https://api.elevenlabs.io") {
 
 export async function fetchApprovedAgent({ apiKey, agentId, approval, baseUrl, fetchImpl = fetch }) {
   if (!apiKey || !agentId) throw new Error("Credenciais ElevenLabs ausentes; verificação obrigatória");
-  const response = await fetchImpl(`${elevenlabsBase(baseUrl)}/v1/convai/agents/${encodeURIComponent(agentId)}`, {
+  const query = approval.branch_id ? `?branch_id=${encodeURIComponent(approval.branch_id)}` : "";
+  const response = await fetchImpl(`${elevenlabsBase(baseUrl)}/v1/convai/agents/${encodeURIComponent(agentId)}${query}`, {
     headers: { "xi-api-key": apiKey }, signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error(`Não foi possível validar agente ElevenLabs (HTTP ${response.status})`);

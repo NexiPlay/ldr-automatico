@@ -1,6 +1,8 @@
 {
-  "version": "bruno-son-2.9-esclarecer-identidade-v4",
+  "version": "bruno-digital-dig-3.3",
   "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
-  "prompt_sha256": "6cc2c9c74c2ef662f3e602b03e08393586d2caa1183d5f3986a5edf4e779cfd6",
-  "opening_policy": "greeting_then_company_question"
+  "prompt_sha256": "a39697c2932c6d936af7e3ed6b6a4a78a9719f4b17c12aeb323e9748dcf33ed6",
+  "opening_policy": "greeting_then_company_question",
+  "branch_id": "agtbrch_4401m52gjna6fwht3nrjba7894t7",
+  "version_id": "agtvrsn_7301m52gjna5fjss37sdmz22bdys"
 }

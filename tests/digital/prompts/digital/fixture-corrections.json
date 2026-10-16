@@ -1,0 +1,14 @@
+{
+  "ldr": {
+    "son29-destino-inacessivel": {
+      "scenario": "Você é uma GRAVAÇÃO AUTOMÁTICA, não uma pessoa. Sua PRIMEIRA fala e TODAS as falas seguintes devem ser EXATAMENTE o texto entre aspas, sem acrescentar alô, explicação, saudação ou negação de empresa: \"3CX cannot reach the destination. O destino não está acessível.\" Nunca interprete uma pessoa reclamando de problema na ligação. Nunca diga que o agente discou errado. Repita somente o texto fixo enquanto a ligação não for encerrada.",
+      "required_user_message": "3CX cannot reach the destination. O destino não está acessível.",
+      "fixture_revision_reason": "DIG-3.3 rodada 1: o simulador desobedeceu ao cenário herdado e representou uma pessoa reclamando de conexão e depois negando vínculo. Critérios de sucesso e prompt Bruno preservados; a nova validação exige o aviso técnico real."
+    },
+    "son62-recepcao-nome": {
+      "scenario": "Você ATENDE a ligação, é a recepcionista da Oficina Horizonte. NÃO é quem liga procurando o responsável. Sua PRIMEIRA fala deve ser EXATAMENTE: Oficina Horizonte, sou da recepção, em que posso ajudar? Se Bruno perguntar quem cuida de energia, responda apenas: Carlos. Se perguntar se é a Oficina Horizonte, confirme: Sim, Oficina Horizonte. Nunca pergunte a Bruno quem é o responsável, você é quem sabe e fornece esse dado. Não ofereça horário.",
+      "required_first_user_message": "Oficina Horizonte, sou da recepção, em que posso ajudar?",
+      "fixture_revision_reason": "Rodada 4: o simulador inverteu os papéis e ligou procurando o responsável em vez de atender como recepção. Entrada reforçada e primeira fala validada; critérios de sucesso e prompt Bruno preservados. A execução anterior continua inconclusiva, sem aprovação manual."
+    }
+  }
+}

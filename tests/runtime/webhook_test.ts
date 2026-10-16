@@ -12,6 +12,7 @@ Deno.test("reputacao: assinatura valida persiste origem antes da correlacao; fal
     await withEdge("ldr-automatico-webhook", {
       fetch: unexpectedFetch,
       rpc(name, args) {
+        if (name === "np_fn_digital_gasto_registrar") return {data:{digital:false},error:null};
         assert.equal(name, "np_fn_sonar_reputacao_registrar");
         assert.equal(args.p_origem, "+5511000000001");
         assert.equal(args.p_duracao, 6);

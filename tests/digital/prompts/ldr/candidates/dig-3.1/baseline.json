@@ -1,0 +1,9 @@
+{
+  "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+  "version_id": "agtvrsn_9901m4gxycc5fg5r70gggzcmsbp8",
+  "prompt_sha256_lf": "d04d8e937a0cbeeba593e1841dbc4ea042f363319a9042c5193786b68aed6e8a",
+  "opening_policy": "greeting_then_company_question",
+  "source": "ElevenLabs GET + PBT-2.1 concluída; consulta 2026-10-16",
+  "opening_decision": "Usuário escolheu manter Alô? e comportamento atual do Sonar em 16/10/2026.",
+  "release_status": "candidate_only"
+}

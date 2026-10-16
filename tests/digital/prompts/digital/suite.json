@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task": "DIG-3.3",
+  "pbt_provenance": {
+    "mode": "reconstructed_from_card",
+    "original_suite_available": false,
+    "authorized_by": "Solicitante em 16/10/2026: seguir sem a documentação original e documentar a ausência.",
+    "source": "PBT-2.3, card consultado no Supabase em 16/10/2026; bugs de 04/08.",
+    "claim": "Os três cenários são novas regressões reconstruídas, não a execução dos testes históricos."
+  },
+  "agents": {
+    "ldr": {
+      "agent_id": "agent_3501m1c2yxmye1q99p9nh7r7ndkg",
+      "branch_id": "agtbrch_4401m52gjna6fwht3nrjba7894t7",
+      "version_id": "agtvrsn_7301m52gjna5fjss37sdmz22bdys",
+      "behavior_sha256": "3af35171079578df987b1d8038d071a76d9c2c445b6e1fe2f10a13b20d9333c4",
+      "base_version_id": "agtvrsn_9901m4gxycc5fg5r70gggzcmsbp8",
+      "base_behavior_sha256": "449ba59561987a238ae3b28c3980856cc5e8f21f2f50856068c4ea34c41180df",
+      "case_count": 45
+    },
+    "karla": {
+      "agent_id": "agent_2101m2g5f58pezvvdcpcztnv1f41",
+      "branch_id": "agtbrch_1901m52yxvp4fwr8y1k71t7b5sfv",
+      "version_id": "agtvrsn_4701m52yxvp3exwr2fad78aqedh3",
+      "behavior_sha256": "1a3f8c3d8dee6929f059d01e8434622c92587522389c98e32ddd6c03ab95610b",
+      "base_version_id": "agtvrsn_2901m3w653wwe568c1vxx94a2qmy",
+      "base_behavior_sha256": "2056cf5296155bd6becb222e04f449c12f6bd9eec9da247aff9bced1c64e58d5",
+      "case_count": 20,
+      "supersedes_version_id": "agtvrsn_0501m52ypkeyf9a9y1m55x8a35tg"
+    }
+  }
+}

@@ -5,13 +5,13 @@ import approval from "../backend/edge-functions/_shared/ldr-approval.json" with 
 import cases from "./adversarial/cases.json" with { type: "json" };
 
 const agentId = approval.agent_id;
-const successful = (ids) => ({ id: "invocation", agent_id: agentId, version_id: "v1", ran_against_draft: false, test_runs: ids.map((test_id) => ({
-  test_id, agent_id: agentId, version_id: "v1", status: "passed", condition_result: { result: "success" },
+const successful = (ids) => ({ id: "invocation", agent_id: agentId, version_id: approval.version_id, ran_against_draft: false, test_runs: ids.map((test_id) => ({
+  test_id, agent_id: agentId, version_id: approval.version_id, status: "passed", condition_result: { result: "success" },
   agent_responses: [{ role: "agent", message: "Sou Bruno, assistente virtual da Tendência Energia. Obrigado.", tool_calls: [{tool_name: "end_call", params_as_json: JSON.stringify({system__message_to_speak: "Obrigado pela atenção. Até logo."})}] }],
 })) });
 
 test("suíte exige todos os resultados e evidência de fala do agente", () => {
-  assertTestResults(successful(["a", "b"]), ["a", "b"], agentId, "v1");
+  assertTestResults(successful(["a", "b"]), ["a", "b"], agentId, approval.version_id);
   for (const mutate of [
     (r) => { r.test_runs.pop(); },
     (r) => { r.test_runs[1].test_id = "a"; },
@@ -23,7 +23,7 @@ test("suíte exige todos os resultados e evidência de fala do agente", () => {
     (r) => { r.version_id = "v2"; },
   ]) {
     const value = successful(["a", "b"]); mutate(value);
-    assert.throws(() => assertTestResults(value, ["a", "b"], agentId, "v1"));
+    assert.throws(() => assertTestResults(value, ["a", "b"], agentId, approval.version_id));
   }
 });
 
@@ -32,9 +32,9 @@ async function fixture({ badPrompt = false, failCase = false, drift = false, con
   const requests = []; const ids = []; let reads = 0;
   const fetchImpl = async (url, options) => {
     requests.push(url);
-    if (url.endsWith(`/agents/${agentId}`)) {
+    if (url.endsWith(`/agents/${agentId}?branch_id=${approval.branch_id}`)) {
       reads++;
-      return Response.json({ agent_id: agentId, version_id: "v1", conversation_config: { agent: {
+      return Response.json({ agent_id: agentId, version_id: approval.version_id, branch_id: approval.branch_id, conversation_config: { agent: {
         prompt: { prompt: badPrompt ? "Sem identificação" : prompt, llm: drift && reads > 1 ? "changed" : "model" }, first_message: firstMessage,
       } }, ...(context ? {workflow:{nodes:{context_node:{type:'tool',tools:[{tool_id:'context-tool'}]}}}} : {}) });
     }
@@ -71,7 +71,7 @@ async function fixture({ badPrompt = false, failCase = false, drift = false, con
 test("release verifica remoto, executa todos os ataques e reconsulta após a suíte", async () => {
   const f = await fixture(); const result = await f.run();
   assert.equal(result.cases, cases.length);
-  assert.equal(f.requests.filter((u) => u.endsWith(`/agents/${agentId}`)).length, 2);
+  assert.equal(f.requests.filter((u) => u.endsWith(`/agents/${agentId}?branch_id=${approval.branch_id}`)).length, 2);
 });
 
 test("release com workflow simula contexto público e falha de referência sem chamar função real", async () => {

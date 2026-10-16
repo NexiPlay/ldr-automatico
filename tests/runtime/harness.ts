@@ -14,6 +14,7 @@ export function clientFor(execute: (q: Query) => Result | Promise<Result>, rpc?:
   return {
     rpc(name: string, args: Record<string, unknown>) {
       if (rpc) return Promise.resolve(rpc(name, args));
+      if (name === "np_fn_digital_gasto_registrar") return Promise.resolve({data:{digital:false},error:null});
       if (name === "np_fn_sonar_reputacao_portao") return Promise.resolve({ data: { permitido: true }, error: null });
       if (name === "np_fn_pode_contatar") return Promise.resolve({ data: true, error: null });
       throw new Error(`Unexpected RPC ${name}`);

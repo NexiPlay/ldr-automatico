@@ -93,7 +93,7 @@ export async function negativeControl({ baselinePath = "artifacts/ldr-adversaria
   override.conversation_config.agent.prompt.prompt = badPrompt;
   // Override existe só no POST /run-tests. Nenhum PATCH/PUT no agente, nenhum deploy ou telefone.
   let invocation = await request(`agents/${encodeURIComponent(args.agentId)}/run-tests`, {
-    tests: mapping.map(({ test_id }) => ({ test_id })), repeat_count: 1, agent_config_override: override,
+    branch_id: approval.branch_id, tests: mapping.map(({ test_id }) => ({ test_id })), repeat_count: 1, agent_config_override: override,
   });
   if (!invocation.id) throw new Error("Execução negativa sem ID");
   const deadline = Date.now() + 10 * 60 * 1000;

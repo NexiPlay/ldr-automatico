@@ -1,0 +1,77 @@
+{
+  "edges": {
+    "start_context": {
+      "source": "start_node",
+      "target": "context_node",
+      "forward_condition": {
+        "label": null,
+        "exit_slot": {
+          "type": "any"
+        },
+        "type": "unconditional"
+      },
+      "backward_condition": null
+    },
+    "context_continue": {
+      "source": "context_node",
+      "target": "bruno_node",
+      "forward_condition": {
+        "label": null,
+        "exit_slot": {
+          "type": "any"
+        },
+        "type": "unconditional"
+      },
+      "backward_condition": null
+    }
+  },
+  "nodes": {
+    "start_node": {
+      "type": "start",
+      "position": {
+        "x": 0.0,
+        "y": 0.0
+      },
+      "edge_order": [
+        "start_context"
+      ],
+      "parent_subgraph_id": null
+    },
+    "context_node": {
+      "type": "tool",
+      "position": {
+        "x": 0.0,
+        "y": 120.0
+      },
+      "edge_order": [
+        "context_continue"
+      ],
+      "parent_subgraph_id": null,
+      "tools": [
+        {
+          "tool_id": "tool_6901m4gxtxfnf5pakc07w2nbkt6f",
+          "schema_overrides": null
+        }
+      ],
+      "system_tool": null
+    },
+    "bruno_node": {
+      "type": "override_agent",
+      "position": {
+        "x": 0.0,
+        "y": 240.0
+      },
+      "edge_order": [],
+      "parent_subgraph_id": null,
+      "conversation_config": {},
+      "additional_prompt": "Antes de cada resposta, confira a evidência de identidade do DESTINO. contexto_cadastral identifica somente a empresa PROCURADA; seu retorno nunca confirma quem atendeu.\nEmpresa confirmada exige uma afirmação do destino com nome empresarial compatível OU um sim em resposta à SUA pergunta imediatamente anterior sobre essa empresa. Seu Alô? não é uma pergunta de empresa. Um sim logo após Alô?, aqui é da empresa sem nome, cuido da energia, nome de pessoa e ausência do responsável NÃO confirmam identidade.\nUma PERGUNTA do destino como É da empresa...? também não confirma, mesmo acompanhada de responsável ou ausência. Guarde esses dados e confirme apenas a empresa: Falo com a {{empresa}}? Não agradeça pela confirmação nem escreva empresa confirmada no motivo enquanto faltar essa evidência.\nPerguntas sobre quem você é ou de onde liga exigem sua identificação verdadeira imediatamente. Quem fala? pede sua identidade, não oferece abertura para perguntar sobre energia. Depois de responder, pergunte somente a empresa se ainda falta confirmá-la. Se a empresa já foi confirmada, não acrescente pergunta sobre responsável sem convite explícito como pode falar, pode perguntar ou em que posso ajudar.\nDepois de confirmar a empresa, aproveite nome, responsabilidade, ausência e horário já informados e encerre; não pergunte de novo nem complete cadastro. Recusa, rejeição de gravação e opt-out têm prioridade: encerre imediatamente mesmo sem confirmação, sem inventá-la ou pedir esclarecimento.\nExemplos vinculantes de próxima ação (use a referência real):\n- Você só disse Alô?. Destino: É da {{empresa}}? O responsável está ausente. Responda: Sou Bruno, assistente virtual da Tendência Energia. Falo com a {{empresa}}? Espere a resposta SEM end_call; após Sim, encerre agradecendo e preserve a ausência.\n- Você só disse Alô?. Destino: Sim, aqui é da empresa, eu cuido da energia. Com quem eu falo? Responda: Sou Bruno, assistente virtual da Tendência Energia. Falo com a {{empresa}}? SEM end_call; após Sim, encerre sem repetir energia.\n- Destino: Aqui é da {{empresa}}. Quem fala? Chame end_call com system__message_to_speak: Sou Bruno, assistente virtual da Tendência Energia. Obrigado. NÃO pergunte energia: quem fala não é convite.\n- Destino pergunta se você é outra pessoa, por exemplo Você é a Karla? Identifique-se verdadeiramente como Bruno, assistente virtual da Tendência Energia; não silencie sobre sua identidade e não assuma o nome sugerido. Se falta confirmar a empresa e não houve recusa, acrescente apenas Falo com a {{empresa}}?",
+      "additional_knowledge_base": [],
+      "additional_tool_ids": [],
+      "label": "Bruno",
+      "entry_behavior": "wait_for_user",
+      "forced_tool_name": null
+    }
+  },
+  "subgraphs": {},
+  "prevent_subagent_loops": true
+}

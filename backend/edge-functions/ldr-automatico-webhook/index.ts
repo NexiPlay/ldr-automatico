@@ -1,3 +1,4 @@
+import { registrarCustoDigital } from "../_shared/digital-gasto.ts";
 // LDR Automático — recebe o webhook de pós-chamada do ElevenLabs (evento
 // "post_call_transcription") e grava o veredito no telefone testado.
 //
@@ -322,7 +323,7 @@ async function resolverCusto(
 // WEBHOOK
 // ============================================================
 
-Deno.serve(async (req: Request) => {
+async function processarWebhook(req: Request): Promise<Response> {
   if (req.method !== "POST") {
     return respostaJson({ ok: false, erro: "method_not_allowed" }, 405);
   }
@@ -650,5 +651,22 @@ Deno.serve(async (req: Request) => {
       },
       500,
     );
+  }
+}
+
+Deno.serve(async (req: Request) => {
+  const copia = req.clone();
+  const resposta = await processarWebhook(req);
+  // N?o atrasar nem impedir opt-out/veredito pela indisponibilidade da contabilidade.
+  // Somente o handler autenticado pode produzir sucesso para um POST de p?s-chamada.
+  if (!resposta.ok || req.method === "OPTIONS") return resposta;
+  const evento = await copia.json().catch(() => null);
+  if (evento?.type !== "post_call_transcription") return resposta;
+  try {
+    const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
+    await registrarCustoDigital(sb, evento.data);
+    return resposta;
+  } catch {
+    return respostaJson({ok:false,erro:"custo_digital_pendente_reentregar"},503);
   }
 });

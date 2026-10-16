@@ -21,7 +21,7 @@ Deno.test("redflag: boolean/object/string canônicos; false não vira true e aus
   for (const value of [1, "sim", [], { value: "unknown" }]) assert.throws(() => extrairRedflag({ data_collection_results: { redflag: value } }));
 });
 
-async function run(values: unknown[], options: { failure?: string; missingPhone?: boolean; badSignature?: boolean; } = {}) {
+async function run(values: unknown[], options: { failure?: string; missingPhone?: boolean; badSignature?: boolean; budgetError?: boolean; } = {}) {
   const records = new Map<string, unknown>();
   const calls: Array<{name:string;args:Record<string, unknown>}> = [];
   const writes: Query[] = [];
@@ -29,6 +29,7 @@ async function run(values: unknown[], options: { failure?: string; missingPhone?
   await withEdge("ldr-automatico-webhook", {
     fetch: unexpectedFetch,
     rpc(name, args) {
+      if(name === "np_fn_digital_gasto_registrar") return {data:{digital:false},error:options.budgetError ? {message:"offline"}:null};
       calls.push({ name, args });
       if (name === "np_fn_opt_out_registrar") {
         assert.ok(!(args.p_e164 && args.p_cnpj), "Uma chave por chamada do serviço SON-1.4");
@@ -102,4 +103,11 @@ Deno.test("redflag: erro de persistência ou correlação exige reentrega e não
   const unsigned=await run([true],{badSignature:true});
   assert.equal(unsigned.responses[0].status,401);
   assert.equal(unsigned.calls.length,0);
+});
+
+Deno.test("DIG-2.5: falha financeira pede reentrega sem impedir opt-out", async () => {
+  const r = await run([{value:true}], {budgetError:true});
+  assert.equal(r.responses[0].status,503);
+  assert.equal(r.records.size,2);
+  assert.ok(r.writes.some(q=>q.table === "np_lead_telefones" && q.action === "update"));
 });
